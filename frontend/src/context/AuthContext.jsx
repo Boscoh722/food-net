@@ -11,11 +11,12 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token) {
       api.defaults.headers.Authorization = `Bearer ${token}`;
-      // Optional: verify token
+      // Verify token and get user
       api.get('/auth/me').then(res => {
         setUser(res.data);
       }).catch(() => {
         localStorage.removeItem('token');
+        delete api.defaults.headers.Authorization;
       }).finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/api/auth/login', { email, password });
+    const res = await api.post('/auth/login', { email, password });
     const { token, user } = res.data;
     localStorage.setItem('token', token);
     api.defaults.headers.Authorization = `Bearer ${token}`;
@@ -32,7 +33,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (formData) => {
-    const res = await api.post('/api/auth/register', formData);
+    const res = await api.post('/auth/register', formData);
     const { token, user } = res.data;
     localStorage.setItem('token', token);
     api.defaults.headers.Authorization = `Bearer ${token}`;

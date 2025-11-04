@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import User from '../models/User.js';
 import { body, validationResult } from 'express-validator';
 
 export const createProductValidations = [
@@ -13,11 +14,16 @@ export const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  if (!req.user.approved) return res.status(403).json({ message: 'Seller not approved' });
-
   try {
+    // Check if seller is approved
+    const seller = await User.findById(req.user.id);
+    if (!seller || !seller.approved) {
+      return res.status(403).json({ message: 'Seller not approved. Please wait for admin approval.' });
+    }
+
     const product = new Product({ ...req.body, seller: req.user.id });
     await product.save();
+    await product.populate('seller', 'name location');
     res.status(201).json(product);
   } catch (err) {
     res.status(400).json({ message: err.message });
