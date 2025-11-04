@@ -1,3 +1,4 @@
+// src/pages/Products.jsx
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 import ProductCard from '../components/ProductCard';
@@ -8,7 +9,7 @@ export default function Products() {
   useEffect(() => {
     api.get('/products')
       .then(res => setProducts(res.data))
-      .catch(err => console.error(err));
+      .catch(() => alert('Failed to load products'));
   }, []);
 
   return (

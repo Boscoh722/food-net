@@ -31,7 +31,7 @@ function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/complaints" element={<Complaints />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms and Conditions />} />
+            <Route path="/terms" element={<Terms />} />
 
             {/* Role-based Dashboards */}
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
