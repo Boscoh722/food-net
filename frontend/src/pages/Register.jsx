@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Phone, IdCard, MapPin, Globe, UserPlus, AlertCircle } from 'lucide-react';
+import { 
+  User, Mail, Lock, Phone, IdCard, MapPin, Globe, 
+  UserPlus, AlertCircle, Leaf 
+} from 'lucide-react';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -12,27 +15,26 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const PRIMARY_COLOR = 'emerald-600';
+  const SECONDARY_COLOR = 'amber-500';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       const user = await register(form);
-      // Route based on user role
-      if (user.role === 'admin') {
-        navigate('/dashboard/admin');
-      } else if (user.role === 'seller') {
-        navigate('/dashboard/seller');
-      } else if (user.role === 'buyer') {
-        navigate('/dashboard/buyer');
-      } else if (user.role === 'logistics') {
-        navigate('/dashboard/logistics');
-      } else {
-        navigate('/');
-      }
+      if (user.role === 'admin') navigate('/dashboard/admin');
+      else if (user.role === 'seller') navigate('/dashboard/seller');
+      else if (user.role === 'buyer') navigate('/dashboard/buyer');
+      else if (user.role === 'logistics') navigate('/dashboard/logistics');
+      else navigate('/');
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Registration failed';
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.msg ||
+        'Registration failed. Please try again.';
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -46,32 +48,39 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-white to-secondary/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto animate-fade-in">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-secondary p-8 text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center font-inter relative overflow-hidden">
+      {/* === Background Gradient Effect === */}
+      <div className="absolute inset-0 z-0 opacity-10">
+        <div className={`w-96 h-96 bg-${PRIMARY_COLOR} rounded-full absolute top-10 left-10 blur-3xl mix-blend-multiply animate-blob`}></div>
+        <div className={`w-96 h-96 bg-${SECONDARY_COLOR} rounded-full absolute bottom-10 right-10 blur-3xl mix-blend-multiply animation-delay-2000 animate-blob`}></div>
+      </div>
+
+      {/* === Register Card === */}
+      <div className="max-w-2xl w-full relative z-10 animate-fade-in-up">
+        <div className={`bg-white dark:bg-gray-800 rounded-3xl shadow-2xl shadow-gray-400/30 dark:shadow-gray-900/50 overflow-hidden border-t-4 border-${PRIMARY_COLOR}`}>
+          {/* === Header === */}
+          <div className={`bg-gradient-to-br from-${PRIMARY_COLOR} to-emerald-800 p-10 text-center`}>
+            <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-white shadow-xl">
+              <Leaf className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Join Food-Net</h1>
-            <p className="text-white/80">Create your account to get started</p>
+            <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">Create Your Account</h1>
+            <p className="text-white/90 font-light">Join the Food-Net community today</p>
           </div>
 
-          {/* Form */}
-          <div className="p-8">
+          {/* === Form === */}
+          <div className="p-8 sm:p-10">
             {error && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-400 animate-slide-up">
-                <AlertCircle className="w-5 h-5" />
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-400 animate-shake shadow-sm font-medium">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* === Name & Email === */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Full Name
                   </label>
                   <div className="relative">
@@ -81,14 +90,14 @@ export default function Register() {
                       placeholder="John Doe"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                      className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
@@ -98,15 +107,16 @@ export default function Register() {
                       placeholder="you@example.com"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                      className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                       required
                     />
                   </div>
                 </div>
               </div>
 
+              {/* === Password === */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -116,28 +126,28 @@ export default function Register() {
                     placeholder="Minimum 6 characters"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                    className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                     required
                     minLength={6}
                   />
                 </div>
               </div>
 
-              {/* Role Selection */}
+              {/* === Role Selection === */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   I want to join as:
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {roleOptions.map((role) => (
                     <button
                       key={role.value}
                       type="button"
                       onClick={() => setForm({ ...form, role: role.value })}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                         form.role === role.value
-                          ? 'border-primary bg-primary/10 dark:bg-primary/20'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
+                          ? `border-${PRIMARY_COLOR} bg-${PRIMARY_COLOR}/10 dark:bg-${PRIMARY_COLOR}/20`
+                          : 'border-gray-300 dark:border-gray-600 hover:border-emerald-400/50'
                       }`}
                     >
                       <div className="text-2xl mb-2">{role.icon}</div>
@@ -148,11 +158,11 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Conditional Fields */}
+              {/* === Conditional Fields === */}
               {(form.role === 'seller' || form.role === 'buyer') && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-up">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Phone Number
                     </label>
                     <div className="relative">
@@ -162,23 +172,24 @@ export default function Register() {
                         placeholder="+254 700 000 000"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                        className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                         required
                       />
                     </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       National ID Number
                     </label>
                     <div className="relative">
                       <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="ID Number (hidden)"
+                        placeholder="ID Number"
                         value={form.idNumber}
                         onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                        className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                         required
                       />
                     </div>
@@ -187,9 +198,9 @@ export default function Register() {
               )}
 
               {form.role === 'logistics' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-up">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Location
                     </label>
                     <div className="relative">
@@ -199,13 +210,14 @@ export default function Register() {
                         placeholder="Nairobi, Kenya"
                         value={form.location}
                         onChange={(e) => setForm({ ...form, location: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                        className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                         required
                       />
                     </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Service Reach
                     </label>
                     <div className="relative">
@@ -215,7 +227,7 @@ export default function Register() {
                         placeholder="Nationwide / Regional"
                         value={form.reach}
                         onChange={(e) => setForm({ ...form, reach: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                        className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
                         required
                       />
                     </div>
@@ -223,10 +235,20 @@ export default function Register() {
                 </div>
               )}
 
+              {/* === Submit Button === */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className={`
+                  w-full 
+                  bg-gradient-to-br from-emerald-600 via-green-600 to-amber-500 
+                  text-white py-3 px-6 rounded-xl font-semibold text-lg 
+                  shadow-lg shadow-emerald-500/30 
+                  hover:shadow-emerald-500/50 hover:scale-[1.03] 
+                  transition-all duration-300 ease-out 
+                  flex items-center justify-center gap-3 group 
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                `}
               >
                 {loading ? (
                   <>
@@ -235,19 +257,20 @@ export default function Register() {
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-5 h-5" />
+                    <UserPlus className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                     <span>Create Account</span>
                   </>
                 )}
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            {/* === Footer Link === */}
+            <div className="mt-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <Link
                   to="/login"
-                  className="text-primary font-semibold hover:text-secondary transition-colors duration-200"
+                  className={`text-${PRIMARY_COLOR} font-bold hover:text-emerald-500 transition-colors duration-200`}
                 >
                   Sign in here
                 </Link>
@@ -256,6 +279,34 @@ export default function Register() {
           </div>
         </div>
       </div>
+
+      {/* === Animations === */}
+      <style>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        @keyframes fadeInMoveUp {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInMoveUp 0.6s ease-out;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-5px); }
+          40%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
