@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../lib/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  Search, MapPin, ArrowRight, ShoppingBag, Users, Truck,
-  DollarSign, Feather, Zap
+  Search, ArrowRight, ShoppingBag, Users, Truck,
+  DollarSign
 } from 'lucide-react';
 import L from 'leaflet';
 
-// Fix Leaflet default icon issue
+// -------------------------------------------------
+// Leaflet icon fix
+// -------------------------------------------------
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -17,30 +20,76 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+// -------------------------------------------------
+// Data
+// -------------------------------------------------
 const categories = [
-  { name: 'Fruits', icon: '🍎', color: 'from-red-400 to-pink-500' },
-  { name: 'Vegetables', icon: '🥬', color: 'from-green-400 to-emerald-500' },
-  { name: 'Grains', icon: '🌾', color: 'from-yellow-400 to-orange-500' },
-  { name: 'Dairy', icon: '🥛', color: 'from-blue-400 to-cyan-500' },
-  { name: 'Meats', icon: '🥩', color: 'from-red-500 to-rose-600' },
-  { name: 'Fish', icon: '🐟', color: 'from-blue-500 to-indigo-600' },
-  { name: 'Spices', icon: '🌶️', color: 'from-orange-500 to-red-600' },
-  { name: 'Tubers', icon: '🥔', color: 'from-amber-400 to-yellow-500' },
-];
+  { name: 'Fruits',     path: 'fruits',     icon: '🍎', title: 'Fresh Fruits', color: 'from-red-400 to-pink-500' },
+  { name: 'Vegetables', path: 'vegetables', icon: '🥬', title: 'Fresh Vegetables', color: 'from-green-400 to-emerald-500' },
+  { name: 'Grains',     path: 'grains',     icon: '🌾', title: 'Grains & Cereals', color: 'from-yellow-400 to-orange-500' },
+  { name: 'Dairy',      path: 'dairy',      icon: '🥛', title: 'Dairy Products', color: 'from-blue-400 to-cyan-500' },
+  { name: 'Meats',      path: 'meats',      icon: '🥩', title: 'Meats', color: 'from-red-500 to-rose-600' },
+  { name: 'Fish',       path: 'fish',       icon: '🐟', title: 'Fish', color: 'from-blue-500 to-indigo-600' },
+  { name: 'Spices',     path: 'spices',     icon: '🌶️', title: 'Spices', color: 'from-orange-500 to-red-600' },
+  { name: 'Tubers',     path: 'tubers',     icon: '🥔', title: 'Tubers', color: 'from-amber-400 to-yellow-500' }
+]; 
 
 const features = [
   { icon: ShoppingBag, title: 'Fresh Products', desc: 'Direct from local farmers' },
-  { icon: Users, title: 'Trusted Network', desc: 'Verified sellers and buyers' },
-  { icon: Truck, title: 'Fast Delivery', desc: 'Efficient logistics across Kenya' },
+  { icon: Users,       title: 'Trusted Network', desc: 'Verified sellers and buyers' },
+  { icon: Truck,       title: 'Fast Delivery',   desc: 'Efficient logistics across Kenya' },
 ];
 
-
+// -------------------------------------------------
+// Component
+// -------------------------------------------------
 function Home() {
   const { user } = useAuth();
 
+  // ---------- Products ----------
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Load all products once
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const { data } = await api.get('/products');
+        setProducts(data);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // ---------- Filtered markers ----------
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery) return products;
+    const q = searchQuery.toLowerCase();
+    return products.filter(p =>
+      p.name?.toLowerCase().includes(q) ||
+      p.location?.toLowerCase().includes(q) ||
+      p.category?.toLowerCase().includes(q)
+    );
+  }, [products, searchQuery]);
+
+  // ---------- Dynamic map centre ----------
+  const mapCenter = useMemo(() => {
+    const withCoords = filteredProducts.filter(p => p.coordinates);
+    if (withCoords.length === 0) return [-1.2921, 36.8219]; // Kenya default
+    const avgLat = withCoords.reduce((s, p) => s + p.coordinates.lat, 0) / withCoords.length;
+    const avgLng = withCoords.reduce((s, p) => s + p.coordinates.lng, 0) / withCoords.length;
+    return [avgLat, avgLng];
+  }, [filteredProducts]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-inter">
-      {/* Hero Section */}
+
+      {/* ====================== HERO ====================== */}
       <section className="relative bg-gradient-to-br from-green-600 via-emerald-700 to-green-800 text-white py-24 md:py-36 overflow-hidden shadow-2xl">
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="container mx-auto px-6 relative z-10 text-center">
@@ -51,12 +100,20 @@ function Home() {
           <p className="text-xl md:text-2xl mb-10 text-white/90 font-light">
             Connect directly with local producers. Buy fresh, sell fair, deliver fast.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link to="/products" className="px-10 py-4 bg-amber-400 text-gray-900 font-bold text-lg rounded-xl hover:bg-amber-300 transition-all duration-300 shadow-2xl flex items-center gap-2">
+            <Link
+              to="/products"
+              className="px-10 py-4 bg-amber-400 text-gray-900 font-bold text-lg rounded-xl hover:bg-amber-300 transition-all duration-300 shadow-2xl flex items-center gap-2"
+            >
               <ShoppingBag className="w-6 h-6" /> Start Shopping
             </Link>
+
             {!user && (
-              <Link to="/register" className="px-10 py-4 bg-white/20 text-white font-semibold text-lg rounded-xl border border-white/50 hover:bg-white/30 transition-all duration-300 shadow-lg flex items-center gap-2">
+              <Link
+                to="/register"
+                className="px-10 py-4 bg-white/20 text-white font-semibold text-lg rounded-xl border border-white/50 hover:bg-white/30 transition-all duration-300 shadow-lg flex items-center gap-2"
+              >
                 <DollarSign className="w-5 h-5" /> Sell With Us
               </Link>
             )}
@@ -64,51 +121,77 @@ function Home() {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="h-[500px] lg:h-[650px]">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 h-full border border-gray-200 dark:border-gray-700">
-              <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-green-600" /> Discover Nearby Farms
-              </h2>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <Search className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search location or item..."
-                  className="grow px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-4 focus:ring-green-500/30 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                />
+      {/* ====================== MAP + CATEGORIES (SIDE BY SIDE) ====================== */}
+      <section className="container mx-auto px-6 py-12">
+        {/* Search bar (full width, above the grid) */}
+        <div className="max-w-xl mx-auto mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search products, locations or categories..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              aria-label="Search map markers"
+            />
+          </div>
+        </div>
+
+        {/* Two-column layout: Map (left) | Categories (right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT: Map */}
+          <div className="h-96 lg:h-full min-h-96 rounded-xl overflow-hidden shadow-lg order-1 lg:order-1">
+            {loading ? (
+              <div className="flex items-center justify-center h-full bg-gray-100">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
               </div>
-              <div className="h-[calc(100%-140px)] rounded-xl overflow-hidden border-2 border-green-500/50">
-                <MapContainer center={[-1.2921, 36.8219]} zoom={6} className="h-full w-full">
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[-1.2921, 36.8219]}>
-                    <Popup>Mock Farm Location</Popup>
-                  </Marker>
-                </MapContainer>
-              </div>
-            </div>
+            ) : (
+              <MapContainer
+                center={mapCenter}
+                zoom={filteredProducts.length === 1 ? 10 : 6}
+                style={{ height: '100%', width: '100%' }}
+                key={mapCenter.join(',')}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                {filteredProducts.map(product => (
+                  product.coordinates && (
+                    <Marker
+                      key={product._id}
+                      position={[product.coordinates.lat, product.coordinates.lng]}
+                    >
+                      <Popup>
+                        <div className="p-2 max-w-xs">
+                          <h3 className="font-bold text-green-700">{product.name}</h3>
+                          <p className="text-sm text-gray-600">{product.category}</p>
+                          <p className="text-green-600 font-bold mt-1">KSh {product.price}</p>
+                          <p className="text-sm text-gray-500">{product.location}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )
+                ))}
+              </MapContainer>
+            )}
           </div>
 
-          {/* Categories */}
-          <div>
-            <h2 className="text-4xl font-extrabold mb-4">Shop By Category</h2>
+          {/* RIGHT: Categories */}
+          <div className="order-2 lg:order-2">
+            <h2 className="text-3xl font-extrabold mb-4">Shop By Category</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg border-l-4 border-amber-500 pl-3 mb-6">
               Explore our wide range of agricultural products.
             </p>
+
             <div className="grid grid-cols-2 gap-4">
-              {categories.map((cat) => (
-                <Link key={cat.name} to="/products"
-                  className={`group relative p-6 rounded-2xl bg-gradient-to-br ${cat.color} text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-lg`}
+              {categories.map(cat => (
+                <Link
+                  key={cat.name}
+                  to={`/products/category/${cat.path}`}
+                  className={`group relative p-5 rounded-2xl bg-gradient-to-br ${cat.color} text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-lg flex flex-col items-center justify-center`}
                 >
-                  <div className="text-5xl mb-2">{cat.icon}</div>
-                  <h3 className="font-bold text-xl">{cat.name}</h3>
-                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
+                  <span className="text-4xl mb-2">{cat.icon}</span>
+                  <h3 className="font-bold text-lg">{cat.name}</h3>
+                  <ArrowRight className="absolute bottom-2 right-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               ))}
             </div>
@@ -116,6 +199,20 @@ function Home() {
         </div>
       </section>
 
+      {/* ====================== FEATURES ====================== */}
+      <section className="bg-gray-50 dark:bg-gray-800 py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((f, i) => (
+              <div key={i} className="text-center">
+                <f.icon className="w-12 h-12 mx-auto mb-4 text-amber-500" />
+                <h3 className="text-xl font-bold mb-2">{f.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
     </div>
   );

@@ -6,7 +6,7 @@ dotenv.config();
 
 const adminData = {
   name: 'Admin',
-  email: 'admin@example.com',
+  email: 'admin@foodnet.com',
   password: 'Admin@boscoh.com',
   role: 'admin',
 };
