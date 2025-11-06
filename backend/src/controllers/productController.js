@@ -49,3 +49,22 @@ export const approveProduct = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getAllProducts = async (req, res) => {
+  try {
+    // Admin: return all products regardless of approval
+    const products = await Product.find().populate('seller', 'name location');
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};

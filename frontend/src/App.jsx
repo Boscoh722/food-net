@@ -16,6 +16,12 @@ import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import SellerDashboard from './pages/Dashboard/SellerDashboard';
 import BuyerDashboard from './pages/Dashboard/BuyerDashboard';
 import LogisticsDashboard from './pages/Dashboard/LogisticsDashboard';
+import AdminLogin from './pages/AdminLogin';
+import SellerProductCreate from './pages/SellerProductCreate';
+import AdminUsers from './pages/Dashboard/AdminUsers';
+import AdminProducts from './pages/Dashboard/AdminProducts';
+import AdminOrders from './pages/Dashboard/AdminOrders';
+import AdminComplaints from './pages/Dashboard/AdminComplaints';
 
 function App() {
   return (
@@ -26,6 +32,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetail />} />
@@ -58,12 +65,52 @@ function App() {
               } 
             />
             <Route 
+              path="/dashboard/admin/users"
+              element={
+                <PrivateRoute roles={["admin"]}>
+                  <AdminUsers />
+                </PrivateRoute>
+              }
+            />
+            <Route 
+              path="/dashboard/admin/products"
+              element={
+                <PrivateRoute roles={["admin"]}>
+                  <AdminProducts />
+                </PrivateRoute>
+              }
+            />
+            <Route 
+              path="/dashboard/admin/orders"
+              element={
+                <PrivateRoute roles={["admin"]}>
+                  <AdminOrders />
+                </PrivateRoute>
+              }
+            />
+            <Route 
+              path="/dashboard/admin/complaints"
+              element={
+                <PrivateRoute roles={["admin"]}>
+                  <AdminComplaints />
+                </PrivateRoute>
+              }
+            />
+            <Route 
               path="/dashboard/seller" 
               element={
                 <PrivateRoute roles={['seller']}>
                   <SellerDashboard />
                 </PrivateRoute>
               } 
+            />
+            <Route 
+              path="/seller/product/new"
+              element={
+                <PrivateRoute roles={["seller"]}>
+                  <SellerProductCreate />
+                </PrivateRoute>
+              }
             />
             <Route 
               path="/dashboard/buyer" 

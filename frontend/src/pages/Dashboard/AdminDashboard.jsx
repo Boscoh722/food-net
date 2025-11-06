@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, AlertTriangle, UserCheck, BarChart3, Clock, TrendingUp, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Users as UsersIcon, Package as PackageIcon, ShoppingCart, MessageSquare } from 'lucide-react';
 
 // Custom reusable Card component for consistent styling
 const StatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', linkTo = '#' }) => (
@@ -46,18 +47,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* --- Key Metrics Grid --- */}
-        <h2 className="text-2xl font-semibold text-gray-700 mb-5">Key Metrics</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stats.map((stat, index) => (
-            <StatCard 
-              key={index}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              valueColor={stat.valueColor}
-              linkTo={stat.linkTo}
-            />
-          ))}
+        <h2 className="text-2xl font-semibold text-gray-700 mb-5">Key Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Users" value={"Manage"} icon={UsersIcon} linkTo="/dashboard/admin/users" />
+          <StatCard title="Products" value={"Manage"} icon={PackageIcon} linkTo="/dashboard/admin/products" />
+          <StatCard title="Orders" value={"Manage"} icon={ShoppingCart} linkTo="/dashboard/admin/orders" />
+          <StatCard title="Complaints" value={"Manage"} icon={MessageSquare} linkTo="/dashboard/admin/complaints" />
         </div>
 
         {/* --- Main Content Area (Placeholder for Charts/Tables) --- */}

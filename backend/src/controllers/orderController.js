@@ -50,3 +50,21 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().populate('product buyer seller logistics');
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const deleteOrder = async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Order deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};

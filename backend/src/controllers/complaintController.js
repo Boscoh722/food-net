@@ -29,3 +29,12 @@ export const updateComplaintStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const deleteComplaint = async (req, res) => {
+  try {
+    await Complaint.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Complaint deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
