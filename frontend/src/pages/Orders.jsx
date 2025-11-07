@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
+import { 
+  Package, 
+  Truck, 
+  Calendar, 
+  DollarSign, 
+  MapPinHouse, 
+  ShoppingBag, 
+  AlertCircle,
+  ChevronRight
+} from 'lucide-react';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -28,16 +38,34 @@ export default function Orders() {
     }
   };
 
+  const getStatusConfig = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle, label: 'Pending' };
+      case 'confirmed':
+        return { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Package, label: 'Confirmed' };
+      case 'shipped':
+        return { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Truck, label: 'Shipped' };
+      case 'delivered':
+        return { color: 'bg-green-100 text-green-800 border-green-200', icon: Package, label: 'Delivered' };
+      case 'cancelled':
+        return { color: 'bg-red-100 text-red-800 border-red-200', icon: AlertCircle, label: 'Cancelled' };
+      default:
+        return { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Package, label: 'Unknown' };
+    }
+  };
+
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="mb-4">Please login to view orders</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="text-center bg-white p-12 rounded-2xl shadow-xl border border-gray-100">
+          <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+          <p className="text-xl font-semibold text-gray-700 mb-4">Please login to view your orders</p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90"
+            className="px-8 py-3 bg-amber-600 text-white font-bold rounded-lg shadow-lg hover:bg-amber-700 transition-all duration-300 transform hover:scale-105"
           >
-            Login
+            Login Now
           </button>
         </div>
       </div>
@@ -46,9 +74,9 @@ export default function Orders() {
 
   if (user.role !== 'buyer') {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">Only buyers can view orders</p>
+          <p className="text-xl text-gray-600">Only buyers can access this page</p>
         </div>
       </div>
     );
@@ -56,85 +84,154 @@ export default function Orders() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading orders...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-amber-600 border-t-transparent mb-4"></div>
+          <p className="text-xl font-medium text-gray-700">Loading your orders...</p>
+        </div>
       </div>
     );
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'confirmed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'shipped': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'delivered': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
-    }
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">My Orders</h1>
-      {orders.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">No orders yet.</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-6 py-10">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+          <div>
+            <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+              <ShoppingBag className="w-10 h-10 text-amber-600" />
+              My Orders
+            </h1>
+            <p className="text-gray-600 mt-2">Track and manage all your purchases in one place</p>
+          </div>
           <button
             onClick={() => navigate('/products')}
-            className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90"
+            className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
           >
-            Browse Products
+            <ShoppingBag className="w-5 h-5" />
+            Continue Shopping
           </button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order._id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold">
-                    {order.product?.name || 'Product'}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Seller: {order.seller?.name || 'Unknown'}
-                  </p>
-                  {order.logistics && (
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Logistics: {order.logistics?.name || 'Not assigned'}
-                    </p>
-                  )}
-                </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
-                  {order.status?.toUpperCase() || 'PENDING'}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Order Date</p>
-                  <p className="font-medium">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Price</p>
-                  <p className="font-medium text-primary">
-                    KSh {order.product?.price || 'N/A'}
-                  </p>
-                </div>
-                {order.trackingInfo && (
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Tracking</p>
-                    <p className="font-medium">{order.trackingInfo}</p>
-                  </div>
-                )}
-              </div>
+
+        {orders.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-20 bg-white rounded-2xl shadow-2xl border border-gray-100">
+            <div className="inline-flex p-6 bg-amber-50 rounded-full mb-6">
+              <Package className="w-20 h-20 text-amber-400" />
             </div>
-          ))}
-        </div>
-      )}
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">No orders yet!</h3>
+            <p className="text-gray-600 max-w-md mx-auto mb-8">
+              Start shopping now and your orders will appear here with full tracking.
+            </p>
+            <button
+              onClick={() => navigate('/products')}
+              className="inline-flex items-center gap-3 px-8 py-4 bg-amber-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-amber-600 transform hover:scale-105 transition-all duration-300"
+            >
+              <ShoppingBag className="w-6 h-6" />
+              Browse Products Now
+            </button>
+          </div>
+        ) : (
+          /* Orders List */
+          <div className="space-y-6">
+            {orders.map((order) => {
+              const status = getStatusConfig(order.status);
+              const StatusIcon = status.icon;
+
+              return (
+                <div
+                  key={order._id}
+                  className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:border-amber-200 transition-all duration-300 group"
+                >
+                  <div className="p-8">
+                    {/* Header: Product + Status */}
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-extrabold text-gray-800 group-hover:text-amber-600 transition-colors">
+                          {order.product?.name || 'Product Name Unavailable'}
+                        </h3>
+                        <div className="flex items-center gap-4 mt-2 text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <MapPinHouse className="w-4 h-4" />
+                            Seller: <span className="font-medium">{order.seller?.name || 'Unknown'}</span>
+                          </span>
+                          {order.logistics && (
+                            <span className="flex items-center gap-1">
+                              <Truck className="w-4 h-4 text-green-600" />
+                              {order.logistics.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${status.color} font-bold text-sm`}>
+                        <StatusIcon className="w-5 h-5" />
+                        {status.label}
+                      </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-gray-50 rounded-xl p-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <Calendar className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Order Date</p>
+                          <p className="font-bold text-gray-800">
+                            {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                              month: 'short', day: 'numeric', year: 'numeric' 
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Total Price</p>
+                          <p className="font-bold text-green-600 text-xl">
+                            KSh {order.product?.price?.toLocaleString() || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {order.trackingInfo && (
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Truck className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wider">Tracking</p>
+                            <p className="font-bold text-purple-700">{order.trackingInfo}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-end">
+                        <button
+                          onClick={() => navigate(`/orders/${order._id}`)}
+                          className="flex items-center gap-2 text-amber-600 font-bold hover:text-amber-700 transition-colors group"
+                        >
+                          View Details
+                          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Decorative Bottom Bar */}
+                  <div className="h-2 bg-gradient-to-r from-amber-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

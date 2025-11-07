@@ -1,26 +1,161 @@
-import React, { useState } from 'react';
+// src/pages/SellerProductCreate.jsx
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
+import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import {
+  Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf, PlusCircle
+} from 'lucide-react';
+import L from 'leaflet';
+
+// Fix Leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+const KENYA_CENTER = [-1.2921, 36.8219];
+const categories = ['fruits','vegetables','grains','dairy','meats','fish','spices','tubers','nuts','herbs','other'];
+const units = ['kg','gram','ton','liter','milliliter','piece','dozen','crate','sack','bag','bunch','basket','tray','head'];
+
+function LocationMarker({ position, setPosition }) {
+  const map = useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      map.flyTo([lat, lng], 14);
+    },
+  });
+
+  if (!position || position.some(isNaN)) return null;
+
+  return (
+    <Marker position={position}>
+      <Popup>
+        <div className="text-center font-bold text-emerald-700">
+          Your Farm
+          <br /><small>Click to move</small>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
 
 export default function SellerProductCreate() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', description: '', category: 'fruits', price: '', location: '' });
-  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    category: 'vegetables',
+    price: '',
+    unit: 'kg',
+    quantityInStock: '',
+    isNegotiable: false,
+    location: '',
+    coordinates: null,
+    harvestDate: '',
+    images: []
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const err = {};
+  if (!form.name.trim()) err.name = 'Required';
+  if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 characters';
+  if (!form.price || form.price <= 0) err.price = 'Valid price required';
+  if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
+  if (!form.location.trim()) err.location = 'Required';
+  if (form.images.length === 0) err.images = 'Upload at least 1 photo';
+  // Unit validation
+  if (!form.unit || typeof form.unit !== 'string' || !units.includes(form.unit)) err.unit = 'Unit of measurement is required';
+  // Coordinates validation
+  const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+  if (!validCoords) err.coordinates = 'Farm location (map pin) is required';
+  setErrors(err);
+  return Object.keys(err).length === 0;
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    if (form.images.length + files.length > 5) {
+      alert('Maximum 5 photos allowed');
+      return;
+    }
+
+    setUploading(true);
+    const uploaded = [];
+
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'Unsigned'); // Change if needed
+
+        const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.secure_url) {
+          uploaded.push({
+            url: data.secure_url,
+            publicId: data.public_id,
+            isPrimary: form.images.length === 0
+          });
+        }
+      }
+      setForm(prev => ({ ...prev, images: [...prev.images, ...uploaded] }));
+      setSuccess('Images uploaded!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError('Image upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (i) => {
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, idx) => idx !== i)
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    if (!validate()) return;
+
     setLoading(true);
+    setError('');
+    setSuccess('');
+
     try {
-      const payload = { ...form, price: Number(form.price) };
-      const res = await api.post('/products', payload);
-      // On success, navigate to seller products or dashboard
-      navigate('/dashboard/seller');
+      const payload = {
+        ...form,
+        price: Number(form.price),
+        quantityInStock: Number(form.quantityInStock),
+        coordinates: form.coordinates ? { type: 'Point', coordinates: form.coordinates } : undefined
+      };
+
+      await api.post('/products', payload);
+      setSuccess('Product submitted! Awaiting admin approval.');
+      setTimeout(() => navigate('/dashboard/seller'), 2000);
     } catch (err) {
-      const msg = err.response?.data?.message || (err.response?.data?.errors ? err.response.data.errors.map(x=>x.msg).join(', ') : 'Failed to create product');
+      const msg = err.response?.data?.message ||
+        (err.response?.data?.errors?.map(x => x.msg).join(', ')) ||
+        'Failed to create product';
       setError(msg);
     } finally {
       setLoading(false);
@@ -28,54 +163,172 @@ export default function SellerProductCreate() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Post a New Product</h1>
-        <p className="text-sm text-gray-500 mb-6">List an item for sale. Admin approval may be required before it appears publicly.</p>
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
 
-        {error && <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">{error}</div>}
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-extrabold text-gray-800 flex items-center justify-center gap-4">
+            <Leaf className="w-12 h-12 text-emerald-600" />
+            List Your Fresh Produce
+          </h1>
+          <p className="text-xl text-gray-600 mt-3">Reach thousands of buyers across Kenya</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product name</label>
-            <input name="name" value={form.name} onChange={handleChange} required className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white" />
-          </div>
+        {/* Success/Error */}
+        {success && <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl flex items-center gap-3">
+          <CheckCircle2 className="w-6 h-6" /> {success}
+        </div>}
+        {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl">{error}</div>}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} required minLength={10} className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white" />
-          </div>
+        {/* Form */}
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-              <select name="category" value={form.category} onChange={handleChange} className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white">
-                <option value="fruits">Fruits</option>
-                <option value="vegetables">Vegetables</option>
-                <option value="grains">Grains</option>
-                <option value="dairy">Dairy</option>
-                <option value="meats">Meats</option>
-                <option value="other">Other</option>
-              </select>
+            {/* Name & Category */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Product Name</label>
+                <input
+                  type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500"
+                  placeholder="e.g., Fresh Sukuma Wiki"
+                />
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl">
+                  {categories.map(c => (
+                    <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
+            {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price (KES)</label>
-              <input name="price" value={form.price} onChange={handleChange} required type="number" min="0" className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white" />
+              <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+              <textarea
+                value={form.description} onChange={e => setForm({...form, description: e.target.value})}
+                rows="4" className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl resize-none"
+                placeholder="Describe quality, farming method, freshness..."
+              />
+              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
-            <input name="location" value={form.location} onChange={handleChange} required className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white" />
-          </div>
+            {/* Price, Unit, Stock */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Price (KSh)</label>
+                <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl" placeholder="500" />
+                {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Unit</label>
+                <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl">
+                  {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Stock Quantity</label>
+                <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl" placeholder="50" />
+                {errors.quantityInStock && <p className="text-red-500 text-sm mt-1">{errors.quantityInStock}</p>}
+                {errors.unit && <p className="text-red-500 text-sm mt-1">{errors.unit}</p>}
+              </div>
+            </div>
 
-          <div className="pt-4">
-            <button type="submit" disabled={loading} className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition disabled:opacity-60">
-              {loading ? 'Posting...' : 'Post Product'}
-            </button>
-          </div>
-        </form>
+            {/* Negotiable & Harvest */}
+            <div className="flex gap-8">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
+                  className="w-6 h-6 text-emerald-600 rounded" />
+                <span className="font-bold">Price is negotiable</span>
+              </label>
+              <div className="flex-1">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Harvest Date (optional)</label>
+                <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl" />
+              </div>
+            </div>
+
+            {/* Location + Map */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                <MapPin className="inline w-5 h-5 mr-2" />Farm Location
+              </label>
+              <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
+                className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl mb-4" placeholder="e.g., Kitengela, Kajiado" />
+              {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
+              {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
+
+              <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-lg">
+                <MapContainer center={form.coordinates || KENYA_CENTER} zoom={form.coordinates ? 14 : 6}
+                  style={{ height: '100%', width: '100%' }}
+                  key={form.coordinates ? form.coordinates.join(',') : 'default'}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <LocationMarker position={form.coordinates} setPosition={(pos) => setForm(prev => ({ ...prev, coordinates: pos }))} />
+                </MapContainer>
+              </div>
+              <p className="mt-3 text-sm flex items-center gap-2">
+                {form.coordinates ? (
+                  <><CheckCircle2 className="w-5 h-5 text-emerald-600" /> Location pinned</>
+                ) : (
+                  <><AlertCircle className="w-5 h-5 text-amber-600" /> Click map to set location</>
+                )}
+              </p>
+            </div>
+
+            {/* Images */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Product Photos (max 5)</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center">
+                <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img-upload" />
+                <label htmlFor="img-upload" className="cursor-pointer">
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="font-bold text-gray-600">Click to upload</p>
+                  <p className="text-sm text-gray-500">JPG, PNG up to 10MB</p>
+                </label>
+                {uploading && <p className="text-emerald-600 font-bold mt-4">Uploading...</p>}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+                {form.images.map((img, i) => (
+                  <div key={i} className="relative group">
+                    <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl shadow-md" />
+                    {img.isPrimary && <span className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
+                    <button type="button" onClick={() => removeImage(i)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {errors.images && <p className="text-red-500 text-sm mt-2">{errors.images}</p>}
+            </div>
+
+            {/* Submit */}
+            <div className="flex justify-end gap-4 pt-6">
+              <button type="button" onClick={() => navigate(-1)}
+                className="px-8 py-4 border-2 border-gray-300 rounded-2xl font-bold hover:bg-gray-50">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading || uploading}
+                className="px-10 py-4 bg-linear-to-r from-emerald-600 to-green-700 text-white font-bold rounded-2xl shadow-xl hover:from-emerald-700 hover:to-green-800 disabled:opacity-70 flex items-center gap-3">
+                {loading ? 'Submitting...' : (
+                  <>
+                    <Package className="w-6 h-6" />
+                    Submit for Approval
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

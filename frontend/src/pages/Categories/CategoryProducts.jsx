@@ -125,13 +125,22 @@ export default function CategoryProducts() {
                     className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex flex-col gap-2">
                         <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
                         <p className="text-gray-600 mt-1 line-clamp-2">{product.description}</p>
-                        <div className="flex items-center gap-2 mt-2 text-gray-500">
+                        <div className="flex items-center gap-2 text-gray-500">
                           <MapPin className="w-4 h-4" />
                           <span>{product.location}</span>
                         </div>
+                        <div className="flex flex-wrap gap-2 text-xs mt-1">
+                          <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded">{product.unit}</span>
+                          <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">Stock: {product.quantityInStock}</span>
+                          {product.isNegotiable && <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">Negotiable</span>}
+                          {product.harvestDate && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">Harvest: {new Date(product.harvestDate).toLocaleDateString()}</span>}
+                        </div>
+                        {product.images?.[0]?.url && (
+                          <img src={product.images[0].url} alt="Product" className="w-24 h-16 object-cover rounded mt-2" />
+                        )}
                       </div>
                       <div className="text-xl font-bold text-green-600">
                         KSh {product.price}
@@ -149,11 +158,19 @@ export default function CategoryProducts() {
                   product.coordinates && product.coordinates.lat != null && product.coordinates.lng != null && (
                     <Marker key={product._id} position={[product.coordinates.lat, product.coordinates.lng]}>
                       <Popup>
-                        <div className="p-2">
+                        <div className="p-2 min-w-[200px]">
                           <h3 className="font-semibold">{product.name}</h3>
                           <p className="text-sm text-gray-600">{product.description}</p>
-                          <p className="text-green-600 font-bold mt-1">KSh {product.price}</p>
+                          <p className="text-green-600 font-bold mt-1">KSh {product.price} / {product.unit}</p>
                           <p className="text-sm text-gray-500">{product.location}</p>
+                          <div className="flex flex-wrap gap-2 text-xs mt-2">
+                            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">Stock: {product.quantityInStock}</span>
+                            {product.isNegotiable && <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">Negotiable</span>}
+                            {product.harvestDate && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">Harvest: {new Date(product.harvestDate).toLocaleDateString()}</span>}
+                          </div>
+                          {product.images?.[0]?.url && (
+                            <img src={product.images[0].url} alt="Product" className="w-full h-16 object-cover rounded mt-2" />
+                          )}
                         </div>
                       </Popup>
                     </Marker>
