@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
-import { 
-  ShoppingCart, 
-  Package, 
-  MapPin, 
-  User, 
-  Tag, 
+import {
+  ShoppingCart,
+  Package,
+  MapPin,
+  User,
+  Tag,
   AlertCircle,
   ArrowLeft,
   Truck,
   Star,
-  ShieldCheck
+  ShieldCheck,
+  Leaf,
 } from 'lucide-react';
 
 export default function ProductDetail() {
@@ -29,9 +30,9 @@ export default function ProductDetail() {
 
   const loadProduct = async () => {
     try {
-      const res = await api.get(`/products`);
-      const found = res.data.find(p => p._id === id);
-      setProduct(found || null);
+      const res = await api.get(`/products/${id}`);
+      const productData = res.data?.product || res.data;
+      setProduct(productData || null);
     } catch (err) {
       console.error(err);
       alert('Failed to load product');
@@ -52,22 +53,33 @@ export default function ProductDetail() {
       return;
     }
 
-    if (!confirm(`Confirm order for "${product.name}" at KSh ${product.price.toLocaleString()}?`)) {
+    if (!product?._id) {
+      alert('Product information is incomplete. Cannot place order.');
       return;
     }
 
+    if (!confirm(`Confirm order for "${product.name}" at KSh ${Number(product.price || 0).toLocaleString()}?`)) {
+      return;
+    }
+
+    const orderPayload = {
+      items: [
+        {
+          product: product._id,
+          quantity: 1,
+        },
+      ],
+      shippingAddress: user?.location || product.location || 'To be provided',
+      paymentMethod: 'cash',
+    };
+
     setOrdering(true);
     try {
-      const sellerId = product.seller?._id || product.seller || product.sellerId;
-      
-      await api.post('/orders', {
-        product: product._id,
-        seller: sellerId
-      });
-      
+      await api.post('/orders/my', orderPayload);
       alert('Order placed successfully! Redirecting to your orders...');
       navigate('/orders');
     } catch (err) {
+      console.error(err);
       const errorMsg = err.response?.data?.message || 'Failed to place order. Please try again.';
       alert(errorMsg);
     } finally {
@@ -107,6 +119,10 @@ export default function ProductDetail() {
     );
   }
 
+  const coordinates = Array.isArray(product?.coordinates)
+    ? product.coordinates
+    : product?.coordinates?.coordinates || null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-10">
@@ -128,7 +144,11 @@ export default function ProductDetail() {
                 <div className="absolute inset-0 bg-amber-200/30 rounded-3xl blur-3xl -z-10 animate-pulse"></div>
                 <div className="bg-gray-200 border-2 border-dashed border-amber-300 rounded-3xl w-96 h-96 flex items-center justify-center">
                   {product.images && product.images.length > 0 ? (
-                    <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover rounded-3xl" />
+                    <img
+                      src={product.images[0]?.url || product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover rounded-3xl"
+                    />
                   ) : (
                     <Package className="w-32 h-32 text-amber-400" />
                   )}
@@ -149,7 +169,7 @@ export default function ProductDetail() {
                 <div className="flex flex-wrap items-center gap-6 text-gray-600">
                   <span className="flex items-center gap-2">
                     <Tag className="w-5 h-5 text-amber-600" />
-                    {product.category || 'Uncategorized'}
+                    {product.category?.name || product.category || 'Uncategorized'}
                   </span>
                   <span className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-green-600" />
@@ -289,10 +309,10 @@ export default function ProductDetail() {
                   <Package className="w-10 h-10 text-purple-600 mx-auto mb-2" />
                   <p className="text-sm font-bold text-gray-700">Quality Assured</p>
                 </div>
-                {product.coordinates && Array.isArray(product.coordinates) && product.coordinates.length === 2 && (
+                {Array.isArray(coordinates) && coordinates.length === 2 && (
                   <div>
                     <MapPin className="w-10 h-10 text-green-700 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-gray-700">Lat: {product.coordinates[0]}, Lng: {product.coordinates[1]}</p>
+                    <p className="text-sm font-bold text-gray-700">Lat: {coordinates[0]}, Lng: {coordinates[1]}</p>
                   </div>
                 )}
               </div>

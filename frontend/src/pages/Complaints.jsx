@@ -36,7 +36,7 @@ export default function Complaints() {
     setLoading(true);
     setError('');
     try {
-      await api.post('/complaints', { message: complaint });
+      await api.post('/complaints/my', { message: complaint });
       setSubmitted(true);
       setComplaint('');
       setTimeout(() => setSubmitted(false), 5000);

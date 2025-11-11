@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -5,14 +6,13 @@ import api from '../lib/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  Search, ArrowRight, ShoppingBag, Users, Truck,
-  DollarSign
+  Search, ArrowRight, ShoppingBag, Users, Truck, DollarSign
 } from 'lucide-react';
 import L from 'leaflet';
 
-// -------------------------------------------------
+// ──────────────────────────────────────────────────────────────
 // Leaflet icon fix
-// -------------------------------------------------
+// ──────────────────────────────────────────────────────────────
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -20,19 +20,23 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// -------------------------------------------------
-// Data
-// -------------------------------------------------
-const categories = [
-  { name: 'Fruits',     path: 'fruits',     icon: '🍎', title: 'Fresh Fruits', color: 'from-red-400 to-pink-500' },
-  { name: 'Vegetables', path: 'vegetables', icon: '🥬', title: 'Fresh Vegetables', color: 'from-green-400 to-emerald-500' },
-  { name: 'Grains',     path: 'grains',     icon: '🌾', title: 'Grains & Cereals', color: 'from-yellow-400 to-orange-500' },
-  { name: 'Dairy',      path: 'dairy',      icon: '🥛', title: 'Dairy Products', color: 'from-blue-400 to-cyan-500' },
-  { name: 'Meats',      path: 'meats',      icon: '🥩', title: 'Meats', color: 'from-red-500 to-rose-600' },
-  { name: 'Fish',       path: 'fish',       icon: '🐟', title: 'Fish', color: 'from-blue-500 to-indigo-600' },
-  { name: 'Spices',     path: 'spices',     icon: '🌶️', title: 'Spices', color: 'from-orange-500 to-red-600' },
-  { name: 'Tubers',     path: 'tubers',     icon: '🥔', title: 'Tubers', color: 'from-amber-400 to-yellow-500' }
-]; 
+// ──────────────────────────────────────────────────────────────
+// Static Data
+// ──────────────────────────────────────────────────────────────
+// This map links the visual data (colors) to the category slug
+const categoryColorMap = {
+  fruits: { color: 'from-red-400 to-pink-500' },
+  vegetables: { color: 'from-green-400 to-emerald-500' },
+  grains: { color: 'from-yellow-400 to-amber-500' },
+  dairy: { color: 'from-blue-400 to-indigo-500' },
+  meats: { color: 'from-red-600 to-red-700' },
+  fish: { color: 'from-sky-400 to-cyan-500' },
+  spices: { color: 'from-orange-400 to-red-500' },
+  tubers: { color: 'from-amber-700 to-yellow-800' },
+  nuts: { color: 'from-yellow-700 to-yellow-800' },
+  herbs: { color: 'from-lime-400 to-green-500' },
+  other: { color: 'from-gray-400 to-gray-500' },
+};
 
 const features = [
   { icon: ShoppingBag, title: 'Fresh Products', desc: 'Direct from local farmers' },
@@ -40,25 +44,31 @@ const features = [
   { icon: Truck,       title: 'Fast Delivery',   desc: 'Efficient logistics across Kenya' },
 ];
 
-// -------------------------------------------------
-// Component
-// -------------------------------------------------
+// ──────────────────────────────────────────────────────────────
+// Home Component
+// ──────────────────────────────────────────────────────────────
 function Home() {
   const { user } = useAuth();
 
-  // ---------- Products ----------
-  const [products, setProducts] = useState([]);
+  // ── State ─────────────────────────────────────────────────────
+  const [products, setProducts] = useState([]);     // Always array
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [categories, setCategories] = useState([]); // State for fetched categories
+  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
 
-  // Load all products once
+
+  // ── Fetch Products ────────────────────────────────────────────
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const { data } = await api.get('/products');
-        setProducts(data);
+        setLoading(true);
+        const { data } = await api.get('/products?limit=50&approved=true');
+        setProducts(Array.isArray(data) ? data : data?.products || []);
       } catch (err) {
         console.error('Failed to load products:', err);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -66,26 +76,69 @@ function Home() {
     loadProducts();
   }, []);
 
-  // ---------- Filtered markers ----------
+  // ── Fetch Categories ──────────────────────────────────────────
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoryLoading(true);
+      try {
+        const { data } = await api.get('/categories'); // Fetch from new endpoint
+
+        // Map the fetched data to include frontend visual data
+        const list = Array.isArray(data) ? data : data?.data || [];
+        const mappedCategories = list.map(cat => ({
+          name: cat.name,
+          path: cat.slug,
+          // ---
+          // THE FIX: Use cat.icon directly from the database
+          // ---
+          icon: cat.icon || '📦', 
+          color: categoryColorMap[cat.slug]?.color || 'from-gray-400 to-gray-500',
+        }));
+        
+        setCategories(mappedCategories);
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // ── Filter Products Safely ───────────────────────────────────
   const filteredProducts = useMemo(() => {
-    if (!searchQuery) return products;
+    if (!Array.isArray(products)) return [];
+
+    if (!searchQuery.trim()) return products;
+
     const q = searchQuery.toLowerCase();
-    return products.filter(p =>
-      p.name?.toLowerCase().includes(q) ||
-      p.location?.toLowerCase().includes(q) ||
-      p.category?.toLowerCase().includes(q)
-    );
+    return products.filter(p => {
+      const name = p.name?.toLowerCase() || '';
+      const location = p.location?.toLowerCase() || '';
+      const category = p.category?.name?.toLowerCase() || p.category?.toLowerCase() || '';
+      return name.includes(q) || location.includes(q) || category.includes(q);
+    });
   }, [products, searchQuery]);
 
-  // ---------- Dynamic map centre ----------
+  // ── Map Center (Dynamic) ─────────────────────────────────────
   const mapCenter = useMemo(() => {
-    const withCoords = filteredProducts.filter(p => p.coordinates);
-    if (withCoords.length === 0) return [-1.2921, 36.8219]; // Kenya default
-    const avgLat = withCoords.reduce((s, p) => s + p.coordinates.lat, 0) / withCoords.length;
-    const avgLng = withCoords.reduce((s, p) => s + p.coordinates.lng, 0) / withCoords.length;
+    const withCoords = filteredProducts
+      .map(p => {
+        if (Array.isArray(p.coordinates)) return p.coordinates;
+        if (Array.isArray(p.coordinates?.coordinates)) return p.coordinates.coordinates;
+        return null;
+      })
+      .filter(coords => Array.isArray(coords) && coords.length === 2 && coords.every(c => typeof c === 'number'));
+
+    if (withCoords.length === 0) return [-1.2921, 36.8219]; // Nairobi
+
+    const avgLat = withCoords.reduce((sum, coords) => sum + coords[0], 0) / withCoords.length;
+    const avgLng = withCoords.reduce((sum, coords) => sum + coords[1], 0) / withCoords.length;
     return [avgLat, avgLng];
   }, [filteredProducts]);
 
+  // ── Render ───────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-inter">
 
@@ -121,9 +174,9 @@ function Home() {
         </div>
       </section>
 
-      {/* ====================== MAP + CATEGORIES (SIDE BY SIDE) ====================== */}
+      {/* ====================== MAP + CATEGORIES ====================== */}
       <section className="container mx-auto px-6 py-12">
-        {/* Search bar (full width, above the grid) */}
+        {/* Search Bar */}
         <div className="max-w-xl mx-auto mb-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -138,7 +191,7 @@ function Home() {
           </div>
         </div>
 
-        {/* Two-column layout: Map (left) | Categories (right) */}
+        {/* Grid: Map | Categories */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* LEFT: Map */}
           <div className="h-96 lg:h-full min-h-96 rounded-xl overflow-hidden shadow-lg order-1 lg:order-1">
@@ -155,7 +208,7 @@ function Home() {
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 {filteredProducts.map(product => (
-                  product.coordinates && (
+                  product.coordinates?.lat && product.coordinates?.lng && (
                     <Marker
                       key={product._id}
                       position={[product.coordinates.lat, product.coordinates.lng]}
@@ -163,7 +216,9 @@ function Home() {
                       <Popup>
                         <div className="p-2 max-w-xs">
                           <h3 className="font-bold text-green-700">{product.name}</h3>
-                          <p className="text-sm text-gray-600">{product.category}</p>
+                          <p className="text-sm text-gray-600">
+                            {product.category?.name || product.category}
+                          </p>
                           <p className="text-green-600 font-bold mt-1">KSh {product.price}</p>
                           <p className="text-sm text-gray-500">{product.location}</p>
                         </div>
@@ -179,22 +234,27 @@ function Home() {
           <div className="order-2 lg:order-2">
             <h2 className="text-3xl font-extrabold mb-4">Shop By Category</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg border-l-4 border-amber-500 pl-3 mb-6">
-              Explore our wide range of agricultural products.
-            </p>
+  Explore our wide range of agricultural products.
+</p>
 
-            <div className="grid grid-cols-2 gap-4">
-              {categories.map(cat => (
-                <Link
-                  key={cat.name}
-                  to={`/products/category/${cat.path}`}
-                  className={`group relative p-5 rounded-2xl bg-gradient-to-br ${cat.color} text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-lg flex flex-col items-center justify-center`}
-                >
-                  <span className="text-4xl mb-2">{cat.icon}</span>
-                  <h3 className="font-bold text-lg">{cat.name}</h3>
-                  <ArrowRight className="absolute bottom-2 right-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              ))}
-            </div>
+            {/* Render dynamic categories */}
+            {categoryLoading ? (
+              <div className="text-center py-10 text-gray-500">Loading categories...</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {categories.map(cat => (
+                  <Link
+                    key={cat.path}
+                    to={`/products/category/${cat.path}`}
+                    className={`group relative p-5 rounded-2xl bg-gradient-to-br ${cat.color} text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-lg flex flex-col items-center justify-center`}
+                  >
+                    <span className="text-4xl mb-2">{cat.icon}</span>
+                    <h3 className="font-bold text-lg">{cat.name}</h3>
+                    <ArrowRight className="absolute bottom-2 right-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

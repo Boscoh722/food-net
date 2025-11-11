@@ -10,7 +10,7 @@ export default function AdminOrders() {
     setLoading(true);
     try {
       const { data } = await api.get('/orders/all');
-      setOrders(data);
+      setOrders(Array.isArray(data) ? data : data?.orders || []);
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
     } finally { setLoading(false); }
@@ -41,6 +41,7 @@ export default function AdminOrders() {
               <tr className="text-left">
                 <th className="px-4 py-2">Order #</th>
                 <th className="px-4 py-2">Buyer</th>
+                <th className="px-4 py-2">Seller</th>
                 <th className="px-4 py-2">Total</th>
                 <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2">Actions</th>
@@ -49,10 +50,11 @@ export default function AdminOrders() {
             <tbody>
               {orders.map(o => (
                 <tr key={o._id} className="border-t">
-                  <td className="px-4 py-3">{o._id}</td>
-                  <td className="px-4 py-3">{o.user?.name || o.user || 'Unknown'}</td>
-                  <td className="px-4 py-3">{o.totalPrice || (o.items && o.items.reduce((s,i)=>s+(i.price*i.qty),0))}</td>
-                  <td className="px-4 py-3">{o.status || 'pending'}</td>
+                  <td className="px-4 py-3">{o.orderNumber}</td>
+                  <td className="px-4 py-3">{o.buyer?.name || 'Unknown'}</td>
+                  <td className="px-4 py-3">{o.seller?.name || 'Unknown'}</td>
+                  <td className="px-4 py-3">KSh {o.total}</td>
+                  <td className="px-4 py-3">{o.status}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleDelete(o._id)} className="px-3 py-1 bg-red-600 text-white rounded">Delete</button>
                   </td>

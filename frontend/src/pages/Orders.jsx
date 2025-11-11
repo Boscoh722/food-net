@@ -29,8 +29,9 @@ export default function Orders() {
 
   const loadOrders = async () => {
     try {
-      const res = await api.get('/orders');
-      setOrders(res.data);
+      const res = await api.get('/orders/my');
+      const data = Array.isArray(res.data) ? res.data : res.data?.orders || [];
+      setOrders(data);
     } catch (err) {
       alert('Failed to load orders');
     } finally {
@@ -137,6 +138,7 @@ export default function Orders() {
           /* Orders List */
           <div className="space-y-6">
             {orders.map((order) => {
+              const primaryItem = order.items?.[0];
               const status = getStatusConfig(order.status);
               const StatusIcon = status.icon;
 
@@ -150,7 +152,7 @@ export default function Orders() {
                     <div className="flex justify-between items-start mb-6">
                       <div className="flex-1">
                         <h3 className="text-2xl font-extrabold text-gray-800 group-hover:text-amber-600 transition-colors">
-                          {order.product?.name || 'Product Name Unavailable'}
+                          {primaryItem?.productName || primaryItem?.product?.name || 'Product Name Unavailable'}
                         </h3>
                         <div className="flex items-center gap-4 mt-2 text-gray-600">
                           <span className="flex items-center gap-1">
@@ -195,19 +197,19 @@ export default function Orders() {
                         <div>
                           <p className="text-xs text-gray-500 uppercase tracking-wider">Total Price</p>
                           <p className="font-bold text-green-600 text-xl">
-                            KSh {order.product?.price?.toLocaleString() || 'N/A'}
+                            KSh {Number(order.total || primaryItem?.subtotal || 0).toLocaleString()}
                           </p>
                         </div>
                       </div>
 
-                      {order.trackingInfo && (
+                      {order.trackingNumber && (
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-purple-100 rounded-lg">
                             <Truck className="w-5 h-5 text-purple-600" />
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 uppercase tracking-wider">Tracking</p>
-                            <p className="font-bold text-purple-700">{order.trackingInfo}</p>
+                            <p className="font-bold text-purple-700">{order.trackingNumber}</p>
                           </div>
                         </div>
                       )}

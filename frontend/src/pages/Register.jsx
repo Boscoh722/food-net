@@ -159,9 +159,10 @@ export default function Register() {
               </div>
 
               {/* === Conditional Fields === */}
-              {(form.role === 'seller' || form.role === 'buyer') && (
+              {/* Phone is required for all non-admin roles (buyer, seller, logistics) */}
+              {form.role !== 'admin' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
-                  <div>
+                  <div className="md:col-span- form-role-phone">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Phone Number
                     </label>
@@ -178,22 +179,25 @@ export default function Register() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      National ID Number
-                    </label>
-                    <div className="relative">
-                      <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="ID Number"
-                        value={form.idNumber}
-                        onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
-                        className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
-                        required
-                      />
+                  {/* National ID only for buyer/seller */}
+                  {(form.role === 'seller' || form.role === 'buyer') && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        National ID Number
+                      </label>
+                      <div className="relative">
+                        <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="ID Number"
+                          value={form.idNumber}
+                          onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
+                          className={`w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-${PRIMARY_COLOR}/30 focus:border-${PRIMARY_COLOR} dark:bg-gray-700 dark:text-white transition-all duration-200 shadow-inner`}
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 

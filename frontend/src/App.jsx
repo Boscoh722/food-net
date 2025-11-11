@@ -46,17 +46,19 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/products/category/:category" element={<CategoryProducts />} />
+            <Route path="/terms" element={<Terms />} />           
+            <Route path="/products/category/:categoryName" element={<CategoryProducts />} />
+                       
 
+            
             {/* Protected Routes */}
             <Route
-              path="/orders"
+              path="/orders/:id"
               element={
                 <PrivateRoute roles={['buyer', 'seller', 'admin', 'logistics']}>
                   <Orders />

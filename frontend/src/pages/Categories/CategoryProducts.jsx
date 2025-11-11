@@ -1,5 +1,5 @@
 // frontend/src/pages/Categories/CategoryProducts.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Search, ArrowLeft } from 'lucide-react';
 import api from '../../lib/api';
@@ -15,21 +15,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// Category metadata (used for title/icon/colors)
+// Category metadata
 const categoryInfo = {
-  fruits: { icon: '🍎', title: 'Fresh Fruits', color: 'text-red-500' },
-  vegetables: { icon: '🥬', title: 'Fresh Vegetables', color: 'text-green-500' },
-  grains: { icon: '🌾', title: 'Grains & Cereals', color: 'text-yellow-500' },
-  dairy: { icon: '🥛', title: 'Dairy Products', color: 'text-blue-500' },
-  meats: { icon: '🥩', title: 'Meats', color: 'text-red-600' },
-  fish: { icon: '🐟', title: 'Fish', color: 'text-blue-600' },
-  spices: { icon: '🌶️', title: 'Spices', color: 'text-orange-500' },
-  tubers: { icon: '🥔', title: 'Tubers', color: 'text-amber-500' }
+  fruits: {title: 'Fruits', color: 'text-red-500' },
+  vegetables: { title: 'Vegetables', color: 'text-green-500' },
+  grains: { title: 'Grains & Cereals', color: 'text-yellow-500' },
+  dairy: { title: 'Dairy Products', color: 'text-blue-500' },
+  meats: { title: 'Meats', color: 'text-red-600' },
+  fish: { title: 'Fish', color: 'text-blue-600' },
+  spices: { title: 'Spices', color: 'text-orange-500' },
+  tubers: { icon: 'Tubers', title: 'Tubers', color: 'text-amber-500' }
 };
 
 export default function CategoryProducts() {
   const { category } = useParams();
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);     // Always array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,34 +37,90 @@ export default function CategoryProducts() {
   // Kenya default center
   const defaultCenter = [-1.2921, 36.8219];
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        // Try server-side query first, fall back to client-side filtering
-        // If your backend supports ?category=..., it will return filtered results.
-        const { data } = await api.get(`/products${category ? `?category=${category}` : ''}`);
-        // Ensure we only show approved products
-        const list = Array.isArray(data) ? data : [];
-        // If backend doesn't filter, filter here:
-        const filtered = list.filter(p => p.category === category);
-        setProducts(filtered);
-      } catch (err) {
-        setError(err?.response?.data?.message || err.message);
-      } finally {
-        setLoading(false);
+  // ── Load Products ───────────────────────────────────────────────
+ useEffect(() => {
+  const loadProducts = async () => {
+    if (!category) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // ✅ Correct absolute path (no './' — this was causing /api/api/products)
+      const { data } = await api.get('/products', {
+        params: { category, approved: true },
+      });
+
+      // Handle various response shapes safely
+      const list = Array.isArray(data)
+        ? data
+        : data?.products
+        ? data.products
+        : [];
+
+      setProducts(list);
+
+      if (list.length === 0) {
+        setError(`No approved products found in "${category}" category.`);
       }
-    };
-    load();
-  }, [category]);
+    } catch (err) {
+      console.error('Failed to load products:', err);
 
-  const filteredProducts = products.filter(p =>
-    !searchQuery ||
-    (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+      if (err.response?.status === 404) {
+        setError('Product category not found.');
+      } else if (!navigator.onLine) {
+        setError('No internet connection.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to load products.');
+      }
 
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadProducts();
+}, [category]);
+
+
+  // ── Filter Products (Search) ───────────────────────────────────
+  const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products)) return [];
+
+    if (!searchQuery.trim()) return products;
+
+    const q = searchQuery.toLowerCase();
+    return products.filter(p => {
+      const name = p.name?.toLowerCase() || '';
+      const desc = p.description?.toLowerCase() || '';
+      const loc = p.location?.toLowerCase() || '';
+      return name.includes(q) || desc.includes(q) || loc.includes(q);
+    });
+  }, [products, searchQuery]);
+
+  // ── Dynamic Map Center ─────────────────────────────────────────
+  const mapCenter = useMemo(() => {
+    const coordsList = filteredProducts
+      .map(p => {
+        if (Array.isArray(p.coordinates)) return p.coordinates;
+        if (Array.isArray(p.coordinates?.coordinates)) return p.coordinates.coordinates;
+        return null;
+      })
+      .filter(coords => Array.isArray(coords) && coords.length === 2 && coords.every(c => typeof c === 'number'));
+
+    if (coordsList.length === 0) return defaultCenter;
+
+    const avgLat = coordsList.reduce((sum, coords) => sum + coords[0], 0) / coordsList.length;
+    const avgLng = coordsList.reduce((sum, coords) => sum + coords[1], 0) / coordsList.length;
+    return [avgLat, avgLng];
+  }, [filteredProducts]);
+
+  // ── Invalid Category ───────────────────────────────────────────
   if (!categoryInfo[category]) {
     return (
       <div className="container mx-auto px-6 py-8">
@@ -91,9 +147,10 @@ export default function CategoryProducts() {
           </h1>
         </div>
 
+        {/* Search */}
         <div className="mb-6 max-w-md">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search by name, description or location..."
@@ -104,14 +161,21 @@ export default function CategoryProducts() {
           </div>
         </div>
 
-        {error && <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6"><p className="text-red-700">{error}</p></div>}
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
+        {/* Loading */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Product List */}
             <div className="space-y-4">
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
@@ -125,7 +189,7 @@ export default function CategoryProducts() {
                     className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
                   >
                     <div className="flex justify-between items-start">
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2 flex-1">
                         <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
                         <p className="text-gray-600 mt-1 line-clamp-2">{product.description}</p>
                         <div className="flex items-center gap-2 text-gray-500">
@@ -136,13 +200,21 @@ export default function CategoryProducts() {
                           <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded">{product.unit}</span>
                           <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">Stock: {product.quantityInStock}</span>
                           {product.isNegotiable && <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">Negotiable</span>}
-                          {product.harvestDate && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">Harvest: {new Date(product.harvestDate).toLocaleDateString()}</span>}
+                          {product.harvestDate && (
+                            <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                              Harvest: {new Date(product.harvestDate).toLocaleDateString()}
+                            </span>
+                          )}
                         </div>
                         {product.images?.[0]?.url && (
-                          <img src={product.images[0].url} alt="Product" className="w-24 h-16 object-cover rounded mt-2" />
+                          <img
+                            src={product.images[0].url}
+                            alt={product.name}
+                            className="w-24 h-16 object-cover rounded mt-2"
+                          />
                         )}
                       </div>
-                      <div className="text-xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-green-600 ml-4">
                         KSh {product.price}
                       </div>
                     </div>
@@ -151,31 +223,49 @@ export default function CategoryProducts() {
               )}
             </div>
 
+            {/* Map */}
             <div className="h-[600px] bg-white rounded-lg shadow p-4">
-              <MapContainer center={defaultCenter} zoom={6} className="h-full w-full rounded-lg">
+              <MapContainer
+                center={mapCenter}
+                zoom={filteredProducts.length === 1 ? 12 : 6}
+                className="h-full w-full rounded-lg"
+                key={mapCenter.join(',')}
+              >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                {filteredProducts.map(product => (
-                  product.coordinates && product.coordinates.lat != null && product.coordinates.lng != null && (
-                    <Marker key={product._id} position={[product.coordinates.lat, product.coordinates.lng]}>
+                {filteredProducts.map(product => {
+                  const lat = product.coordinates?.lat;
+                  const lng = product.coordinates?.lng;
+                  if (lat == null || lng == null || typeof lat !== 'number' || typeof lng !== 'number') return null;
+
+                  return (
+                    <Marker key={product._id} position={[lat, lng]}>
                       <Popup>
                         <div className="p-2 min-w-[200px]">
                           <h3 className="font-semibold">{product.name}</h3>
-                          <p className="text-sm text-gray-600">{product.description}</p>
+                          <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
                           <p className="text-green-600 font-bold mt-1">KSh {product.price} / {product.unit}</p>
                           <p className="text-sm text-gray-500">{product.location}</p>
                           <div className="flex flex-wrap gap-2 text-xs mt-2">
                             <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">Stock: {product.quantityInStock}</span>
                             {product.isNegotiable && <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">Negotiable</span>}
-                            {product.harvestDate && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">Harvest: {new Date(product.harvestDate).toLocaleDateString()}</span>}
+                            {product.harvestDate && (
+                              <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                                Harvest: {new Date(product.harvestDate).toLocaleDateString()}
+                              </span>
+                            )}
                           </div>
                           {product.images?.[0]?.url && (
-                            <img src={product.images[0].url} alt="Product" className="w-full h-16 object-cover rounded mt-2" />
+                            <img
+                              src={product.images[0].url}
+                              alt={product.name}
+                              className="w-full h-16 object-cover rounded mt-2"
+                            />
                           )}
                         </div>
                       </Popup>
                     </Marker>
-                  )
-                ))}
+                  );
+                })}
               </MapContainer>
             </div>
           </div>

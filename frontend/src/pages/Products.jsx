@@ -21,15 +21,15 @@ L.Icon.Default.mergeOptions({
 const KENYA_CENTER = [-1.2921, 36.8219];
 const DEFAULT_ZOOM = 6;
 
-const categories = ['fruits','vegetables','grains','dairy','meats','fish','spices','tubers','nuts','herbs','other'];
-const units = ['kg','gram','ton','liter','milliliter','piece','dozen','crate','sack','bag','bunch','basket','tray','head'];
+// --- MODIFICATION --- Removed hardcoded 'categories' array
+// Units must match backend enum: ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box']
+const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
 
 // SAFE MARKER – NEVER PASSES NaN
 function LocationMarker({ position, setPosition }) {
   const map = useMapEvents({
     click(e) {
       const { lat, lng } = e.latlng;
-      // Only set if both lat/lng are valid numbers
       if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
         setPosition([lat, lng]);
         map.flyTo([lat, lng], 14);
@@ -37,7 +37,6 @@ function LocationMarker({ position, setPosition }) {
     },
   });
 
-  // Defensive: Only render if position is valid
   if (!position || !Array.isArray(position) || position.length !== 2 || position.some(c => typeof c !== 'number' || isNaN(c))) {
     return null;
   }
@@ -56,15 +55,21 @@ function LocationMarker({ position, setPosition }) {
 export default function Products() {
   const { user } = useAuth();
   const isSeller = user?.role === 'seller';
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);     // Always array
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
+  // --- MODIFICATION ---
+  const [categories, setCategories] = useState([]); // State for fetched categories
+  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
+
   const [form, setForm] = useState({
-    name: '', description: '', category: 'vegetables', price: '', unit: 'kg',
+    name: '', description: '', 
+    category: '', // --- MODIFICATION --- Default to empty string, not 'vegetables'
+    price: '', unit: 'kg',
     quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
     harvestDate: '', images: []
   });
@@ -73,14 +78,39 @@ export default function Products() {
 
   useEffect(() => {
     loadProducts();
+    
+    // --- MODIFICATION --- Fetch categories when component mounts
+    const fetchCategories = async () => {
+      setCategoryLoading(true);
+      try {
+        const { data } = await api.get('/categories');
+        setCategories(data.data); // Store the full category objects
+      } catch (err) {
+        console.error('Failed to fetch categories for form:', err);
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+    fetchCategories();
   }, []);
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
       const res = await api.get('/products?approved=true');
-      setProducts(res.data || []);
+      // Handle different response structures
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (res.data?.products && Array.isArray(res.data.products)) {
+        data = res.data.products;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+      setProducts(data);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load products:', err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -96,7 +126,7 @@ export default function Products() {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'Unsigned');
+        formData.append('upload_preset', 'Unsigned'); // NOTE: Consider using a signed preset for security
         const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
           method: 'POST',
           body: formData
@@ -128,19 +158,21 @@ export default function Products() {
 
   const validateForm = () => {
     const err = {};
-  if (!form.name.trim()) err.name = 'Required';
-  if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 chars';
-  if (!form.price || form.price <= 0) err.price = 'Valid price';
-  if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
-  if (!form.location.trim()) err.location = 'Required';
-  if (form.images.length === 0) err.images = 'Upload 1+ photo';
-  // Unit validation
-  if (!form.unit || typeof form.unit !== 'string' || !units.includes(form.unit)) err.unit = 'Unit of measurement is required';
-  // Coordinates validation
-  const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-  if (!validCoords) err.coordinates = 'Farm location (map pin) is required';
-  setErrors(err);
-  return Object.keys(err).length === 0;
+    if (!form.name.trim()) err.name = 'Required';
+    if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 chars';
+    if (!form.price || form.price <= 0) err.price = 'Valid price';
+    if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
+    if (!form.location.trim()) err.location = 'Required';
+    if (form.images.length === 0) err.images = 'Upload 1+ photo';
+    if (!form.unit || !units.includes(form.unit)) err.unit = 'Unit required';
+    
+    // --- MODIFICATION --- Validate category (it's now an ID)
+    if (!form.category) err.category = 'Category is required'; 
+
+    const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+    if (!validCoords) err.coordinates = 'Pin farm on map';
+    setErrors(err);
+    return Object.keys(err).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -148,68 +180,80 @@ export default function Products() {
     if (!validateForm()) return;
     setSubmitting(true);
     try {
-      // Only send coordinates if valid
       const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-      await api.post('/products', {
-        ...form,
-        coordinates: validCoords ? { type: 'Point', coordinates: form.coordinates } : undefined
-      });
+      
+      // Prepare payload with correct data types
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        category: form.category,
+        price: parseFloat(form.price),
+        unit: form.unit,
+        quantityInStock: parseInt(form.quantityInStock, 10),
+        isNegotiable: form.isNegotiable,
+        location: form.location.trim(),
+        coordinates: validCoords ? { type: 'Point', coordinates: form.coordinates } : undefined,
+        harvestDate: form.harvestDate || undefined,
+        images: form.images // Array of objects with { url, publicId, isPrimary }
+      };
+      
+      // --- MODIFICATION --- Use correct seller route: /products/my
+      await api.post('/products/my', payload);
       alert('Submitted! Awaiting approval.');
       setShowForm(false);
       setForm({
-        name: '', description: '', category: 'vegetables', price: '', unit: 'kg',
+        name: '', description: '', 
+        category: '', // --- MODIFICATION --- Reset category to empty string
+        price: '', unit: 'kg',
         quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
         harvestDate: '', images: []
       });
       setErrors({});
-      loadProducts();
+      // Note: loadProducts() won't show this new product until it's approved
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed');
+      const errorMsg = err.response?.data?.message || 
+        (err.response?.data?.errors?.map(e => e.msg || e.message).join(', ')) ||
+        'Failed to submit product';
+      alert(errorMsg);
     } finally {
       setSubmitting(false);
     }
   };
 
-// src/pages/Products.jsx
-// ...
+  // RENDER MAP SAFELY
+  const renderMap = () => {
+    if (!showForm) return null;
 
-// CRITICAL: Only render map when form is visible
-const renderMap = () => {
-  if (!showForm) return null;
+    const isValidCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+    const mapCenter = isValidCoords ? form.coordinates : KENYA_CENTER;
+    const mapZoom = isValidCoords ? 14 : DEFAULT_ZOOM;
+    const mapKey = mapCenter.join(',') + '-' + mapZoom;
 
-  // Defensive: Only use valid coordinates, else default
-  const isValidCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-  const mapCenter = isValidCoords ? form.coordinates : KENYA_CENTER;
-  const mapZoom = isValidCoords ? 14 : DEFAULT_ZOOM;
-  const mapKey = mapCenter.join(',') + '-' + mapZoom;
+    if (!Array.isArray(mapCenter) || mapCenter.length !== 2 || mapCenter.some(c => typeof c !== 'number' || isNaN(c))) {
+      return null;
+    }
 
-  // Defensive: Never pass NaN to MapContainer
-  if (!Array.isArray(mapCenter) || mapCenter.length !== 2 || mapCenter.some(c => typeof c !== 'number' || isNaN(c))) {
-    return null;
-  }
-
-  return (
-    <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-200">
-      <MapContainer
-        center={mapCenter}
-        zoom={mapZoom}
-        style={{ height: '100%', width: '100%' }}
-        key={mapKey}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <LocationMarker
-          position={isValidCoords ? form.coordinates : null}
-          setPosition={pos => {
-            // Only set if valid
-            if (Array.isArray(pos) && pos.length === 2 && pos.every(c => typeof c === 'number' && !isNaN(c))) {
-              setForm(prev => ({ ...prev, coordinates: pos }));
-            }
-          }}
-        />
-      </MapContainer>
-    </div>
-  );
-};
+    return (
+      <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-200">
+        <MapContainer
+          center={mapCenter}
+          zoom={mapZoom}
+          style={{ height: '100%', width: '100%' }}
+          key={mapKey}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LocationMarker
+            position={isValidCoords ? form.coordinates : null}
+            setPosition={pos => {
+              if (Array.isArray(pos) && pos.length === 2 && pos.every(c => typeof c === 'number' && !isNaN(c))) {
+                setForm(prev => ({ ...prev, coordinates: pos }));
+              }
+            }}
+          />
+        </MapContainer>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -239,7 +283,7 @@ const renderMap = () => {
           )}
         </div>
 
-        {/* FORM – ONLY RENDER MAP WHEN showForm IS TRUE */}
+        {/* FORM */}
         {isSeller && showForm && (
           <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12">
             <h2 className="text-3xl font-extrabold mb-8 flex items-center gap-3">
@@ -259,10 +303,22 @@ const renderMap = () => {
                 </div>
                 <div>
                   <label className="block font-bold mb-2">Category</label>
-                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl">
-                    {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  {/* --- MODIFICATION --- Dynamic Category Select */}
+                  <select 
+                    value={form.category} 
+                    onChange={e => setForm({...form, category: e.target.value})}
+                    className="w-full px-5 py-4 border-2 rounded-2xl"
+                  >
+                    <option value="" disabled>
+                      {categoryLoading ? 'Loading...' : 'Select a category'}
+                    </option>
+                    {categories.map(c => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
+                  {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
                 </div>
               </div>
 
@@ -289,13 +345,13 @@ const renderMap = () => {
                     className="w-full px-5 py-4 border-2 rounded-2xl">
                     {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                   </select>
+                  {errors.unit && <p className="text-red-500 text-sm">{errors.unit}</p>}
                 </div>
                 <div>
                   <label className="block font-bold mb-2">Stock</label>
                   <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
                     className="w-full px-5 py-4 border-2 rounded-2xl" placeholder="50" />
                   {errors.quantityInStock && <p className="text-red-500 text-sm">{errors.quantityInStock}</p>}
-                {errors.unit && <p className="text-red-500 text-sm">{errors.unit}</p>}
                 </div>
               </div>
 
@@ -313,7 +369,7 @@ const renderMap = () => {
                 </div>
               </div>
 
-              {/* LOCATION + MAP (ONLY RENDERED WHEN FORM IS OPEN) */}
+              {/* LOCATION + MAP */}
               <div>
                 <label className="block font-bold mb-2">
                   <MapPin className="inline w-5 h-5 mr-2" />Farm Location
@@ -323,7 +379,6 @@ const renderMap = () => {
                 {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
                 {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
 
-                {/* THIS IS THE KEY FIX */}
                 {renderMap()}
 
                 <div className="mt-3 flex items-center gap-2 text-sm">

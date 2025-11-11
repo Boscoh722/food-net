@@ -10,7 +10,7 @@ export default function AdminUsers() {
     setLoading(true);
     try {
       const { data } = await api.get('/users');
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : data?.users || []);
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
     } finally {
@@ -22,7 +22,7 @@ export default function AdminUsers() {
 
   const handleApprove = async (id) => {
     try {
-      await api.patch(`/users/approve-seller/${id}`);
+      await api.patch(`/users/${id}/approve-seller`);
       setUsers((prev) => prev.map(u => u._id === id ? { ...u, approved: true } : u));
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
@@ -52,6 +52,7 @@ export default function AdminUsers() {
               <tr className="text-left">
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Email</th>
+                <th className="px-4 py-2">Phone</th>
                 <th className="px-4 py-2">Role</th>
                 <th className="px-4 py-2">Approved</th>
                 <th className="px-4 py-2">Actions</th>
@@ -62,6 +63,7 @@ export default function AdminUsers() {
                 <tr key={user._id} className="border-t">
                   <td className="px-4 py-3">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
+                  <td className="px-4 py-3">{user.phone || '-'}</td>
                   <td className="px-4 py-3">{user.role}</td>
                   <td className="px-4 py-3">{user.approved ? 'Yes' : 'No'}</td>
                   <td className="px-4 py-3 space-x-2">
