@@ -21,8 +21,6 @@ L.Icon.Default.mergeOptions({
 const KENYA_CENTER = [-1.2921, 36.8219];
 const DEFAULT_ZOOM = 6;
 
-// --- MODIFICATION --- Removed hardcoded 'categories' array
-// Units must match backend enum: ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box']
 const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
 
 // SAFE MARKER – NEVER PASSES NaN
