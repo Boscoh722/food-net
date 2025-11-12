@@ -1,11 +1,11 @@
 // src/lib/api.js
 import axios from 'axios';
 
-// Use environment variable for API URL or default to proxy path for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Always use the proxy path '/api' – never hardcode localhost in the code
+const API_BASE_URL = '/api';  // ← Clean & consistent
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: '/api',  // ← FIXED: Use proxy only (no localhost!)
   withCredentials: true,
   timeout: 10000, // 10 second timeout
   headers: {

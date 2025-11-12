@@ -28,12 +28,6 @@ export default function BuyerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // ──────────────────────────────────────────────────────────────
-  // ONLY USES EXISTING BACKEND ENDPOINTS
-  // - /api/products (public)
-  // - /api/orders/my (from your existing Order system)
-  // - /api/products?category=... (already fixed)
-  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,7 +35,7 @@ export default function BuyerDashboard() {
         setError('');
 
         // 1. Fetch Buyer's Orders (REAL)
-        const ordersRes = await api.get('/orders/my');
+        const ordersRes = await api.get('/orders');
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
 
         const latest = orders[0];

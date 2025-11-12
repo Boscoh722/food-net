@@ -1,4 +1,3 @@
-// models/Category.js
 import mongoose from 'mongoose';
 import slugify from 'slugify';
 
@@ -20,17 +19,8 @@ const CategorySchema = new mongoose.Schema(
     },
     icon: {
       type: String,
-      default: 'package',
-      validate: {
-        validator: function (v) {
-          const validIcons = [
-            'apple', 'carrot', 'wheat', 'milk', 'beef', 'package',
-            'leaf', 'sprout', 'tractor', 'store', 'truck', 'shopping-cart'
-          ];
-          return !v || validIcons.includes(v);
-        },
-        message: 'Invalid icon name',
-      },
+      default: '📦', // Changed default to an emoji to match seeder style
+      // The 'validate' block has been removed so emojis can be saved.
     },
   },
   {
@@ -40,8 +30,9 @@ const CategorySchema = new mongoose.Schema(
   }
 );
 
-CategorySchema.index({ name: 'text' });
+// --- Middleware and Virtuals (Remain Unchanged) ---
 
+CategorySchema.index({ name: 'text' });
 
 CategorySchema.pre('save', async function (next) {
   if (!this.isModified('name')) return next();

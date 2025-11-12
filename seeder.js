@@ -1,16 +1,13 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import connectDB from './backend/src/config/db.js'; 
+import Category from './backend/src/models/Category.js'; 
 
-// 🛑 CORRECTION: Removed './src/' from the paths 
-// Assuming 'config' and 'models' are direct subfolders of 'backend'
-import connectDB from './config/db.js'; 
-import Category from './models/Category.js'; 
-
-// Load env vars
+// Load env vars from a .env file
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+connectDB(); 
 
 // --- CATEGORY DATA ---
 const categories = [
@@ -27,6 +24,9 @@ const categories = [
   { name: 'Other',      slug: 'other',      icon: '📦' },
 ];
 
+/**
+ * @desc Imports sample data into the database
+ */
 const importData = async () => {
   try {
     console.log('Clearing existing categories...');
@@ -36,18 +36,36 @@ const importData = async () => {
     await Category.insertMany(categories);
 
     console.log('✅ Data Imported! Categories seeded successfully.');
-    process.exit();
+    // Exit process after successful import
+    process.exit(); 
   } catch (error) {
     console.error(`❌ Error importing data: ${error.message}`);
     console.error('Check your MongoDB connection and environment variables.');
+    // Exit process with failure code
     process.exit(1);
   }
 };
 
-// ... other code (destroyData function) ...
+/**
+ * @desc Destroys all category data in the database
+ */
+const destroyData = async () => {
+  try {
+    console.log('🗑️ Destroying all Category data...');
+    await Category.deleteMany();
+
+    console.log('🔥 Data Successfully Destroyed!');
+    // Exit process after successful destroy
+    process.exit();
+  } catch (error) {
+    console.error(`❌ Error destroying data: ${error.message}`);
+    process.exit(1);
+  }
+};
+
 
 if (process.argv[2] === '-d') {
-  // Call destroyData() here if you have it
+  destroyData();
 } else {
   importData();
 }

@@ -62,6 +62,33 @@ router.get(
     }
   }
 );
+// NEW: GET SINGLE PRODUCT BY ID (for seller)
+router.get('/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      seller: req.user.id,
+    })
+      .populate('category', 'name slug')
+      .populate('images', 'url alt')
+      .populate('seller', 'storeName phone location coordinates');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found or you do not have access',
+      });
+    }
+
+    res.json({
+      success: true,
+      product,
+    });
+  } catch (err) {
+    console.error('Get seller product:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // GET ORDERS
 router.get(

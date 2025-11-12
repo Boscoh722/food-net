@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "seed:admin": "node src/config/seedAdmin.js"
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +14,6 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "crypto-js": "^4.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
@@ -23,12 +21,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
-    "mongoose": "^8.19.3",
-    "morgan": "^1.10.1",
-    "node-cache": "^5.1.2",
-    "nodemailer": "^7.0.10",
-    "path-to-regexp": "^7.2.0",
-    "slugify": "^1.6.6"
+    "mongoose": "^8.19.2",
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

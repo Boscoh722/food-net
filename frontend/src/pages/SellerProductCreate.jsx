@@ -1,11 +1,11 @@
 // src/pages/SellerProductCreate.jsx
-import { useState, useRef, useEffect } from 'react'; // --- MODIFICATION --- Added useEffect
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf
+  Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf, PlusCircle
 } from 'lucide-react';
 import L from 'leaflet';
 
@@ -18,8 +18,8 @@ L.Icon.Default.mergeOptions({
 });
 
 const KENYA_CENTER = [-1.2921, 36.8219];
-// --- MODIFICATION --- Removed hardcoded 'categories' array
-const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
+const categories = ['fruits','vegetables','grains','dairy','meats','fish','spices','tubers','nuts','herbs','other'];
+const units = ['kg','gram','ton','liter','milliliter','piece','dozen','crate','sack','bag','bunch','basket','tray','head'];
 
 function LocationMarker({ position, setPosition }) {
   const map = useMapEvents({
@@ -52,14 +52,10 @@ export default function SellerProductCreate() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // --- MODIFICATION ---
-  const [categories, setCategories] = useState([]); // State for fetched categories
-  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
-
   const [form, setForm] = useState({
     name: '',
     description: '',
-    category: '', // --- MODIFICATION --- Default to empty string
+    category: 'vegetables',
     price: '',
     unit: 'kg',
     quantityInStock: '',
@@ -72,40 +68,21 @@ export default function SellerProductCreate() {
 
   const [errors, setErrors] = useState({});
 
-  // --- MODIFICATION --- Added useEffect to fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setCategoryLoading(true);
-      try {
-        const { data } = await api.get('/categories');
-        setCategories(Array.isArray(data) ? data : data?.data || []);
-      } catch (err) {
-        console.error('Failed to fetch categories for form:', err);
-      } finally {
-        setCategoryLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
   const validate = () => {
     const err = {};
-    if (!form.name.trim()) err.name = 'Required';
-    if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 characters';
-    if (!form.price || form.price <= 0) err.price = 'Valid price required';
-    if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
-    if (!form.location.trim()) err.location = 'Required';
-    if (form.images.length === 0) err.images = 'Upload at least 1 photo';
-    if (!form.unit || typeof form.unit !== 'string' || !units.includes(form.unit)) err.unit = 'Unit of measurement is required';
-    
-    // --- MODIFICATION --- Validate category ID
-    if (!form.category) err.category = 'Category is required';
-
-    const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-    if (!validCoords) err.coordinates = 'Farm location (map pin) is required';
-    setErrors(err);
-    return Object.keys(err).length === 0;
+  if (!form.name.trim()) err.name = 'Required';
+  if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 characters';
+  if (!form.price || form.price <= 0) err.price = 'Valid price required';
+  if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
+  if (!form.location.trim()) err.location = 'Required';
+  if (form.images.length === 0) err.images = 'Upload at least 1 photo';
+  // Unit validation
+  if (!form.unit || typeof form.unit !== 'string' || !units.includes(form.unit)) err.unit = 'Unit of measurement is required';
+  // Coordinates validation
+  const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+  if (!validCoords) err.coordinates = 'Farm location (map pin) is required';
+  setErrors(err);
+  return Object.keys(err).length === 0;
   };
 
   const handleImageUpload = async (e) => {
@@ -156,7 +133,6 @@ export default function SellerProductCreate() {
     }));
   };
 
-  // --- MODIFICATION --- Completed function and fixed API path
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -167,24 +143,15 @@ export default function SellerProductCreate() {
 
     try {
       const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        category: form.category,
+        ...form,
         price: Number(form.price),
-        unit: form.unit,
         quantityInStock: Number(form.quantityInStock),
-        isNegotiable: form.isNegotiable,
-        location: form.location.trim(),
-        coordinates: form.coordinates ? { type: 'Point', coordinates: form.coordinates } : undefined,
-        harvestDate: form.harvestDate || undefined,
-        images: form.images,
+        coordinates: form.coordinates ? { type: 'Point', coordinates: form.coordinates } : undefined
       };
 
-      // Use correct seller route: /products/my
-      await api.post('/products/my', payload); 
-      
+      await api.post('/products', payload);
       setSuccess('Product submitted! Awaiting admin approval.');
-      setTimeout(() => navigate('/dashboard/seller'), 2000); // Redirect to seller dashboard
+      setTimeout(() => navigate('/dashboard/seller'), 2000);
     } catch (err) {
       const msg = err.response?.data?.message ||
         (err.response?.data?.errors?.map(x => x.msg).join(', ')) ||
@@ -231,22 +198,12 @@ export default function SellerProductCreate() {
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
-                {/* --- MODIFICATION --- Dynamic Category Select */}
-                <select 
-                  value={form.category} 
-                  onChange={e => setForm({...form, category: e.target.value})}
-                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl"
-                >
-                  <option value="" disabled>
-                    {categoryLoading ? 'Loading...' : 'Select a category'}
-                  </option>
+                <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl">
                   {categories.map(c => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
+                    <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                   ))}
                 </select>
-                {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
               </div>
             </div>
 
@@ -275,14 +232,13 @@ export default function SellerProductCreate() {
                   className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl">
                   {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                 </select>
-                {/* Note: This error message is misplaced in the original file, but keeping it */}
-                {errors.unit && <p className="text-red-500 text-sm mt-1">{errors.unit}</p>}
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Stock Quantity</label>
                 <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
                   className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl" placeholder="50" />
                 {errors.quantityInStock && <p className="text-red-500 text-sm mt-1">{errors.quantityInStock}</p>}
+                {errors.unit && <p className="text-red-500 text-sm mt-1">{errors.unit}</p>}
               </div>
             </div>
 
@@ -362,7 +318,7 @@ export default function SellerProductCreate() {
                 Cancel
               </button>
               <button type="submit" disabled={loading || uploading}
-                className="px-10 py-4 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-bold rounded-2xl shadow-xl hover:from-emerald-700 hover:to-green-800 disabled:opacity-70 flex items-center gap-3">
+                className="px-10 py-4 bg-linear-to-r from-emerald-600 to-green-700 text-white font-bold rounded-2xl shadow-xl hover:from-emerald-700 hover:to-green-800 disabled:opacity-70 flex items-center gap-3">
                 {loading ? 'Submitting...' : (
                   <>
                     <Package className="w-6 h-6" />

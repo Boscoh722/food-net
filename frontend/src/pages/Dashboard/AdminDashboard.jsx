@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Users, AlertTriangle, UserCheck, BarChart3, Clock, TrendingUp, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Users as UsersIcon, Package as PackageIcon, ShoppingCart, MessageSquare } from 'lucide-react';
-import api from '../../lib/api';
 
 // Custom reusable Card component for consistent styling
 const StatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', linkTo = '#' }) => (
@@ -22,54 +21,11 @@ const StatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', lin
 
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    pendingUsers: 0,
-    totalProducts: 0,
-    pendingProducts: 0,
-    totalOrders: 0,
-    openComplaints: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [stats, setStats] = useState([]);
 
   useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
-      try {
-        const [
-          usersRes,
-          pendingUsersRes,
-          productsRes,
-          pendingProductsRes,
-          ordersRes,
-          complaintsRes,
-        ] = await Promise.all([
-          api.get('/users', { params: { limit: 1 } }),
-          api.get('/users', { params: { role: 'seller', approved: 'false', limit: 1 } }),
-          api.get('/products/all', { params: { limit: 1 } }),
-          api.get('/products/all', { params: { approved: 'false', limit: 1 } }),
-          api.get('/orders/all', { params: { limit: 1 } }),
-          api.get('/complaints', { params: { status: 'open', limit: 1 } }),
-        ]);
-
-        setStats({
-          totalUsers: usersRes.data?.pagination?.total ?? (Array.isArray(usersRes.data?.users) ? usersRes.data.users.length : 0),
-          pendingUsers: pendingUsersRes.data?.pagination?.total ?? (Array.isArray(pendingUsersRes.data?.users) ? pendingUsersRes.data.users.length : 0),
-          totalProducts: productsRes.data?.pagination?.total ?? (Array.isArray(productsRes.data?.products) ? productsRes.data.products.length : 0),
-          pendingProducts: pendingProductsRes.data?.pagination?.total ?? (Array.isArray(pendingProductsRes.data?.products) ? pendingProductsRes.data.products.length : 0),
-          totalOrders: ordersRes.data?.pagination?.total ?? (Array.isArray(ordersRes.data?.orders) ? ordersRes.data.orders.length : 0),
-          openComplaints: complaintsRes.data?.pagination?.total ?? (Array.isArray(complaintsRes.data?.complaints) ? complaintsRes.data.complaints.length : 0),
-        });
-        setError(null);
-      } catch (err) {
-        console.error('Failed to load admin stats:', err);
-        setError(err?.response?.data?.message || 'Failed to load stats');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadStats();
+    // TODO: Fetch stats from API
+    // loadStats();
   }, []);
 
   return (
@@ -90,19 +46,14 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {error && <div className="mb-4 text-red-600">{error}</div>}
-        {loading ? <div>Loading stats...</div> : (
-          <>
-            {/* --- Key Metrics Grid --- */}
-            <h2 className="text-2xl font-semibold text-gray-700 mb-5">Key Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard title="Users" value={stats.totalUsers} icon={UsersIcon} linkTo="/admin/users" />
-              <StatCard title="Products" value={stats.totalProducts} icon={PackageIcon} linkTo="/admin/products" />
-              <StatCard title="Orders" value={stats.totalOrders} icon={ShoppingCart} linkTo="/admin/orders" />
-              <StatCard title="Complaints" value={stats.openComplaints} icon={MessageSquare} linkTo="/admin/complaints" />
-            </div>
-          </>
-        )}
+        {/* --- Key Metrics Grid --- */}
+        <h2 className="text-2xl font-semibold text-gray-700 mb-5">Key Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Users" value={"Manage"} icon={UsersIcon} linkTo="/dashboard/admin/users" />
+          <StatCard title="Products" value={"Manage"} icon={PackageIcon} linkTo="/dashboard/admin/products" />
+          <StatCard title="Orders" value={"Manage"} icon={ShoppingCart} linkTo="/dashboard/admin/orders" />
+          <StatCard title="Complaints" value={"Manage"} icon={MessageSquare} linkTo="/dashboard/admin/complaints" />
+        </div>
 
         {/* --- Main Content Area (Placeholder for Charts/Tables) --- */}
         <div className="mt-10">
