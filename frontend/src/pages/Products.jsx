@@ -6,7 +6,7 @@ import ProductCard from '../components/ProductCard';
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  PlusCircle, Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf
+  PlusCircle, Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf, Search
 } from 'lucide-react';
 import L from 'leaflet';
 
@@ -42,7 +42,7 @@ function LocationMarker({ position, setPosition }) {
   return (
     <Marker position={position}>
       <Popup>
-        <div className="text-center font-bold text-emerald-700">
+        <div className="text-center font-bold text-green-700">
           Your Farm<br /><small>Click to move</small>
         </div>
       </Popup>
@@ -58,6 +58,7 @@ export default function Products() {
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
 
   // --- MODIFICATION ---
@@ -199,13 +200,13 @@ export default function Products() {
       setShowForm(false);
       setForm({
         name: '', description: '', 
-        category: '', // --- MODIFICATION --- Reset category to empty string
+        category: '', 
         price: '', unit: 'kg',
         quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
         harvestDate: '', images: []
       });
       setErrors({});
-      // Note: loadProducts() won't show this new product until it's approved
+      
     } catch (err) {
       const errorMsg = err.response?.data?.message || 
         (err.response?.data?.errors?.map(e => e.msg || e.message).join(', ')) ||
@@ -215,6 +216,8 @@ export default function Products() {
       setSubmitting(false);
     }
   };
+
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // RENDER MAP SAFELY
   const renderMap = () => {
@@ -230,7 +233,7 @@ export default function Products() {
     }
 
     return (
-      <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-200">
+      <div className="h-80 rounded-xl overflow-hidden border border-gray-100">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -253,25 +256,22 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 py-10">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-10">
-          <div>
-            <h1 className="text-5xl font-extrabold flex items-center gap-4">
-              <Leaf className="w-12 h-12 text-emerald-600" />
-              Fresh Marketplace
-            </h1>
-            <p className="text-xl text-gray-600">{products.length} products</p>
-          </div>
+        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+            <Leaf className="w-8 h-8 text-green-600" />
+            Fresh Marketplace
+          </h1>
           {isSeller && (
             <button
               onClick={() => setShowForm(!showForm)}
-              className="px-8 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl hover:bg-emerald-700 flex items-center gap-3"
+              className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
             >
               {showForm ? 'Cancel' : (
                 <>
-                  <PlusCircle className="w-7 h-7" />
+                  <PlusCircle className="w-6 h-6" />
                   List Product
                 </>
               )}
@@ -279,31 +279,43 @@ export default function Products() {
           )}
         </div>
 
+        {/* SEARCH */}
+        <div className="relative max-w-xl mx-auto mb-8">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+          />
+        </div>
+
         {/* FORM */}
         {isSeller && showForm && (
-          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12">
-            <h2 className="text-3xl font-extrabold mb-8 flex items-center gap-3">
-              <Package className="w-9 h-9 text-emerald-600" />
+          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 mb-10">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-5 flex items-center gap-3">
+              <Package className="w-6 h-6 text-green-600" />
               List Your Produce
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* NAME & CATEGORY */}
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold mb-2">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                   <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl" placeholder="Fresh Sukuma Wiki" />
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="Fresh Sukuma Wiki" />
                   {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block font-bold mb-2">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   {/* --- MODIFICATION --- Dynamic Category Select */}
                   <select 
                     value={form.category} 
                     onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                   >
                     <option value="" disabled>
                       {categoryLoading ? 'Loading...' : 'Select a category'}
@@ -320,58 +332,58 @@ export default function Products() {
 
               {/* DESCRIPTION */}
               <div>
-                <label className="block font-bold mb-2">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
-                  rows="4" className="w-full px-5 py-4 border-2 rounded-2xl resize-none"
+                  rows="4" className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none"
                   placeholder="Describe your produce..." />
                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
               </div>
 
               {/* PRICE, UNIT, STOCK */}
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block font-bold mb-2">Price (KSh)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (KSh)</label>
                   <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl" placeholder="500" />
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="500" />
                   {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
                 </div>
                 <div>
-                  <label className="block font-bold mb-2">Unit</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
                   <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl">
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl">
                     {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                   </select>
                   {errors.unit && <p className="text-red-500 text-sm">{errors.unit}</p>}
                 </div>
                 <div>
-                  <label className="block font-bold mb-2">Stock</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
                   <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl" placeholder="50" />
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="50" />
                   {errors.quantityInStock && <p className="text-red-500 text-sm">{errors.quantityInStock}</p>}
                 </div>
               </div>
 
               {/* NEGOTIABLE & HARVEST */}
-              <div className="flex gap-6">
-                <label className="flex items-center gap-3">
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
                   <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
-                    className="w-6 h-6 text-emerald-600" />
-                  <span className="font-bold">Negotiable</span>
+                    className="w-5 h-5 text-green-600" />
+                  <span className="text-sm font-medium text-gray-700">Negotiable</span>
                 </label>
                 <div className="flex-1">
-                  <label className="block font-bold mb-2">Harvest Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Harvest Date</label>
                   <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
-                    className="w-full px-5 py-4 border-2 rounded-2xl" />
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" />
                 </div>
               </div>
 
               {/* LOCATION + MAP */}
               <div>
-                <label className="block font-bold mb-2">
-                  <MapPin className="inline w-5 h-5 mr-2" />Farm Location
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  <MapPin className="w-5 h-5" />Farm Location
                 </label>
                 <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
-                  className="w-full px-5 py-4 border-2 rounded-2xl mb-4" placeholder="Kitengela" />
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-4" placeholder="Kitengela" />
                 {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
                 {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
 
@@ -379,31 +391,31 @@ export default function Products() {
 
                 <div className="mt-3 flex items-center gap-2 text-sm">
                   {form.coordinates ? (
-                    <><CheckCircle2 className="w-5 h-5 text-emerald-600" /> Location set</>
+                    <><CheckCircle2 className="w-5 h-5 text-green-600" /> Location set</>
                   ) : (
-                    <><AlertCircle className="w-5 h-5 text-amber-600" /> Click map to pin</>
+                    <><AlertCircle className="w-5 h-5 text-orange-600" /> Click map to pin</>
                   )}
                 </div>
               </div>
 
               {/* IMAGES */}
               <div>
-                <label className="block font-bold mb-2">Photos</label>
-                <div className="border-2 border-dashed rounded-2xl p-8 text-center">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Photos</label>
+                <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center">
                   <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
                   <label htmlFor="img" className="cursor-pointer">
                     <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="font-bold">Upload</p>
+                    <p className="font-medium text-gray-700">Upload</p>
                   </label>
-                  {uploading && <p className="text-emerald-600 font-bold">Uploading...</p>}
+                  {uploading && <p className="text-green-600 font-medium">Uploading...</p>}
                 </div>
                 <div className="grid grid-cols-4 gap-4 mt-6">
                   {form.images.map((img, i) => (
                     <div key={i} className="relative group">
                       <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl" />
-                      {img.isPrimary && <span className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
+                      {img.isPrimary && <span className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
                       <button type="button" onClick={() => removeImage(i)}
-                        className="absolute top-2 right-2 bg-red-500 p-2 rounded-full opacity-0 group-hover:opacity-100">
+                        className="absolute top-2 right-2 bg-red-500 p-2 rounded-full text-white opacity-0 group-hover:opacity-100">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -415,10 +427,10 @@ export default function Products() {
               {/* SUBMIT */}
               <div className="flex justify-end gap-4">
                 <button type="button" onClick={() => setShowForm(false)}
-                  className="px-8 py-4 border-2 rounded-2xl font-bold">Cancel</button>
+                  className="px-6 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition">Cancel</button>
                 <button type="submit" disabled={submitting}
-                  className="px-10 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl flex items-center gap-3">
-                  {submitting ? 'Submitting...' : <><CheckCircle2 className="w-6 h-6" /> Submit</>}
+                  className="px-6 py-3 bg-green-600 text-white font-medium rounded-xl shadow-md hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-3">
+                  {submitting ? 'Submitting...' : <><CheckCircle2 className="w-5 h-5" /> Submit</>}
                 </button>
               </div>
             </form>
@@ -427,17 +439,21 @@ export default function Products() {
 
         {/* PRODUCTS */}
         {loading ? (
-          <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent"></div>
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4"></div>
+              <p className="text-xl font-bold text-gray-700">Loading products...</p>
+            </div>
           </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl shadow-2xl">
-            <Package className="w-24 h-24 text-emerald-400 mx-auto mb-6" />
-            <h3 className="text-3xl font-bold">No products yet</h3>
+        ) : filteredProducts.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
+            <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No products found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your search</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products.map((p, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((p, i) => (
               <div key={p._id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
                 <ProductCard product={p} />
               </div>
@@ -448,8 +464,8 @@ export default function Products() {
         {/* FAB */}
         {isSeller && !showForm && (
           <button onClick={() => setShowForm(true)}
-            className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white p-5 rounded-full shadow-2xl lg:hidden">
-            <PlusCircle className="w-8 h-8" />
+            className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-2xl lg:hidden">
+            <PlusCircle className="w-6 h-6" />
           </button>
         )}
       </div>

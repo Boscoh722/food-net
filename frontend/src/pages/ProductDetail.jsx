@@ -1,313 +1,471 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// src/pages/Products.jsx
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
-import { 
-  ShoppingCart, 
-  Package, 
-  MapPin, 
-  User, 
-  Tag, 
-  AlertCircle,
-  ArrowLeft,
-  Truck,
-  Star,
-  ShieldCheck
+import ProductCard from '../components/ProductCard';
+import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import {
+  PlusCircle, Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf, Search
 } from 'lucide-react';
+import L from 'leaflet';
 
-export default function ProductDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+// === LEAFLET ICON FIX ===
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+const KENYA_CENTER = [-1.2921, 36.8219];
+const DEFAULT_ZOOM = 6;
+
+const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
+
+// SAFE MARKER – NEVER PASSES NaN
+function LocationMarker({ position, setPosition }) {
+  const map = useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
+        setPosition([lat, lng]);
+        map.flyTo([lat, lng], 14);
+      }
+    },
+  });
+
+  if (!position || !Array.isArray(position) || position.length !== 2 || position.some(c => typeof c !== 'number' || isNaN(c))) {
+    return null;
+  }
+
+  return (
+    <Marker position={position}>
+      <Popup>
+        <div className="text-center font-bold text-green-700">
+          Your Farm<br /><small>Click to move</small>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+export default function Products() {
   const { user } = useAuth();
-  const [product, setProduct] = useState(null);
+  const isSeller = user?.role === 'seller';
+  const [products, setProducts] = useState([]);     
   const [loading, setLoading] = useState(true);
-  const [ordering, setOrdering] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const fileInputRef = useRef(null);
+
+  // --- MODIFICATION ---
+  const [categories, setCategories] = useState([]); // State for fetched categories
+  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
+
+  const [form, setForm] = useState({
+    name: '', description: '', 
+    category: '', // --- MODIFICATION --- Default to empty string, not 'vegetables'
+    price: '', unit: 'kg',
+    quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
+    harvestDate: '', images: []
+  });
+
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    loadProduct();
-  }, [id]);
+    loadProducts();
+    
+    // --- MODIFICATION --- Fetch categories when component mounts
+    const fetchCategories = async () => {
+      setCategoryLoading(true);
+      try {
+        const { data } = await api.get('/categories');
+        setCategories(data.data); // Store the full category objects
+      } catch (err) {
+        console.error('Failed to fetch categories for form:', err);
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  const loadProduct = async () => {
+  const loadProducts = async () => {
     try {
-      const res = await api.get(`/products`);
-      const found = res.data.find(p => p._id === id);
-      setProduct(found || null);
+      setLoading(true);
+      const res = await api.get('/products?approved=true');
+      // Handle different response structures
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (res.data?.products && Array.isArray(res.data.products)) {
+        data = res.data.products;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+      setProducts(data);
     } catch (err) {
-      console.error(err);
-      alert('Failed to load product');
+      console.error('Failed to load products:', err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOrder = async () => {
-    if (!user) {
-      alert('Please login to place an order');
-      navigate('/login');
-      return;
-    }
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    const uploaded = [];
 
-    if (user.role !== 'buyer') {
-      alert('Only buyers can place orders');
-      return;
-    }
-
-    if (!confirm(`Confirm order for "${product.name}" at KSh ${product.price.toLocaleString()}?`)) {
-      return;
-    }
-
-    setOrdering(true);
     try {
-      const sellerId = product.seller?._id || product.seller || product.sellerId;
-      
-      await api.post('/orders', {
-        product: product._id,
-        seller: sellerId
-      });
-      
-      alert('Order placed successfully! Redirecting to your orders...');
-      navigate('/orders');
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'Unsigned'); 
+        const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.secure_url) {
+          uploaded.push({
+            url: data.secure_url,
+            publicId: data.public_id,
+            isPrimary: form.images.length === 0
+          });
+        }
+      }
+      setForm(prev => ({ ...prev, images: [...prev.images, ...uploaded] }));
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to place order. Please try again.';
-      alert(errorMsg);
+      alert('Upload failed');
     } finally {
-      setOrdering(false);
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // Loading State
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-amber-600 border-t-transparent mb-6"></div>
-          <p className="text-2xl font-bold text-gray-700">Loading product details...</p>
-        </div>
-      </div>
-    );
-  }
+  const removeImage = (i) => {
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, idx) => idx !== i)
+    }));
+  };
 
-  // Not Found State
-  if (!product) {
+  const validateForm = () => {
+    const err = {};
+    if (!form.name.trim()) err.name = 'Required';
+    if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 chars';
+    if (!form.price || form.price <= 0) err.price = 'Valid price';
+    if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
+    if (!form.location.trim()) err.location = 'Required';
+    if (form.images.length === 0) err.images = 'Upload 1+ photo';
+    if (!form.unit || !units.includes(form.unit)) err.unit = 'Unit required';
+    if (!form.category) err.category = 'Category is required'; 
+
+    const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+    if (!validCoords) err.coordinates = 'Pin farm on map';
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setSubmitting(true);
+    try {
+      const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+      
+      // Prepare payload with correct data types
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        category: form.category,
+        price: parseFloat(form.price),
+        unit: form.unit,
+        quantityInStock: parseInt(form.quantityInStock, 10),
+        isNegotiable: form.isNegotiable,
+        location: form.location.trim(),
+        coordinates: validCoords ? { type: 'Point', coordinates: form.coordinates } : undefined,
+        harvestDate: form.harvestDate || undefined,
+        images: form.images // Array of objects with { url, publicId, isPrimary }
+      };
+      
+     
+      await api.post('/products/my-products', payload);
+      alert('Submitted! Awaiting approval.');
+      setShowForm(false);
+      setForm({
+        name: '', description: '', 
+        category: '', 
+        price: '', unit: 'kg',
+        quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
+        harvestDate: '', images: []
+      });
+      setErrors({});
+      
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 
+        (err.response?.data?.errors?.map(e => e.msg || e.message).join(', ')) ||
+        'Failed to submit product';
+      alert(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // RENDER MAP SAFELY
+  const renderMap = () => {
+    if (!showForm) return null;
+
+    const isValidCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+    const mapCenter = isValidCoords ? form.coordinates : KENYA_CENTER;
+    const mapZoom = isValidCoords ? 14 : DEFAULT_ZOOM;
+    const mapKey = mapCenter.join(',') + '-' + mapZoom;
+
+    if (!Array.isArray(mapCenter) || mapCenter.length !== 2 || mapCenter.some(c => typeof c !== 'number' || isNaN(c))) {
+      return null;
+    }
+
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-        <div className="text-center bg-white p-16 rounded-3xl shadow-2xl border border-gray-100 max-w-md">
-          <AlertCircle className="w-24 h-24 text-red-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-4">Product Not Found</h2>
-          <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
-          <button
-            onClick={() => navigate('/products')}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-amber-600 text-white font-bold rounded-xl shadow-lg hover:bg-amber-700 transform hover:scale-105 transition-all duration-300"
-          >
-            <ArrowLeft className="w-6 h-6" />
-            Back to Products
-          </button>
-        </div>
+      <div className="h-80 rounded-xl overflow-hidden border border-gray-100">
+        <MapContainer
+          center={mapCenter}
+          zoom={mapZoom}
+          style={{ height: '100%', width: '100%' }}
+          key={mapKey}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LocationMarker
+            position={isValidCoords ? form.coordinates : null}
+            setPosition={pos => {
+              if (Array.isArray(pos) && pos.length === 2 && pos.every(c => typeof c === 'number' && !isNaN(c))) {
+                setForm(prev => ({ ...prev, coordinates: pos }));
+              }
+            }}
+          />
+        </MapContainer>
       </div>
     );
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-10">
-        {/* Back Button + Breadcrumb */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-amber-600 font-bold hover:text-amber-700 mb-8 transition-colors group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Back to Products
-        </button>
 
-        {/* Main Product Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-0">
-            {/* Image Section */}
-            <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 p-12 flex items-center justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-amber-200/30 rounded-3xl blur-3xl -z-10 animate-pulse"></div>
-                <div className="bg-gray-200 border-2 border-dashed border-amber-300 rounded-3xl w-96 h-96 flex items-center justify-center">
-                  {product.images && product.images.length > 0 ? (
-                    <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover rounded-3xl" />
-                  ) : (
-                    <Package className="w-32 h-32 text-amber-400" />
-                  )}
-                </div>
-                <div className="absolute -top-4 -right-4 bg-amber-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
-                  NEW
-                </div>
-              </div>
-            </div>
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+            <Leaf className="w-8 h-8 text-green-600" />
+            Fresh Marketplace
+          </h1>
+          {isSeller && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
+            >
+              {showForm ? 'Cancel' : (
+                <>
+                  <PlusCircle className="w-6 h-6" />
+                  List Product
+                </>
+              )}
+            </button>
+          )}
+        </div>
 
-            {/* Details Section */}
-            <div className="p-10 lg:p-12">
-              {/* Header */}
-              <div className="mb-8">
-                <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-800 mb-4">
-                  {product.name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-6 text-gray-600">
-                  <span className="flex items-center gap-2">
-                    <Tag className="w-5 h-5 text-amber-600" />
-                    {product.category || 'Uncategorized'}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-green-600" />
-                    {product.location || 'Location not specified'}
-                  </span>
-                  {product.unit && (
-                    <span className="flex items-center gap-2">
-                      <Package className="w-5 h-5 text-purple-600" />
-                      {product.unit}
-                    </span>
-                  )}
-                  {product.quantityInStock !== undefined && (
-                    <span className="flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-green-600" />
-                      {product.quantityInStock} in stock
-                    </span>
-                  )}
-                  {product.isNegotiable && (
-                    <span className="flex items-center gap-2">
-                      <Star className="w-5 h-5 text-amber-500" />
-                      Negotiable
-                    </span>
-                  )}
-                  {product.harvestDate && (
-                    <span className="flex items-center gap-2">
-                      <Leaf className="w-5 h-5 text-green-700" />
-                      Harvest: {new Date(product.harvestDate).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
+        {/* SEARCH */}
+        <div className="relative max-w-xl mx-auto mb-8">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+          />
+        </div>
 
-              {/* Seller Info */}
-              <div className="bg-amber-50 rounded-2xl p-6 mb-8 border border-amber-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-amber-200 rounded-full">
-                      <User className="w-8 h-8 text-amber-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 uppercase tracking-wider">Seller</p>
-                      <p className="text-xl font-extrabold text-gray-800">
-                        {product.seller?.name || 'Unknown Seller'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-5 h-5 ${i < 4 ? 'text-amber-500 fill-current' : 'text-gray-300'}`} />
+        {/* FORM */}
+        {isSeller && showForm && (
+          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 mb-10">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-5 flex items-center gap-3">
+              <Package className="w-6 h-6 text-green-600" />
+              List Your Produce
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* NAME & CATEGORY */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="Fresh Sukuma Wiki" />
+                  {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  {/* --- MODIFICATION --- Dynamic Category Select */}
+                  <select 
+                    value={form.category} 
+                    onChange={e => setForm({...form, category: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                  >
+                    <option value="" disabled>
+                      {categoryLoading ? 'Loading...' : 'Select a category'}
+                    </option>
+                    {categories.map(c => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
                     ))}
-                    <span className="ml-2 font-bold text-amber-600">4.8</span>
-                  </div>
+                  </select>
+                  {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="mb-8">
-                <div className="flex items-end gap-3">
-                  <p className="text-5xl font-extrabold text-amber-600">
-                    KSh {product.price?.toLocaleString() || '0'}
-                  </p>
-                  {product.price && (
-                    <p className="text-xl text-gray-500 line-through">KSh {(product.price * 1.3).toLocaleString()}</p>
+              {/* DESCRIPTION */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
+                  rows="4" className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none"
+                  placeholder="Describe your produce..." />
+                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+              </div>
+
+              {/* PRICE, UNIT, STOCK */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (KSh)</label>
+                  <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="500" />
+                  {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                  <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl">
+                    {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
+                  </select>
+                  {errors.unit && <p className="text-red-500 text-sm">{errors.unit}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="50" />
+                  {errors.quantityInStock && <p className="text-red-500 text-sm">{errors.quantityInStock}</p>}
+                </div>
+              </div>
+
+              {/* NEGOTIABLE & HARVEST */}
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
+                    className="w-5 h-5 text-green-600" />
+                  <span className="text-sm font-medium text-gray-700">Negotiable</span>
+                </label>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Harvest Date</label>
+                  <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" />
+                </div>
+              </div>
+
+              {/* LOCATION + MAP */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  <MapPin className="w-5 h-5" />Farm Location
+                </label>
+                <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-4" placeholder="Kitengela" />
+                {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
+                {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
+
+                {renderMap()}
+
+                <div className="mt-3 flex items-center gap-2 text-sm">
+                  {form.coordinates ? (
+                    <><CheckCircle2 className="w-5 h-5 text-green-600" /> Location set</>
+                  ) : (
+                    <><AlertCircle className="w-5 h-5 text-orange-600" /> Click map to pin</>
                   )}
-                  <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-bold text-sm">
-                    23% OFF
-                  </span>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="mb-10">
-                <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <ShieldCheck className="w-6 h-6 text-green-600" />
-                  Product Description
-                </h3>
-                <p className="text-gray-600 leading-relaxed text-lg">
-                  {product.description || 'No description available for this product.'}
-                </p>
+              {/* IMAGES */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Photos</label>
+                <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                  <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
+                  <label htmlFor="img" className="cursor-pointer">
+                    <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="font-medium text-gray-700">Upload</p>
+                  </label>
+                  {uploading && <p className="text-green-600 font-medium">Uploading...</p>}
+                </div>
+                <div className="grid grid-cols-4 gap-4 mt-6">
+                  {form.images.map((img, i) => (
+                    <div key={i} className="relative group">
+                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl" />
+                      {img.isPrimary && <span className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
+                      <button type="button" onClick={() => removeImage(i)}
+                        className="absolute top-2 right-2 bg-red-500 p-2 rounded-full text-white opacity-0 group-hover:opacity-100">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {errors.images && <p className="text-red-500 text-sm mt-2">{errors.images}</p>}
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-4">
-                {user?.role === 'buyer' ? (
-                  <button
-                    onClick={handleOrder}
-                    disabled={ordering}
-                    className="w-full px-8 py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-xl rounded-2xl shadow-xl hover:from-amber-600 hover:to-orange-700 transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
-                  >
-                    {ordering ? (
-                      <>
-                        <div className="animate-spin rounded-full h-6 w-6 border-4 border-white border-t-transparent"></div>
-                        Placing Order...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-7 h-7 group-hover:scale-110 transition-transform" />
-                        Place Order Now
-                        <Truck className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
-                      </>
-                    )}
-                  </button>
-                ) : user?.role === 'seller' ? (
-                  <div className="text-center py-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">
-                    <p className="text-xl font-bold text-gray-600">You are the seller</p>
-                    <p className="text-gray-500 mt-2">You cannot order your own product</p>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="w-full px-8 py-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-extrabold text-xl rounded-2xl shadow-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3"
-                  >
-                    <User className="w-7 h-7" />
-                    Login to Place Order
-                  </button>
-                )}
-
-                <button
-                  onClick={() => navigate('/products')}
-                  className="w-full px-8 py-4 border-2 border-amber-600 text-amber-600 font-bold rounded-2xl hover:bg-amber-50 transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  Continue Shopping
+              {/* SUBMIT */}
+              <div className="flex justify-end gap-4">
+                <button type="button" onClick={() => setShowForm(false)}
+                  className="px-6 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition">Cancel</button>
+                <button type="submit" disabled={submitting}
+                  className="px-6 py-3 bg-green-600 text-white font-medium rounded-xl shadow-md hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-3">
+                  {submitting ? 'Submitting...' : <><CheckCircle2 className="w-5 h-5" /> Submit</>}
                 </button>
               </div>
+            </form>
+          </div>
+        )}
 
-              {/* Trust Badges */}
-              <div className="mt-10 pt-8 border-t border-gray-200 flex flex-wrap gap-8 justify-around text-center">
-                <div>
-                  <Truck className="w-10 h-10 text-green-600 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-gray-700">Fast Delivery</p>
-                </div>
-                <div>
-                  <ShieldCheck className="w-10 h-10 text-amber-600 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-gray-700">Verified Seller</p>
-                </div>
-                <div>
-                  <Package className="w-10 h-10 text-purple-600 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-gray-700">Quality Assured</p>
-                </div>
-                {product.coordinates && Array.isArray(product.coordinates) && product.coordinates.length === 2 && (
-                  <div>
-                    <MapPin className="w-10 h-10 text-green-700 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-gray-700">Lat: {product.coordinates[0]}, Lng: {product.coordinates[1]}</p>
-                  </div>
-                )}
-              </div>
+        {/* PRODUCTS */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4"></div>
+              <p className="text-xl font-bold text-gray-700">Loading products...</p>
             </div>
           </div>
-        </div>
-        {/* Floating Action Button (Mobile) */}
-        {user?.role === 'buyer' && (
-          <button
-            onClick={handleOrder}
-            disabled={ordering}
-            className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 rounded-full shadow-2xl hover:shadow-amber-500/50 transform hover:scale-110 transition-all duration-300 flex items-center justify-center lg:hidden"
-            aria-label="Place Order"
-          >
-            <ShoppingCart className="w-8 h-8" />
+        ) : filteredProducts.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
+            <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No products found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your search</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((p, i) => (
+              <div key={p._id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* FAB */}
+        {isSeller && !showForm && (
+          <button onClick={() => setShowForm(true)}
+            className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-2xl lg:hidden">
+            <PlusCircle className="w-6 h-6" />
           </button>
         )}
       </div>

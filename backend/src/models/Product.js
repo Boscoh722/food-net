@@ -61,3 +61,4 @@ const ProductSchema = new mongoose.Schema({
 ProductSchema.index({ coordinates: '2dsphere' });
 
 export default mongoose.model('Product', ProductSchema);
+

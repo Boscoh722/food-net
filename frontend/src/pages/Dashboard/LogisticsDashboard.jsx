@@ -1,23 +1,21 @@
 // src/pages/Dashboard/LogisticsDashboard.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Truck, MapPin, CheckCircle, ListPlus, TrendingUp, Clock, Package 
+  Truck, MapPin, CheckCircle, ListPlus, Clock, Package 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 // Reusable Stat Card
-const LogisticsStatCard = ({ title, value, icon: Icon, valueColor = 'text-emerald-600', linkTo = '#' }) => (
+const LogisticsStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', linkTo = '#', description }) => (
   <Link 
     to={linkTo} 
-    className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700 hover:border-emerald-500"
+    className="group bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 text-center"
   >
-    <div className="flex items-center justify-between w-full mb-3">
-      <Icon className={`w-9 h-9 ${valueColor} group-hover:scale-110 transition-transform`} />
-      <TrendingUp className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition" />
-    </div>
-    <p className={`text-4xl font-extrabold ${valueColor}`}>{value}</p>
-    <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest mt-1 dark:text-gray-400">{title}</p>
+    <Icon className={`w-12 h-12 ${valueColor} mx-auto mb-4 group-hover:scale-110 transition-transform`} />
+    <h3 className="font-semibold text-gray-800 text-lg">{title}</h3>
+    {description && <p className="text-sm text-gray-600 mt-2">{description}</p>}
+    <div className={`mt-4 text-2xl font-bold ${valueColor}`}>{value}</div>
   </Link>
 );
 
@@ -25,20 +23,20 @@ const LogisticsStatCard = ({ title, value, icon: Icon, valueColor = 'text-emeral
 const DeliveryItem = ({ orderId, status, route, eta, colorClass }) => (
   <Link 
     to={`/logistics/order/${orderId}`} 
-    className={`p-4 border-l-4 ${colorClass} bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all rounded-xl flex justify-between items-center border-t border-gray-100 dark:border-gray-700`}
+    className={`p-4 border-l-4 ${colorClass} bg-white shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 rounded-xl flex justify-between items-center border border-gray-100`}
   >
     <div>
-      <p className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
-        <Package className="w-4 h-4 text-emerald-600" /> 
-        Order: <span className="text-emerald-600">{orderId}</span>
+      <p className="font-bold text-gray-800 flex items-center gap-2">
+        <Package className="w-4 h-4 text-green-600" /> 
+        Order: <span className="text-green-600">{orderId}</span>
       </p>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Route: {route}</p>
+      <p className="text-sm text-gray-600 mt-1">Route: {route}</p>
     </div>
     <div className="text-right">
-      <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${colorClass.replace('border-', 'bg-').split(' ')[0]}`}>
+      <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${colorClass.replace('border-', 'bg-')}`}>
         {status}
       </span>
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">ETA: {eta}</p>
+      <p className="text-sm font-medium text-gray-700 mt-1">ETA: {eta}</p>
     </div>
   </Link>
 );
@@ -46,33 +44,38 @@ const DeliveryItem = ({ orderId, status, route, eta, colorClass }) => (
 export default function LogisticsDashboard() {
   const { user } = useAuth();
 
-  // MOCK DATA – Perfectly fine for now! (Backend not ready yet)
-  const stats = [
-    { title: 'Deliveries Today', value: 12, icon: Truck, valueColor: 'text-emerald-600', linkTo: '/logistics/deliveries' },
-    { title: 'On-Time Rate', value: '98%', icon: CheckCircle, valueColor: 'text-green-600', linkTo: '/logistics/performance' },
-    { title: 'Active Routes', value: 5, icon: MapPin, valueColor: 'text-blue-600', linkTo: '/logistics/routes' },
-    { title: 'Pending Tasks', value: 3, icon: ListPlus, valueColor: 'text-red-600', linkTo: '/logistics/tasks' },
-  ];
+  const [stats, setStats] = useState([]);
+  const [deliveries, setDeliveries] = useState([]);
 
-  const deliveries = [
-    { orderId: 'ORD123', status: 'In Transit', route: 'Nairobi → Kisumu', eta: '2h 30m', colorClass: 'border-emerald-500 bg-emerald-500' },
-    { orderId: 'ORD124', status: 'Pending', route: 'Nakuru → Eldoret', eta: '5h 10m', colorClass: 'border-amber-500 bg-amber-500' },
-    { orderId: 'ORD125', status: 'Delivered', route: 'Mombasa → Nairobi', eta: 'Delivered', colorClass: 'border-blue-500 bg-blue-500' },
-  ];
+  useEffect(() => {
+    // TODO: Fetch stats from API
+    setStats([
+      { title: 'Deliveries Today', value: 12, icon: Truck, valueColor: 'text-green-600', linkTo: '/logistics/deliveries', description: 'Total deliveries scheduled for today' },
+      { title: 'On-Time Rate', value: '98%', icon: CheckCircle, valueColor: 'text-green-600', linkTo: '/logistics/performance', description: 'Current on-time delivery rate' },
+      { title: 'Active Routes', value: 5, icon: MapPin, valueColor: 'text-blue-600', linkTo: '/logistics/routes', description: 'Routes currently in progress' },
+      { title: 'Pending Tasks', value: 3, icon: ListPlus, valueColor: 'text-red-600', linkTo: '/logistics/tasks', description: 'Tasks requiring immediate attention' },
+    ]);
+
+    setDeliveries([
+      { orderId: 'ORD123', status: 'In Transit', route: 'Nairobi → Kisumu', eta: '2h 30m', colorClass: 'border-green-500' },
+      { orderId: 'ORD124', status: 'Pending', route: 'Nakuru → Eldoret', eta: '5h 10m', colorClass: 'border-orange-500' },
+      { orderId: 'ORD125', status: 'Delivered', route: 'Mombasa → Nairobi', eta: 'Delivered', colorClass: 'border-blue-500' },
+    ]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-inter">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-10">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 pb-6 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-5xl font-extrabold text-gray-800 dark:text-white flex items-center gap-4">
-            <Truck className="w-12 h-12 text-emerald-600" />
+        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+            <Truck className="w-8 h-8 text-green-600" />
             Logistics Operations Center
           </h1>
           <Link 
             to="/logistics/map-view"
-            className="mt-4 sm:mt-0 px-8 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold rounded-2xl shadow-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all flex items-center gap-3 transform hover:scale-105"
+            className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition duration-300 flex items-center gap-3"
           >
             <MapPin className="w-6 h-6" />
             Live Map View
@@ -80,34 +83,28 @@ export default function LogisticsDashboard() {
         </div>
 
         {/* KPIs */}
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6 border-l-8 border-amber-500 pl-4">
-          Operational KPIs
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {stats.map((stat, i) => (
-            <LogisticsStatCard key={i} {...stat} />
-          ))}
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Operational KPIs</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map((stat, i) => (
+              <LogisticsStatCard key={i} {...stat} />
+            ))}
+          </div>
         </div>
 
         {/* Main Layout: Map + Tasks */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="mt-10 grid lg:grid-cols-3 gap-8">
           {/* Live Map Area */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 min-h-96">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-3">
-              <MapPin className="w-8 h-8 text-emerald-600" />
-              Live Route Tracking
-            </h3>
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-96 flex items-center justify-center text-gray-500">
-              <p className="text-xl">Map integration coming soon...</p>
-            </div>
+          <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-2xl border border-gray-100 min-h-[300px] flex items-center justify-center">
+            <p className="text-gray-500 italic text-xl">Map integration coming soon...</p>
           </div>
 
           {/* Immediate Tasks */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl border border-amber-400">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-3">
-              <Clock className="w-8 h-8 text-amber-500" />
+          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-5 flex items-center gap-3">
+              <Clock className="w-6 h-6 text-orange-600" />
               Immediate Tasks
-            </h3>
+            </h2>
             <div className="space-y-4">
               {deliveries.map((item) => (
                 <DeliveryItem key={item.orderId} {...item} />
