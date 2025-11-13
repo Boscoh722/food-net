@@ -53,7 +53,7 @@ function LocationMarker({ position, setPosition }) {
 export default function Products() {
   const { user } = useAuth();
   const isSeller = user?.role === 'seller';
-  const [products, setProducts] = useState([]);     // Always array
+  const [products, setProducts] = useState([]);     
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -124,7 +124,7 @@ export default function Products() {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'Unsigned'); // NOTE: Consider using a signed preset for security
+        formData.append('upload_preset', 'Unsigned'); 
         const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
           method: 'POST',
           body: formData
@@ -163,8 +163,6 @@ export default function Products() {
     if (!form.location.trim()) err.location = 'Required';
     if (form.images.length === 0) err.images = 'Upload 1+ photo';
     if (!form.unit || !units.includes(form.unit)) err.unit = 'Unit required';
-    
-    // --- MODIFICATION --- Validate category (it's now an ID)
     if (!form.category) err.category = 'Category is required'; 
 
     const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
@@ -195,8 +193,8 @@ export default function Products() {
         images: form.images // Array of objects with { url, publicId, isPrimary }
       };
       
-      // --- MODIFICATION --- Use correct seller route: /products/my
-      await api.post('/products/my', payload);
+     
+      await api.post('/products/my-products', payload);
       alert('Submitted! Awaiting approval.');
       setShowForm(false);
       setForm({

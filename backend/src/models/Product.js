@@ -47,10 +47,17 @@ const ProductSchema = new mongoose.Schema({
       }
     }
   },
+  images: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image'  // Replace 'Image' with your actual image model name, e.g., if you have a separate Image schema
+  }],
   approved: {
     type: Boolean,
     default: false // Admin approves to prevent illegal items
   }
 }, { timestamps: true });
+
+// Optional: Add a geospatial index for efficient location-based queries
+ProductSchema.index({ coordinates: '2dsphere' });
 
 export default mongoose.model('Product', ProductSchema);

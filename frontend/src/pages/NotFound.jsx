@@ -1,49 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Frown } from 'lucide-react';
+import { Home, ShoppingBag, AlertTriangle } from 'lucide-react'; // Add ShoppingBag here
 
 function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-6">
-      <div className="text-center max-w-lg">
-        {/* 404 Icon */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
         <div className="mb-8">
-          <Frown className="w-24 h-24 mx-auto text-amber-500 animate-bounce" />
+          <AlertTriangle className="w-24 h-24 text-amber-500 mx-auto mb-4" />
+          <h1 className="text-6xl font-bold text-gray-800 mb-2">404</h1>
+          <h2 className="text-2xl font-semibold text-gray-600 mb-4">Page Not Found</h2>
+          <p className="text-gray-500 mb-8">
+            Sorry, we couldn't find the page you're looking for.
+          </p>
         </div>
-
-        {/* 404 Text */}
-        <h1 className="text-8xl font-extrabold text-gray-800 dark:text-gray-100 mb-4">
-          404
-        </h1>
-        <p className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-          Oops! Page Not Found
-        </p>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        
+        <div className="space-y-4">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-amber-500 text-white font-bold text-lg rounded-xl hover:bg-amber-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="inline-flex items-center justify-center w-full px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Home
+            <Home className="w-5 h-5 mr-2" />
+            Go Home
           </Link>
+          
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-xl hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center justify-center w-full px-6 py-3 bg-gray-800 text-white font-medium rounded-lg hover:bg-gray-900 transition-colors"
           >
-            <ShoppingBag className="w-5 h-5" />
+            <ShoppingBag className="w-5 h-5 mr-2" />
             Browse Products
           </Link>
         </div>
-
-        {/* Fun Tip */}
-        <p className="mt-12 text-sm text-gray-500 dark:text-gray-400">
-          Tip: Try searching for fresh fruits or vegetables instead! 🍎🥬
-        </p>
       </div>
     </div>
   );
