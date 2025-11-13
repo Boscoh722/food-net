@@ -29,7 +29,6 @@ import AdminProducts from './pages/Dashboard/AdminProducts';
 import AdminOrders from './pages/Dashboard/AdminOrders';
 import AdminComplaints from './pages/Dashboard/AdminComplaints';
 
-
 // Seller
 import SellerProductCreate from './pages/SellerProductCreate';
 
@@ -72,7 +71,7 @@ function App() {
               }
             />
 
-            {/* Admin Dashboard */}
+            {/* Admin Dashboard & Management Routes */}
             <Route
               path="/dashboard/admin"
               element={
@@ -82,7 +81,7 @@ function App() {
               }
             />
             <Route
-              path="/dashboard/admin/users"
+              path="/AdminUsers"
               element={
                 <PrivateRoute roles={['admin']}>
                   <AdminUsers />
@@ -90,7 +89,7 @@ function App() {
               }
             />
             <Route
-              path="/dashboard/admin/products"
+              path="/AdminProducts"
               element={
                 <PrivateRoute roles={['admin']}>
                   <AdminProducts />
@@ -98,7 +97,7 @@ function App() {
               }
             />
             <Route
-              path="/dashboard/admin/orders"
+              path="/AdminOrders"
               element={
                 <PrivateRoute roles={['admin']}>
                   <AdminOrders />
@@ -106,7 +105,7 @@ function App() {
               }
             />
             <Route
-              path="/dashboard/admin/complaints"
+              path="/AdminComplaints"
               element={
                 <PrivateRoute roles={['admin']}>
                   <AdminComplaints />
