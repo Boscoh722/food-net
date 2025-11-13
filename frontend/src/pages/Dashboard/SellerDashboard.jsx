@@ -1,29 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, BarChart3, Package, PlusCircle, Clock, 
+  DollarSign, Package, PlusCircle, Clock, 
   Leaf, Star, AlertTriangle, CheckCircle2, Image, MapPin, 
-  Package as PackageIcon, ShoppingBag, RefreshCw
+  ShoppingBag, RefreshCw, TrendingUp
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 
 // Custom Stat Card
-const SellerStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', linkTo = '#', description, onClick }) => {
-  const navigate = useNavigate();
-  
-  const handleClick = (e) => {
-    e.preventDefault();
-    if (onClick) {
-      onClick();
-    } else if (linkTo && linkTo !== '#') {
-      navigate(linkTo);
-    }
-  };
-
+const SellerStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', description, onClick }) => {
   return (
     <div
-      onClick={handleClick}
+      onClick={onClick}
       className="group bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 text-center cursor-pointer"
     >
       <Icon className={`w-12 h-12 ${valueColor} mx-auto mb-4 group-hover:scale-110 transition-transform`} />
@@ -40,14 +29,18 @@ function SellerDashboard() {
   
   const [stats, setStats] = useState({
     totalProducts: 0,
-    inStock: 0,
-    lowStock: 0,
+    approvedProducts: 0,
     pendingApproval: 0,
     avgRating: 0,
-    totalSales: 0,
+    totalOrders: 0,
+    pendingOrders: 0,
+    confirmedOrders: 0,
+    shippedOrders: 0,
+    deliveredOrders: 0,
     revenue: 0
   });
   const [products, setProducts] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -60,46 +53,47 @@ function SellerDashboard() {
       setLoading(true);
       setError(null);
 
-      // CORRECT ROUTE: /api/seller/products (from sellerRoutes.js)
+      // Fetch seller products from /api/seller/products
       const productsRes = await api.get('/seller/products');
-      
-      // Handle response structure: { success: true, products: [...], pagination: {...} }
       const myProducts = productsRes.data?.products || [];
       setProducts(myProducts);
 
-      // CORRECT ROUTE: /api/seller/orders (from sellerRoutes.js)
+      // Fetch seller orders from /api/seller/orders
       let ordersArray = [];
       try {
         const ordersRes = await api.get('/seller/orders');
         ordersArray = ordersRes.data?.orders || [];
+        setRecentOrders(ordersArray.slice(0, 5));
       } catch (orderErr) {
         console.warn('Could not load orders:', orderErr);
       }
 
-      // Calculate revenue from delivered orders only
-      const totalSales = ordersArray
+      // Calculate product stats
+      const approvedProducts = myProducts.filter(p => p.approved === true).length;
+      const pendingApproval = myProducts.filter(p => p.approved === false).length;
+
+      // Calculate order stats
+      const pendingOrders = ordersArray.filter(o => o.status === 'pending').length;
+      const confirmedOrders = ordersArray.filter(o => o.status === 'confirmed').length;
+      const shippedOrders = ordersArray.filter(o => o.status === 'shipped').length;
+      const deliveredOrders = ordersArray.filter(o => o.status === 'delivered').length;
+
+      // Calculate revenue from delivered orders
+      const totalRevenue = ordersArray
         .filter(o => o.status === 'delivered')
         .reduce((sum, o) => sum + (o.total || 0), 0);
 
-      // Calculate stats from products
-      const inStock = myProducts.filter(p => p.quantityInStock > 0).length;
-      const lowStock = myProducts.filter(p => p.quantityInStock > 0 && p.quantityInStock <= 10).length;
-      const pendingApproval = myProducts.filter(p => p.approved === false).length;
-      
-      // Calculate average rating
-      const productsWithRatings = myProducts.filter(p => p.rating?.average > 0);
-      const avgRating = productsWithRatings.length > 0
-        ? productsWithRatings.reduce((sum, p) => sum + (p.rating?.average || 0), 0) / productsWithRatings.length
-        : 0;
-
       setStats({
         totalProducts: myProducts.length,
-        inStock,
-        lowStock,
+        approvedProducts,
         pendingApproval,
-        avgRating: avgRating.toFixed(1),
-        totalSales: ordersArray.length,
-        revenue: totalSales
+        avgRating: 0, // Not available in current schema
+        totalOrders: ordersArray.length,
+        pendingOrders,
+        confirmedOrders,
+        shippedOrders,
+        deliveredOrders,
+        revenue: totalRevenue
       });
 
     } catch (err) {
@@ -110,31 +104,28 @@ function SellerDashboard() {
     }
   };
 
-  const formatPrice = (price, unit) => {
-    const cleanUnit = unit?.replace('kgs', 'kg').replace('litre', 'L');
-    return `KSh ${price?.toLocaleString()} / ${cleanUnit || 'unit'}`;
+  const formatPrice = (price) => {
+    return `KSh ${price?.toLocaleString() || 0}`;
   };
 
-  const getFreshnessStatus = (harvestDate) => {
-    if (!harvestDate) return { text: 'Unknown', color: 'gray' };
-    const daysOld = Math.floor((Date.now() - new Date(harvestDate)) / (1000 * 60 * 60 * 24));
-    if (daysOld <= 2) return { text: 'Just Harvested', color: 'green' };
-    if (daysOld <= 5) return { text: 'Fresh', color: 'green' };
-    if (daysOld <= 10) return { text: 'Good', color: 'amber' };
-    return { text: 'Mature', color: 'red' };
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      confirmed: 'bg-blue-100 text-blue-800',
+      shipped: 'bg-purple-100 text-purple-800',
+      delivered: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800',
+      refunded: 'bg-gray-100 text-gray-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
   };
-
-  // Navigation handlers
-  const handleNavigateToProducts = () => navigate('/products');
-  const handleNavigateToOrders = () => navigate('/seller/orders');
-  const handleNavigateToPayouts = () => navigate('/seller/payouts');
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4"></div>
-          <p className="text-xl font-bold text-gray-700">Loading your farm dashboard...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4 mx-auto"></div>
+          <p className="text-xl font-bold text-gray-700">Loading your seller dashboard...</p>
         </div>
       </div>
     );
@@ -165,7 +156,7 @@ function SellerDashboard() {
         <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
           <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
             <Leaf className="w-8 h-8 text-green-600" />
-            {user?.storeName || user?.name || 'My Farm Store'}
+            Seller Dashboard
           </h1>
           <div className="flex gap-3">
             <button
@@ -177,73 +168,102 @@ function SellerDashboard() {
               Refresh
             </button>
             <button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/products/new')}
               className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
             >
               <PlusCircle className="w-6 h-6" />
-              List New Product
+              Add Product
             </button>
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Product Stats */}
         <div className="mt-10">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Farm Performance</h2>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Product Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <SellerStatCard 
               title="Total Products" 
               value={stats.totalProducts} 
-              icon={PackageIcon} 
+              icon={Package} 
               valueColor="text-green-600" 
-              onClick={handleNavigateToProducts}
+              onClick={() => navigate('/seller/products')}
             />
             <SellerStatCard 
-              title="In Stock" 
-              value={stats.inStock} 
+              title="Approved Products" 
+              value={stats.approvedProducts} 
               icon={CheckCircle2} 
               valueColor="text-green-600" 
-              onClick={handleNavigateToProducts}
-            />
-            <SellerStatCard 
-              title="Low Stock" 
-              value={stats.lowStock} 
-              icon={AlertTriangle} 
-              valueColor="text-orange-600" 
-              onClick={handleNavigateToProducts}
+              onClick={() => navigate('/seller/products?approved=true')}
             />
             <SellerStatCard 
               title="Pending Approval" 
               value={stats.pendingApproval} 
               icon={Clock} 
-              valueColor="text-red-600" 
-              onClick={handleNavigateToProducts}
-            />
-            <SellerStatCard 
-              title="Avg Rating" 
-              value={stats.avgRating === '0.0' ? 'N/A' : `${stats.avgRating} ⭐`} 
-              icon={Star} 
-              valueColor="text-yellow-600" 
-            />
-            <SellerStatCard 
-              title="Total Sales" 
-              value={stats.totalSales} 
-              icon={ShoppingBag} 
-              valueColor="text-blue-600" 
-              onClick={handleNavigateToOrders}
+              valueColor="text-orange-600" 
+              onClick={() => navigate('/seller/products?approved=false')}
             />
             <SellerStatCard 
               title="Revenue" 
-              value={`KSh ${stats.revenue.toLocaleString()}`} 
+              value={formatPrice(stats.revenue)} 
               icon={DollarSign} 
               valueColor="text-green-600" 
-              onClick={handleNavigateToPayouts}
             />
           </div>
         </div>
 
-        {/* Recent Products Preview */}
+        {/* Order Stats */}
         <div className="mt-10">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Recent Products</h2>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Order Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <SellerStatCard 
+              title="Total Orders" 
+              value={stats.totalOrders} 
+              icon={ShoppingBag} 
+              valueColor="text-blue-600" 
+              onClick={() => navigate('/seller/orders')}
+            />
+            <SellerStatCard 
+              title="Pending" 
+              value={stats.pendingOrders} 
+              icon={Clock} 
+              valueColor="text-yellow-600" 
+              onClick={() => navigate('/seller/orders?status=pending')}
+            />
+            <SellerStatCard 
+              title="Confirmed" 
+              value={stats.confirmedOrders} 
+              icon={CheckCircle2} 
+              valueColor="text-blue-600" 
+              onClick={() => navigate('/seller/orders?status=confirmed')}
+            />
+            <SellerStatCard 
+              title="Shipped" 
+              value={stats.shippedOrders} 
+              icon={TrendingUp} 
+              valueColor="text-purple-600" 
+              onClick={() => navigate('/seller/orders?status=shipped')}
+            />
+            <SellerStatCard 
+              title="Delivered" 
+              value={stats.deliveredOrders} 
+              icon={CheckCircle2} 
+              valueColor="text-green-600" 
+              onClick={() => navigate('/seller/orders?status=delivered')}
+            />
+          </div>
+        </div>
+
+        {/* Recent Products */}
+        <div className="mt-10">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-semibold text-gray-700">Recent Products</h2>
+            <button
+              onClick={() => navigate('/seller/products')}
+              className="text-green-600 hover:text-green-700 font-medium"
+            >
+              View All →
+            </button>
+          </div>
         
           {products.length === 0 ? (
             <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
@@ -251,7 +271,7 @@ function SellerDashboard() {
               <h3 className="text-2xl font-bold text-gray-700 mb-2">No Products Yet</h3>
               <p className="text-gray-500 mb-6">Start by listing your first product</p>
               <button
-                onClick={() => navigate('/products')}
+                onClick={() => navigate('/products/new')}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
               >
                 <PlusCircle className="w-5 h-5" />
@@ -261,14 +281,12 @@ function SellerDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.slice(0, 6).map(product => {
-                const freshness = getFreshnessStatus(product.harvestDate);
-                // Handle image from response: images array contains objects with url property
                 const productImage = product.images?.[0]?.url || product.images?.[0];
                 
                 return (
                   <div
                     key={product._id}
-                    onClick={() => navigate(`/products/${product._id}`)}
+                    onClick={() => navigate(`/seller/products/${product._id}`)}
                     className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer overflow-hidden"
                   >
                     <div className="relative h-48 bg-gray-100">
@@ -283,9 +301,6 @@ function SellerDashboard() {
                           <Image className="w-16 h-16 text-gray-400" />
                         </div>
                       )}
-                      <div className={`absolute top-3 right-3 px-3 py-1 bg-${freshness.color}-500 text-white text-xs font-bold rounded-full shadow-lg`}>
-                        {freshness.text}
-                      </div>
                       {!product.approved && (
                         <div className="absolute top-3 left-3 px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
                           <Clock className="w-3 h-3" />
@@ -304,21 +319,16 @@ function SellerDashboard() {
                         {product.name}
                       </h3>
                       <p className="text-green-600 font-bold text-lg mb-3">
-                        {formatPrice(product.price, product.unit)}
+                        {formatPrice(product.price)}
                       </p>
                       <div className="flex items-center justify-between text-sm">
-                        <span className={`font-semibold ${
-                          product.quantityInStock > 10 
-                            ? 'text-green-600' 
-                            : product.quantityInStock > 0 
-                              ? 'text-amber-600' 
-                              : 'text-red-600'
-                        }`}>
-                          Stock: {product.quantityInStock} {product.unit}
+                        <span className="text-gray-600">
+                          {product.category?.name || product.category || 'Uncategorized'}
                         </span>
-                        {product.category?.name && (
-                          <span className="text-gray-500 text-xs bg-gray-100 px-2 py-1 rounded">
-                            {product.category.name}
+                        {product.location && (
+                          <span className="text-gray-500 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {product.location}
                           </span>
                         )}
                       </div>
@@ -328,16 +338,64 @@ function SellerDashboard() {
               })}
             </div>
           )}
+        </div>
 
-          {products.length > 6 && (
-            <div className="text-center mt-8">
-              <button
-                onClick={handleNavigateToProducts}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                View All Products
-                <Package className="w-5 h-5" />
-              </button>
+        {/* Recent Orders */}
+        <div className="mt-10">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-semibold text-gray-700">Recent Orders</h2>
+            <button
+              onClick={() => navigate('/seller/orders')}
+              className="text-green-600 hover:text-green-700 font-medium"
+            >
+              View All →
+            </button>
+          </div>
+          
+          {recentOrders.length === 0 ? (
+            <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
+              <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-700 mb-2">No Orders Yet</h3>
+              <p className="text-gray-500">Orders will appear here once customers start purchasing</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentOrders.map(order => (
+                      <tr 
+                        key={order._id}
+                        onClick={() => navigate(`/seller/orders/${order._id}`)}
+                        className="hover:bg-gray-50 cursor-pointer transition"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {order.orderNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                          {formatPrice(order.total)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
