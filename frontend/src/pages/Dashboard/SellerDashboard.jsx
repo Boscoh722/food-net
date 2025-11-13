@@ -36,31 +36,67 @@ function SellerDashboard() {
   });
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [productsRes, ordersRes] = await Promise.all([
-          api.get('/seller/products'),
-          api.get('/seller/orders')
-        ]);
+        setLoading(true);
+        setError(null);
 
-        // Handle products
-        const myProducts = Array.isArray(productsRes.data) ? productsRes.data : productsRes.data?.products || [];
+        // Fetch seller's products - route should be /api/products/seller/:sellerId
+        const productsRes = await api.get(`/products/seller/${user?._id || user?.id}`);
+        
+        // Handle products based on actual API response structure
+        const myProducts = Array.isArray(productsRes.data) 
+          ? productsRes.data 
+          : productsRes.data?.products || [];
+        
         setProducts(myProducts);
 
-        // Handle orders safely
-        const ordersArray = Array.isArray(ordersRes.data)
-          ? ordersRes.data
-          : ordersRes.data?.orders || [];
+        // Fetch seller's orders - route should be /api/orders/seller/:sellerId
+        let ordersArray = [];
+        try {
+          const ordersRes = await api.get(`/orders/seller/${user?._id || user?.id}`);
+          ordersArray = Array.isArray(ordersRes.data)
+            ? ordersRes.data
+            : ordersRes.data?.orders || [];
+        } catch (orderErr) {
+          console.warn('Could not load orders:', orderErr);
+          // Continue without orders data
+        }
 
-        const totalSales = ordersArray.reduce((sum, o) => sum + (o.total || 0), 0);
+        // Calculate revenue from completed orders only
+        const totalSales = ordersArray
+          .filter(o => o.status === 'delivered' || o.status === 'completed')
+          .reduce((sum, o) => {
+            // Handle both order.total and order.totalAmount
+            const orderTotal = o.total || o.totalAmount || 0;
+            return sum + orderTotal;
+          }, 0);
 
-        // Calculate stats
-        const inStock = myProducts.filter(p => p.inStock).length;
-        const lowStock = myProducts.filter(p => p.quantityInStock > 0 && p.quantityInStock <= 10).length;
-        const pendingApproval = myProducts.filter(p => !p.approved).length;
-        const avgRating = myProducts.reduce((sum, p) => sum + (p.rating?.average || 0), 0) / (myProducts.length || 1);
+        // Calculate stats from products
+        const inStock = myProducts.filter(p => 
+          p.inStock === true || p.quantityInStock > 0
+        ).length;
+        
+        const lowStock = myProducts.filter(p => 
+          p.quantityInStock > 0 && p.quantityInStock <= 10
+        ).length;
+        
+        const pendingApproval = myProducts.filter(p => 
+          p.approved === false || p.status === 'pending'
+        ).length;
+        
+        // Calculate average rating
+        const productsWithRatings = myProducts.filter(p => 
+          p.rating?.average > 0 || p.averageRating > 0
+        );
+        const avgRating = productsWithRatings.length > 0
+          ? productsWithRatings.reduce((sum, p) => 
+              sum + (p.rating?.average || p.averageRating || 0), 0
+            ) / productsWithRatings.length
+          : 0;
 
         setStats({
           totalProducts: myProducts.length,
@@ -74,13 +110,20 @@ function SellerDashboard() {
 
       } catch (err) {
         console.error('Failed to load seller data:', err);
+        setError(err.response?.data?.message || 'Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
     };
 
-    loadDashboard();
-  }, []);
+    // Only load if user is authenticated and has an ID
+    if (user?._id || user?.id) {
+      loadDashboard();
+    } else {
+      setLoading(false);
+      setError('User not authenticated');
+    }
+  }, [user]);
 
   const formatPrice = (price, unit) => {
     const cleanUnit = unit?.replace('kgs', 'kg').replace('litre', 'L');
@@ -107,6 +150,24 @@ function SellerDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-6 py-10">
@@ -115,7 +176,7 @@ function SellerDashboard() {
           <div>
             <h1 className="text-5xl font-extrabold text-gray-800 dark:text-white flex items-center gap-4">
               <Leaf className="w-12 h-12 text-emerald-600" />
-              {user?.storeName || 'My Farm Store'}
+              {user?.storeName || user?.name || 'My Farm Store'}
             </h1>
             <p className="text-xl text-gray-600 mt-2 flex items-center gap-2">
               <MapPin className="w-5 h-5" />
@@ -132,19 +193,138 @@ function SellerDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-l-8 border-amber-500 pl-4">Farm Performance</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-l-8 border-amber-500 pl-4 dark:text-white">
+          Farm Performance
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          <SellerStatCard title="Total Products" value={stats.totalProducts} icon={PackageIcon} valueColor="text-emerald-600" linkTo="/seller/products" />
-          <SellerStatCard title="In Stock" value={stats.inStock} icon={CheckCircle2} valueColor="text-green-600" linkTo="/seller/products?status=instock" />
-          <SellerStatCard title="Low Stock" value={stats.lowStock} icon={AlertTriangle} valueColor="text-amber-600" linkTo="/seller/products?stock=low" />
-          <SellerStatCard title="Pending Approval" value={stats.pendingApproval} icon={Clock} valueColor="text-orange-600" linkTo="/seller/products?status=pending" />
-          <SellerStatCard title="Avg Rating" value={`${stats.avgRating} stars`} icon={Star} valueColor="text-yellow-600" />
-          <SellerStatCard title="Total Sales" value={stats.totalSales} icon={ShoppingBag} valueColor="text-blue-600" linkTo="/seller/orders" />
-          <SellerStatCard title="Revenue" value={`KSh ${stats.revenue.toLocaleString()}`} icon={DollarSign} valueColor="text-emerald-700" linkTo="/seller/payouts" />
+          <SellerStatCard 
+            title="Total Products" 
+            value={stats.totalProducts} 
+            icon={PackageIcon} 
+            valueColor="text-emerald-600" 
+            linkTo="/seller/products" 
+          />
+          <SellerStatCard 
+            title="In Stock" 
+            value={stats.inStock} 
+            icon={CheckCircle2} 
+            valueColor="text-green-600" 
+            linkTo="/seller/products?status=instock" 
+          />
+          <SellerStatCard 
+            title="Low Stock" 
+            value={stats.lowStock} 
+            icon={AlertTriangle} 
+            valueColor="text-amber-600" 
+            linkTo="/seller/products?stock=low" 
+          />
+          <SellerStatCard 
+            title="Pending Approval" 
+            value={stats.pendingApproval} 
+            icon={Clock} 
+            valueColor="text-orange-600" 
+            linkTo="/seller/products?status=pending" 
+          />
+          <SellerStatCard 
+            title="Avg Rating" 
+            value={stats.avgRating === '0.0' ? 'N/A' : `${stats.avgRating} ⭐`} 
+            icon={Star} 
+            valueColor="text-yellow-600" 
+          />
+          <SellerStatCard 
+            title="Total Sales" 
+            value={stats.totalSales} 
+            icon={ShoppingBag} 
+            valueColor="text-blue-600" 
+            linkTo="/seller/orders" 
+          />
+          <SellerStatCard 
+            title="Revenue" 
+            value={`KSh ${stats.revenue.toLocaleString()}`} 
+            icon={DollarSign} 
+            valueColor="text-emerald-700" 
+            linkTo="/seller/payouts" 
+          />
         </div>
 
-        {/* Products Preview */}
-        {/* (Your existing product grid code remains unchanged) */}
+        {/* Recent Products Preview */}
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-l-8 border-emerald-500 pl-4 dark:text-white">
+          Recent Products
+        </h2>
+        
+        {products.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No Products Yet</h3>
+            <p className="text-gray-500 mb-6">Start by listing your first product</p>
+            <Link
+              to="/seller/product/new"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+            >
+              <PlusCircle className="w-5 h-5" />
+              Add Product
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.slice(0, 6).map(product => {
+              const freshness = getFreshnessStatus(product.harvestDate);
+              return (
+                <Link
+                  key={product._id || product.id}
+                  to={`/seller/product/${product._id || product.id}`}
+                  className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <div className="relative h-48 bg-gray-200">
+                    {product.images?.[0] || product.imageUrl ? (
+                      <img
+                        src={product.images?.[0] || product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Image className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    <div className={`absolute top-3 right-3 px-3 py-1 bg-${freshness.color}-500 text-white text-xs font-bold rounded-full`}>
+                      {freshness.text}
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
+                    <p className="text-emerald-600 font-bold text-lg mb-2">
+                      {formatPrice(product.price, product.unit)}
+                    </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className={`font-semibold ${product.quantityInStock > 10 ? 'text-green-600' : 'text-amber-600'}`}>
+                        Stock: {product.quantityInStock}
+                      </span>
+                      {!product.approved && (
+                        <span className="text-orange-600 font-semibold flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {products.length > 6 && (
+          <div className="text-center mt-8">
+            <Link
+              to="/seller/products"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition"
+            >
+              View All Products
+              <Package className="w-5 h-5" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
