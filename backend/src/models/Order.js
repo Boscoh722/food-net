@@ -1,6 +1,6 @@
 // models/Order.js
 import mongoose from 'mongoose';
-import Counter from './Counter.js'; // ← Add this model (below)
+import Counter from './Counter.js'; 
 
 const OrderItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -16,7 +16,6 @@ const OrderSchema = new mongoose.Schema(
     orderNumber: { type: String, unique: true },
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    logistics: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     items: { type: [OrderItemSchema], validate: [v => v.length > 0, 'Order must have items'] },
     total: { type: Number, required: true, min: 0 },
     status: {

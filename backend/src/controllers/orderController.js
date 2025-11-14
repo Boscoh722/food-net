@@ -74,6 +74,35 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+// --- NEW: LOGISTICS GET ASSIGNED ORDERS ---
+export const getMyAssignedOrders = async (req, res) => {
+  try {
+    // req.user.id is set by the protect middleware from the JWT token
+    const logisticsUserId = req.user.id; 
+
+    const orders = await Order.find({ 
+      logistics: logisticsUserId 
+    })
+      .populate('product', 'name images price unit')
+      .populate('seller', 'storeName phone')
+      .populate('buyer', 'name phone')
+      .sort({ createdAt: -1 });
+      
+    res.status(200).json({
+      success: true,
+      orders: orders,
+    });
+
+  } catch (err) {
+    console.error('getMyAssignedOrders error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while fetching assigned orders.' 
+    });
+  }
+};
+// --- END NEW LOGISTICS FUNCTION ---
+
 // UPDATE STATUS (seller or logistics)
 export const updateOrderStatus = async (req, res) => {
   try {

@@ -31,10 +31,15 @@ import AdminComplaints from './pages/Dashboard/AdminComplaints';
 
 // Seller
 import SellerProductCreate from './pages/SellerProductCreate';
-import SellerProductList from './pages/SellerProductList'; // You'll need to create this component
-import SellerProductEdit from './pages/SellerProductEdit'; // You'll need to create this component
-import SellerOrderList from './pages/SellerOrderList'; // You'll need to create this component
-import SellerOrderDetail from './pages/SellerOrderDetail'; // You'll need to create this component
+import SellerProductList from './pages/SellerProductList'; 
+import SellerProductEdit from './pages/SellerProductEdit'; 
+import SellerOrderList from './pages/SellerOrderList'; // 
+import SellerOrderDetail from './pages/SellerOrderDetail'; 
+
+// Logistics
+import LogisticsMapView from './pages/LogisticsMapView'; 
+import LogisticsOrderList from './pages/LogisticsOrderList'; 
+import LogisticsOrderDetail from './pages/LogisticsOrderDetail'; 
 
 // Categories
 import CategoryProducts from './pages/Categories/CategoryProducts';
@@ -56,6 +61,34 @@ function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/products/category/:category" element={<CategoryProducts />} />
+
+
+            {/* --- LOGISTICS WORKFLOW ROUTES --- */}
+<Route
+  path="/logistics/map"
+  element={
+    <PrivateRoute roles={['logistics']}>
+      <LogisticsMapView /> 
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/logistics/orders"
+  element={
+    <PrivateRoute roles={['logistics']}>
+      <LogisticsOrderList /> 
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/logistics/orders/:id"
+  element={
+    <PrivateRoute roles={['logistics']}>
+      <LogisticsOrderDetail /> 
+    </PrivateRoute>
+  }
+/>
+{/* --- END LOGISTICS ROUTES --- */}
 
             {/* Protected Routes */}
             <Route

@@ -97,30 +97,30 @@ export default function LogisticsDashboard() {
       setLoading(true);
       setError('');
 
-      // Fetch orders assigned to this logistics provider
-      // Based on Order schema: logistics field references User with role 'logistics'
-      const ordersRes = await api.get('/orders/all'); // Admin route, may need logistics-specific route
+      // --- FIX IMPLEMENTED HERE ---
+      // 1. Calling the new, authorized backend route /logistics/my-orders
+      const ordersRes = await api.get('/orders/logistics/my-orders');
       let allOrders = ordersRes.data?.orders || [];
       
-      // Filter orders assigned to current logistics user
-      const myOrders = allOrders.filter(o => o.logistics?._id === user._id || o.logistics === user._id);
-      
-      setOrders(myOrders);
+      // 2. Client-side filtering is REMOVED because the backend now returns only assigned orders (allOrders is equivalent to myOrders)
+      setOrders(allOrders);
 
-      // Calculate stats
-      const shipped = myOrders.filter(o => o.status === 'shipped').length;
-      const delivered = myOrders.filter(o => o.status === 'delivered').length;
-      const pending = myOrders.filter(o => ['pending', 'confirmed'].includes(o.status)).length;
+      // Calculate stats using the already filtered list (allOrders)
+      const shipped = allOrders.filter(o => o.status === 'shipped').length;
+      const delivered = allOrders.filter(o => o.status === 'delivered').length;
+      const pending = allOrders.filter(o => ['pending', 'confirmed'].includes(o.status)).length;
 
       setStats({
-        totalAssigned: myOrders.length,
+        totalAssigned: allOrders.length,
         shipped,
         delivered,
         pending,
       });
+      // --- END FIX ---
 
     } catch (err) {
       console.error('Logistics dashboard error:', err);
+      // Displaying the generic error message on failure
       setError(err.response?.data?.message || 'Failed to load logistics data');
     } finally {
       setLoading(false);
