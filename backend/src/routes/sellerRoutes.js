@@ -64,30 +64,35 @@ router.get(
 );
 // NEW: GET SINGLE PRODUCT BY ID (for seller)
 router.get('/products/:id', async (req, res) => {
-  try {
-    const product = await Product.findOne({
-      _id: req.params.id,
-      seller: req.user.id,
-    })
-      .populate('category', 'name slug')
-      .populate('images', 'url alt')
-      .populate('seller', 'storeName phone location coordinates');
+    try {
+        const product = await Product.findOne({
+            _id: req.params.id,
+            seller: req.user.id,
+        })
+        .populate('category', 'name slug')
+        .populate('images', 'url alt')
+        .populate('seller', 'storeName phone location coordinates');
 
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found or you do not have access',
-      });
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found or you do not have access',
+            });
+        }
+
+        res.json({
+            success: true,
+            product,
+        });
+    } catch (err) {
+        // CATCHING THE CASTERROR HERE IS CRITICAL
+        if (err.name === 'CastError') {
+             // This prevents the 500 server crash and returns a proper 400 response
+             return res.status(400).json({ success: false, message: 'Invalid product ID format.' });
+        }
+        console.error('Get seller product:', err);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    res.json({
-      success: true,
-      product,
-    });
-  } catch (err) {
-    console.error('Get seller product:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
 });
 
 // GET ORDERS

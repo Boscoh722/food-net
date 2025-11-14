@@ -5,9 +5,21 @@ import { body, validationResult } from 'express-validator';
 export const createProductValidations = [
   body('name').trim().notEmpty().withMessage('Product name is required'),
   body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
-  body('category').isIn(['fruits', 'vegetables', 'grains', 'dairy', 'meats', 'other']).withMessage('Invalid category'),
+  
+  // FIX 1: EXPANDED CATEGORY LIST to match frontend
+  body('category').isIn([
+    'fruits', 'vegetables', 'grains', 'dairy', 'meats', 'other', 
+    'fish', 'spices', 'tubers', 'nuts', 'herbs'
+  ]).withMessage('Invalid category'),
+  
   body('price').isNumeric().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('location').trim().notEmpty().withMessage('Location is required')
+  body('location').trim().notEmpty().withMessage('Location is required'),
+
+  // FIX 2: ADDED MISSING FIELDS VALIDATION
+  body('unit').trim().notEmpty().withMessage('Unit of measurement is required'),
+  body('quantityInStock').isNumeric().isInt({ min: 1 }).withMessage('Quantity in stock must be a positive integer'),
+  body('isNegotiable').isBoolean().withMessage('Is negotiable must be a boolean value'),
+  body('harvestDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid harvest date format') // Optional field from the form
 ];
 
 export const createProduct = async (req, res) => {
@@ -22,7 +34,8 @@ export const createProduct = async (req, res) => {
 
   try {
     // Check if seller is approved - use consistent ID access
-    const seller = await User.findById(req.user.id || req.user._id);
+    // This logic is important for checking the seller's status
+    const seller = await User.findById(req.user.id || req.user._id); 
     if (!seller) {
       return res.status(404).json({
         success: false,
@@ -42,6 +55,8 @@ export const createProduct = async (req, res) => {
       seller: req.user.id || req.user._id 
     });
     
+    // The req.body now contains unit, quantityInStock, isNegotiable, and harvestDate, 
+    // which align with the Product.js schema and are now validated above.
     await product.save();
     await product.populate('seller', 'name location email');
     
@@ -54,6 +69,7 @@ export const createProduct = async (req, res) => {
     console.error('Create product error:', err);
     let errorMsg = 'Product creation failed.';
     if (err.name === 'ValidationError') {
+      // Catches Mongoose schema validation errors (e.g., failed coordinate type)
       errorMsg = Object.values(err.errors).map(e => e.message).join(' ');
     } else if (err.message) {
       errorMsg = err.message;
@@ -183,3 +199,38 @@ export const getSellerProducts = async (req, res) => {
     });
   }
 };
+// src/controllers/productController.js (ADD THIS NEW FUNCTION)
+
+export const getProductDetails = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate('seller', 'name location email'); // Populate seller details
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product
+    });
+
+  } catch (err) {
+    // This catches the original CastError if the frontend routing fix (App.jsx order) fails again
+    if (err.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product ID format.'
+      });
+    }
+    console.error('Get product details error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching product details'
+    });
+  }
+};
+

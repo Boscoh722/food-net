@@ -18,7 +18,11 @@ const ProductSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['fruits', 'vegetables', 'grains', 'dairy', 'meats', 'other'], // Kenyan food categories
+    // FIX 1: EXPANDED ENUM TO MATCH FRONTEND LIST
+    enum: [
+      'fruits', 'vegetables', 'grains', 'dairy', 'meats', 'other',
+      'fish', 'spices', 'tubers', 'nuts', 'herbs' 
+    ], 
     required: true
   },
   price: {
@@ -26,7 +30,36 @@ const ProductSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  location: { // Seller's relative position for map
+  // FIX 2: ADDED MISSING FIELDS
+  unit: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  quantityInStock: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  isNegotiable: {
+    type: Boolean,
+    default: false
+  },
+  harvestDate: {
+    type: Date,
+    required: false // Optional, as per frontend
+  },
+  // FIX 3: CHANGED IMAGES TO STORE URLS DIRECTLY
+  // To match the frontend payload, store the URL/publicId instead of ObjectId ref.
+  // NOTE: If you MUST use a separate Image model, your backend controller must create
+  // the Image document and retrieve its ObjectId before saving the product.
+  images: [{ 
+    url: String, 
+    publicId: String, 
+    isPrimary: Boolean 
+  }],
+
+  location: { 
     type: String,
     required: true
   },
@@ -47,18 +80,12 @@ const ProductSchema = new mongoose.Schema({
       }
     }
   },
-  images: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Image'  // Replace 'Image' with your actual image model name, e.g., if you have a separate Image schema
-  }],
   approved: {
     type: Boolean,
-    default: false // Admin approves to prevent illegal items
+    default: false 
   }
 }, { timestamps: true });
 
-// Optional: Add a geospatial index for efficient location-based queries
 ProductSchema.index({ coordinates: '2dsphere' });
 
 export default mongoose.model('Product', ProductSchema);
-

@@ -31,6 +31,10 @@ import AdminComplaints from './pages/Dashboard/AdminComplaints';
 
 // Seller
 import SellerProductCreate from './pages/SellerProductCreate';
+import SellerProductList from './pages/SellerProductList'; // You'll need to create this component
+import SellerProductEdit from './pages/SellerProductEdit'; // You'll need to create this component
+import SellerOrderList from './pages/SellerOrderList'; // You'll need to create this component
+import SellerOrderDetail from './pages/SellerOrderDetail'; // You'll need to create this component
 
 // Categories
 import CategoryProducts from './pages/Categories/CategoryProducts';
@@ -127,6 +131,46 @@ function App() {
               element={
                 <PrivateRoute roles={['seller']}>
                   <SellerProductCreate />
+                </PrivateRoute>
+              }
+            />
+            {/* 3. Product Detail/Edit - Missing Route (For individual product cards) */}
+            <Route
+              path="/seller/products/:id"
+              element={
+                <PrivateRoute roles={['seller']}>
+                  <SellerProductEdit /> 
+                </PrivateRoute>
+              }
+            />
+            {/* 2. Products List - Missing Route (For Total, Approved, Pending) */}
+            <Route
+              path="/seller/products"
+              element={
+                <PrivateRoute roles={['seller']}>
+                  <SellerProductList /> 
+                </PrivateRoute>
+              }
+            />
+
+            
+
+            {/* 4. Orders List - Missing Route (For Total, Pending, Confirmed, etc.) */}
+            <Route
+              path="/seller/orders"
+              element={
+                <PrivateRoute roles={['seller']}>
+                  <SellerOrderList /> 
+                </PrivateRoute>
+              }
+            />
+
+            {/* 5. Order Detail - Missing Route (For individual order rows) */}
+            <Route
+              path="/seller/orders/:orderId"
+              element={
+                <PrivateRoute roles={['seller']}>
+                  <SellerOrderDetail /> 
                 </PrivateRoute>
               }
             />

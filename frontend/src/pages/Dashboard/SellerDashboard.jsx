@@ -168,7 +168,8 @@ function SellerDashboard() {
               Refresh
             </button>
             <button
-              onClick={() => navigate('/products/new')}
+              // FIX 1: Corrected navigation path to match App.jsx route
+              onClick={() => navigate('/seller/product/new')}
               className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
             >
               <PlusCircle className="w-6 h-6" />
@@ -271,7 +272,8 @@ function SellerDashboard() {
               <h3 className="text-2xl font-bold text-gray-700 mb-2">No Products Yet</h3>
               <p className="text-gray-500 mb-6">Start by listing your first product</p>
               <button
-                onClick={() => navigate('/products/new')}
+                // FIX 2: Corrected navigation path to match App.jsx route
+                onClick={() => navigate('/seller/product/new')}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
               >
                 <PlusCircle className="w-5 h-5" />

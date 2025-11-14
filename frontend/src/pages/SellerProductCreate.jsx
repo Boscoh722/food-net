@@ -100,7 +100,7 @@ export default function SellerProductCreate() {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'Unsigned'); // Change if needed
+        formData.append('upload_preset', 'Unsigned')
 
         const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
           method: 'POST',
@@ -149,7 +149,7 @@ export default function SellerProductCreate() {
         coordinates: form.coordinates ? { type: 'Point', coordinates: form.coordinates } : undefined
       };
 
-      await api.post('/products', payload);
+      await api.post('/products/my-products', payload);
       setSuccess('Product submitted! Awaiting admin approval.');
       setTimeout(() => navigate('/dashboard/seller'), 2000);
     } catch (err) {
