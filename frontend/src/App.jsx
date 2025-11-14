@@ -1,6 +1,6 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
+// import Header from './components/Header';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import NotFound from './pages/NotFound.jsx';
@@ -41,6 +41,11 @@ import LogisticsMapView from './pages/LogisticsMapView';
 import LogisticsOrderList from './pages/LogisticsOrderList'; 
 import LogisticsOrderDetail from './pages/LogisticsOrderDetail'; 
 
+// Buyer
+import BuyerOrderDetail from './pages/BuyerOrderDetail';
+
+
+
 // Categories
 import CategoryProducts from './pages/Categories/CategoryProducts';
 
@@ -48,7 +53,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
-        <Header />
+        {/* <Header /> */}
         <main className="flex-grow">
           <Routes>
             {/* Public Routes */}
@@ -98,6 +103,15 @@ function App() {
                   <Orders />
                 </PrivateRoute>
               }
+            />
+            <Route
+               path="/orders/:id"
+               element={
+                <PrivateRoute roles={['buyer', 'seller', 'admin', 'logistics']}>
+                  <BuyerOrderDetail />
+                </PrivateRoute>
+              }
+
             />
             <Route
               path="/complaints"
@@ -208,15 +222,37 @@ function App() {
               }
             />
 
-            {/* Buyer Dashboard */}
-            <Route
-              path="/dashboard/buyer"
-              element={
-                <PrivateRoute roles={['buyer']}>
-                  <BuyerDashboard />
-                </PrivateRoute>
-              }
-            />
+
+{/* Buyer Dashboard */}
+<Route
+  path="/dashboard/buyer"
+  element={
+    <PrivateRoute roles={['buyer']}>
+      <BuyerDashboard />
+    </PrivateRoute>
+  }
+/>
+
+{/* Protected Routes: ORDERS LIST (General) */}
+<Route
+  path="/orders"
+  element={
+    <PrivateRoute roles={['buyer', 'seller', 'admin', 'logistics']}>
+      <Orders /> 
+    </PrivateRoute>
+  }
+/>
+
+{/* **NEW ROUTE:** ORDER DETAIL for Buyer (Must be defined to handle /orders/:id) */}
+<Route
+  path="/orders/:id"
+  element={
+    <PrivateRoute roles={['buyer', 'seller', 'admin', 'logistics']}>
+      {/* Use the new component here */}
+      <BuyerOrderDetail /> 
+    </PrivateRoute>
+  }
+/>
 
             {/* Logistics Dashboard */}
             <Route

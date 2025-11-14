@@ -1,0 +1,257 @@
+// src/pages/BuyerOrderDetail.jsx
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Package,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Truck,
+  DollarSign,
+  MapPin,
+  ListOrdered,
+  RefreshCw,
+  Tag,
+  ShoppingBag,
+  Home,
+} from 'lucide-react';
+import api from '../lib/api';
+import { format } from 'date-fns';
+
+const StatusBadge = ({ status }) => {
+  const statusConfig = {
+    pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+    confirmed: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+    shipped: { color: 'bg-purple-100 text-purple-800', icon: Truck },
+    delivered: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    cancelled: { color: 'bg-red-100 text-red-800', icon: XCircle },
+    returned: { color: 'bg-orange-100 text-orange-800', icon: RefreshCw },
+  };
+
+  const config = statusConfig[status.toLowerCase()] || {
+    color: 'bg-gray-100 text-gray-800',
+    icon: Package,
+  };
+  const Icon = config.icon;
+
+  return (
+    <div
+      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium uppercase tracking-wider ${config.color}`}
+    >
+      <Icon className="w-4 h-4 mr-2" />
+      {status}
+    </div>
+  );
+};
+
+const BuyerOrderDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        // This hits your backend route: GET /api/orders/:id
+        const res = await api.get(`/orders/${id}`);
+        setOrder(res.data.data.doc); // Adjust based on your API response structure (e.g., res.data.data.doc)
+        setError(null);
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setError('Order not found or you do not have permission to view it.');
+        } else {
+          setError('Failed to fetch order details. Please try again.');
+        }
+        console.error('Fetch Order Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrder();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-20">
+        <RefreshCw className="w-8 h-8 mx-auto animate-spin text-green-600" />
+        <p className="mt-4 text-gray-600">Loading order details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-auto max-w-4xl mt-10">
+        <strong className="font-bold">Error:</strong>
+        <span className="block sm:inline"> {error}</span>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return <div className="text-center py-20 text-gray-500">No order data available.</div>;
+  }
+
+  const deliveryAddress = order.shippingAddress || {};
+  const orderTotal = (
+    order.totalPrice - (order.deliveryFee || 0) + (order.discount || 0)
+  ).toFixed(2); // Calculate Subtotal
+
+  return (
+    <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center mb-8 border-b pb-4">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <ListOrdered className="w-8 h-8 text-green-600" />
+          Order Details #{order.orderId || order._id.slice(-6).toUpperCase()}
+        </h1>
+        <button
+          onClick={() => navigate('/dashboard/buyer')}
+          className="text-green-600 hover:text-green-700 font-medium flex items-center"
+        >
+          <Home className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* LEFT COLUMN: Order Summary & Products */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Order Header Card */}
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <StatusBadge status={order.status} />
+              <div className="text-gray-500 text-sm">
+                Placed on {format(new Date(order.createdAt), 'MMM d, yyyy h:mm a')}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Order ID</p>
+                <p className="font-semibold text-gray-800 text-sm">
+                  {order._id.slice(0, 8)}...
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Payment</p>
+                <p className="font-semibold text-gray-800 capitalize">
+                  {order.paymentMethod || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total</p>
+                <p className="font-semibold text-green-600">
+                  <DollarSign className="w-4 h-4 inline" />
+                  {order.totalPrice.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Estimated ETA</p>
+                <p className="font-semibold text-gray-800">
+                  {order.eta ? `${order.eta} days` : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Product List */}
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-green-600" />
+              Products ({order.orderItems.length})
+            </h2>
+            <div className="space-y-4">
+              {order.orderItems.map((item) => (
+                <div
+                  key={item.product._id || item.product}
+                  className="flex items-center border-b pb-4 last:border-b-0 last:pb-0"
+                >
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg mr-4 flex-shrink-0 overflow-hidden">
+                    {/* Placeholder for Product Image */}
+                    <Package className="w-10 h-10 text-gray-400 m-3" />
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-medium text-gray-800">
+                      {item.product.name || 'Product Name (N/A)'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Quantity: {item.quantity}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-800">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      @ ${(item.price || 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Total & Shipping Info */}
+        <div className="lg:col-span-1 space-y-8">
+          {/* Shipping Address */}
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-green-600" />
+              Shipping Address
+            </h2>
+            <p className="font-medium text-gray-800">
+              {deliveryAddress.fullName || order.user.name}
+            </p>
+            <p className="text-gray-600">
+              {deliveryAddress.street}, {deliveryAddress.city}
+            </p>
+            <p className="text-gray-600">
+              {deliveryAddress.state}, {deliveryAddress.zipCode}
+            </p>
+            <p className="text-gray-600">{deliveryAddress.country}</p>
+          </div>
+
+          {/* Payment Summary */}
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              Payment Summary
+            </h2>
+            <div className="space-y-3">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>${orderTotal}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Fee</span>
+                <span>
+                  ${(order.deliveryFee || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-green-600 font-medium">
+                <span className="flex items-center gap-1">
+                  <Tag className="w-4 h-4" />
+                  Discount
+                </span>
+                <span>
+                  -${(order.discount || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between pt-4 border-t border-gray-200 font-bold text-lg">
+                <span>Total Amount</span>
+                <span className="text-green-600">
+                  ${order.totalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BuyerOrderDetail;

@@ -1,18 +1,16 @@
 // src/pages/Home.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  Search, ArrowRight, ShoppingBag, Users, Truck, DollarSign
+  Search, ArrowRight, ShoppingBag, Users, Truck
 } from 'lucide-react';
 import L from 'leaflet';
 
-// ──────────────────────────────────────────────────────────────
-// Leaflet icon fix
-// ──────────────────────────────────────────────────────────────
+// Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -20,108 +18,100 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// ──────────────────────────────────────────────────────────────
-// Static Data
-// ──────────────────────────────────────────────────────────────
-// This map links the visual data (colors) to the category slug
+// Updated palette mapping to match original
 const categoryColorMap = {
-  fruits: { color: 'from-red-400 to-pink-500' },
-  vegetables: { color: 'from-green-400 to-emerald-500' },
-  grains: { color: 'from-yellow-400 to-amber-500' },
-  dairy: { color: 'from-blue-400 to-indigo-500' },
-  meats: { color: 'from-red-600 to-red-700' },
-  fish: { color: 'from-sky-400 to-cyan-500' },
-  spices: { color: 'from-orange-400 to-red-500' },
-  tubers: { color: 'from-amber-700 to-yellow-800' },
-  nuts: { color: 'from-yellow-700 to-yellow-800' },
-  herbs: { color: 'from-lime-400 to-green-500' },
-  other: { color: 'from-gray-400 to-gray-500' },
+  fruits: { color: 'from-red-500 to-pink-500' },
+  vegetables: { color: 'from-green-500 to-emerald-500' },
+  grains: { color: 'from-yellow-500 to-orange-500' },
+  dairy: { color: 'from-blue-400 to-blue-600' },
+  meats: { color: 'from-red-600 to-red-800' },
+  fish: { color: 'from-cyan-400 to-blue-500' },
+  spices: { color: 'from-orange-500 to-red-500' },
+  herbs: { color: 'from-green-400 to-green-600' },
+  nuts: { color: 'from-amber-500 to-yellow-600' },
+  tubers: { color: 'from-yellow-600 to-amber-700' },
+  other: { color: 'from-gray-400 to-gray-600' },
 };
 
 const features = [
   { icon: ShoppingBag, title: 'Fresh Products', desc: 'Direct from local farmers' },
-  { icon: Users,       title: 'Trusted Network', desc: 'Verified sellers and buyers' },
-  { icon: Truck,       title: 'Fast Delivery',   desc: 'Efficient logistics across Kenya' },
+  { icon: Users, title: 'Trusted Network', desc: 'Verified sellers and buyers' },
+  { icon: Truck, title: 'Fast Delivery', desc: 'Efficient logistics across Kenya' },
 ];
 
-// ──────────────────────────────────────────────────────────────
-// Home Component
-// ──────────────────────────────────────────────────────────────
+const featureIconColors = ['bg-green-500', 'bg-blue-500', 'bg-purple-500'];
+
 function Home() {
   const { user } = useAuth();
-
-  // ── State ─────────────────────────────────────────────────────
-  const [products, setProducts] = useState([]);     // Always array
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const [categories, setCategories] = useState([]); // State for fetched categories
-  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
+  const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef = useRef(null);
 
-
-  // ── Fetch Products ────────────────────────────────────────────
+  // Fetch products with search
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get('/products?limit=50&approved=true');
+        const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
+        const { data } = await api.get(`/products?limit=50&approved=true${searchParam}`);
         setProducts(Array.isArray(data) ? data : data?.products || []);
       } catch (err) {
         console.error('Failed to load products:', err);
-        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
-    loadProducts();
-  }, []);
 
-  // ── Fetch Categories ──────────────────────────────────────────
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadProducts();
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery]);
+
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       setCategoryLoading(true);
       try {
-        const { data } = await api.get('/categories'); // Fetch from new endpoint
-
-        // Map the fetched data to include frontend visual data
+        const { data } = await api.get('/categories');
         const list = Array.isArray(data) ? data : data?.data || [];
-        const mappedCategories = list.map(cat => ({
-          name: cat.name,
-          path: cat.slug,
-          // ---
-          // THE FIX: Use cat.icon directly from the database
-          // ---
-          icon: cat.icon || '📦', 
-          color: categoryColorMap[cat.slug]?.color || 'from-gray-400 to-gray-500',
-        }));
-        
-        setCategories(mappedCategories);
+        setCategories(
+          list.map(cat => ({
+            name: cat.name,
+            path: cat.slug,
+            icon: cat.icon || '📦',
+            color: categoryColorMap[cat.slug]?.color || 'from-gray-400 to-gray-500',
+          }))
+        );
       } catch (err) {
         console.error('Failed to fetch categories:', err);
       } finally {
         setCategoryLoading(false);
       }
     };
-
     fetchCategories();
   }, []);
 
-  // ── Filter Products Safely ───────────────────────────────────
-  const filteredProducts = useMemo(() => {
-    if (!Array.isArray(products)) return [];
-
-    if (!searchQuery.trim()) return products;
+  // Filtered categories (client-side)
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return categories;
 
     const q = searchQuery.toLowerCase();
-    return products.filter(p => {
-      const name = p.name?.toLowerCase() || '';
-      const location = p.location?.toLowerCase() || '';
-      const category = p.category?.name?.toLowerCase() || p.category?.toLowerCase() || '';
-      return name.includes(q) || location.includes(q) || category.includes(q);
-    });
-  }, [products, searchQuery]);
+    return categories.filter(cat => cat.name.toLowerCase().includes(q));
+  }, [categories, searchQuery]);
 
-  // ── Map Center (Dynamic) ─────────────────────────────────────
+  // Filtered products are now from server, but for map and display
+  const filteredProducts = products;
+
+  // Dynamic map center
   const mapCenter = useMemo(() => {
     const withCoords = filteredProducts
       .map(p => {
@@ -129,147 +119,314 @@ function Home() {
         if (Array.isArray(p.coordinates?.coordinates)) return p.coordinates.coordinates;
         return null;
       })
-      .filter(coords => Array.isArray(coords) && coords.length === 2 && coords.every(c => typeof c === 'number'));
+      .filter(coords => Array.isArray(coords) && coords.length === 2);
 
-    if (withCoords.length === 0) return [-1.2921, 36.8219]; // Nairobi
+    if (withCoords.length === 0) return [-1.2921, 36.8219];
 
-    const avgLat = withCoords.reduce((sum, coords) => sum + coords[0], 0) / withCoords.length;
-    const avgLng = withCoords.reduce((sum, coords) => sum + coords[1], 0) / withCoords.length;
+    const avgLat = withCoords.reduce((sum, c) => sum + c[0], 0) / withCoords.length;
+    const avgLng = withCoords.reduce((sum, c) => sum + c[1], 0) / withCoords.length;
     return [avgLat, avgLng];
   }, [filteredProducts]);
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-inter">
+    <div className="min-h-screen bg-gray-50">
+      <style>{`
+        body {
+            box-sizing: border-box;
+        }
+       
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+       
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+       
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+       
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+       
+        .category-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+       
+        .category-card:hover {
+            transform: scale(1.05);
+        }
+       
+        .product-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+       
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+       
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+       
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+       
+        .animate-slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+       
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+       
+        .search-glow:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+       
+        .leaflet-container {
+            border-radius: 16px;
+        }
+      `}</style>
 
-      {/* ====================== HERO ====================== */}
-      <section className="relative bg-gradient-to-br from-green-600 via-emerald-700 to-green-800 text-white py-24 md:py-36 overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 bg-black/30"></div>
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-            Fresh Food <span className="text-amber-300">Direct</span> from
-            <span className="block text-white/90"> Kenyan Farms</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-10 text-white/90 font-light">
-            Connect directly with local producers. Buy fresh, sell fair, deliver fast.
-          </p>
+      {/* Navigation */}
+      <nav className="bg-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">🌱</span>
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">FreshMarket</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              {!user ? (
+                <>
+                  <Link to="/login" className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors">Sign In</Link>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    >
+                      Get Started
+                    </button>
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50">
+                        <Link 
+                          to="/register?role=seller" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          Seller
+                        </Link>
+                        <Link 
+                          to="/register?role=buyer" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          Buyer
+                        </Link>
+                        <Link 
+                          to="/register?role=logistics" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          Logistics
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <Link to="/dashboard" className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">Dashboard</Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
 
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
+      {/* HERO */}
+      <section className="gradient-bg text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center animate-fade-in">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              Fresh Food <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Direct from Kenyan Farms</span>
+            </h1>
+
+            <p className="text-xl md:text-2xl mb-8 text-gray-100 max-w-3xl mx-auto">
+              Connect directly with producers. Buy fresh, sell fair, deliver fast.
+            </p>
+
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto mb-12">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for products, locations, or categories..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full px-6 py-4 pl-14 text-gray-800 bg-white rounded-2xl shadow-2xl focus:outline-none search-glow transition-all duration-300"
+                />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              </div>
+            </div>
+
+            {/* Feature Cards */}
+            <div className="grid md:grid-cols-3 gap-8 mt-16">
+              {features.map((f, i) => (
+                <div key={i} className="glass-effect rounded-2xl p-6 hover-lift text-white">
+                  <div className={`${featureIconColors[i]} rounded-xl w-12 h-12 flex items-center justify-center mb-4 mx-auto`}>
+                    <f.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
+                  <p className="text-gray-200">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 animate-slide-in">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Explore our wide range of fresh produce and agricultural products</p>
+          </div>
+          {categoryLoading ? (
+            <div className="text-center py-10 text-gray-500">Loading categories...</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {filteredCategories.map(cat => (
+                <Link
+                  key={cat.path}
+                  to={`/products/category/${cat.path}`}
+                  className={`category-card group p-6 rounded-2xl bg-gradient-to-br ${cat.color} text-white cursor-pointer shadow-lg`}
+                >
+                  <div className="text-center">
+                    <div className="text-4xl mb-3">{cat.icon}</div>
+                    <h3 className="font-semibold text-lg">{cat.name}</h3>
+                  </div>
+                  <ArrowRight className="absolute bottom-3 right-3 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
+            <p className="text-xl text-gray-600">Fresh from our trusted farmers</p>
+          </div>
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">Loading products...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filteredProducts.map(product => {
+                const categoryName = product.category?.name || product.category || '';
+                const icon = categories.find(cat => cat.name === categoryName)?.icon || '📦';
+                return (
+                  <div
+                    key={product._id}
+                    className="product-card bg-white rounded-2xl shadow-lg overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="text-center mb-4">
+                        <div className="text-6xl mb-2">{icon}</div>
+                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">{categoryName}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h3>
+                      <p className="text-gray-500 text-sm mb-4">📍 {product.location}</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-2xl font-bold text-green-600">KSh {product.price}</span>
+                          <span className="text-gray-500 text-sm">/kg</span>
+                        </div>
+                      </div>
+                      <Link
+                        to={`/product/${product._id}`}
+                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 block text-center"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="text-center mt-12">
             <Link
               to="/products"
-              className="px-10 py-4 bg-amber-400 text-gray-900 font-bold text-lg rounded-xl hover:bg-amber-300 transition-all duration-300 shadow-2xl flex items-center gap-2"
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
-              <ShoppingBag className="w-6 h-6" /> Start Shopping
+              View All Products
             </Link>
-
-            {!user && (
-              <Link
-                to="/register"
-                className="px-10 py-4 bg-white/20 text-white font-semibold text-lg rounded-xl border border-white/50 hover:bg-white/30 transition-all duration-300 shadow-lg flex items-center gap-2"
-              >
-                <DollarSign className="w-5 h-5" /> Sell With Us
-              </Link>
-            )}
           </div>
         </div>
       </section>
 
-      {/* ====================== MAP + CATEGORIES ====================== */}
-      <section className="container mx-auto px-6 py-12">
-        {/* Search Bar */}
-        <div className="max-w-xl mx-auto mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search products, locations or categories..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              aria-label="Search map markers"
-            />
+      {/* Map Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Find Products Near You</h2>
+            <p className="text-xl text-gray-600">Discover local farmers and fresh produce in your area</p>
           </div>
-        </div>
-
-        {/* Grid: Map | Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* LEFT: Map */}
-          <div className="h-96 lg:h-full min-h-96 rounded-xl overflow-hidden shadow-lg order-1 lg:order-1">
-            {loading ? (
-              <div className="flex items-center justify-center h-full bg-gray-100">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-              </div>
-            ) : (
-              <MapContainer
-                center={mapCenter}
-                zoom={filteredProducts.length === 1 ? 10 : 6}
-                style={{ height: '100%', width: '100%' }}
-                key={mapCenter.join(',')}
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                {filteredProducts.map(product => (
-                  product.coordinates?.lat && product.coordinates?.lng && (
-                    <Marker
-                      key={product._id}
-                      position={[product.coordinates.lat, product.coordinates.lng]}
-                    >
-                      <Popup>
-                        <div className="p-2 max-w-xs">
-                          <h3 className="font-bold text-green-700">{product.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {product.category?.name || product.category}
-                          </p>
-                          <p className="text-green-600 font-bold mt-1">KSh {product.price}</p>
-                          <p className="text-sm text-gray-500">{product.location}</p>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  )
-                ))}
-              </MapContainer>
-            )}
-          </div>
-
-          {/* RIGHT: Categories */}
-          <div className="order-2 lg:order-2">
-            <h2 className="text-3xl font-extrabold mb-4">Shop By Category</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg border-l-4 border-amber-500 pl-3 mb-6">
-  Explore our wide range of agricultural products.
-</p>
-
-            {/* Render dynamic categories */}
-            {categoryLoading ? (
-              <div className="text-center py-10 text-gray-500">Loading categories...</div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {categories.map(cat => (
-                  <Link
-                    key={cat.path}
-                    to={`/products/category/${cat.path}`}
-                    className={`group relative p-5 rounded-2xl bg-gradient-to-br ${cat.color} text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-lg flex flex-col items-center justify-center`}
-                  >
-                    <span className="text-4xl mb-2">{cat.icon}</span>
-                    <h3 className="font-bold text-lg">{cat.name}</h3>
-                    <ArrowRight className="absolute bottom-2 right-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ====================== FEATURES ====================== */}
-      <section className="bg-gray-50 dark:bg-gray-800 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((f, i) => (
-              <div key={i} className="text-center">
-                <f.icon className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-                <h3 className="text-xl font-bold mb-2">{f.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{f.desc}</p>
-              </div>
-            ))}
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <div className="h-96 w-full rounded-2xl">
+              {loading ? (
+                <div className="flex items-center justify-center h-full bg-gray-100">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <MapContainer
+                  center={mapCenter}
+                  zoom={filteredProducts.length === 1 ? 10 : 6}
+                  style={{ height: "100%", width: "100%" }}
+                  key={mapCenter.join(',')}
+                  className="leaflet-container"
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  {filteredProducts
+                    .filter(product => product.coordinates && product.coordinates.lat && product.coordinates.lng)
+                    .map(product => (
+                      <Marker
+                        key={product._id}
+                        position={[product.coordinates.lat, product.coordinates.lng]}
+                      >
+                        <Popup>
+                          <div className="text-center p-2">
+                            <div className="text-2xl mb-2">
+                              {categories.find(cat => cat.name === (product.category?.name || product.category))?.icon || '📦'}
+                            </div>
+                            <h3 className="font-bold">{product.name}</h3>
+                            <p className="text-green-600 font-bold">KSh {product.price}/kg</p>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                </MapContainer>
+              )}
+            </div>
           </div>
         </div>
       </section>

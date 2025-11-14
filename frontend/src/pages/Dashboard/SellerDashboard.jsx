@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   DollarSign, Package, PlusCircle, Clock, 
   Leaf, Star, AlertTriangle, CheckCircle2, Image, MapPin, 
-  ShoppingBag, RefreshCw, TrendingUp
+  ShoppingBag, RefreshCw, TrendingUp, Truck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -13,7 +13,7 @@ const SellerStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600
   return (
     <div
       onClick={onClick}
-      className="group bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 text-center cursor-pointer"
+      className="product-card group bg-white p-6 rounded-2xl shadow-lg transition-all duration-300 border border-gray-100 text-center cursor-pointer"
     >
       <Icon className={`w-12 h-12 ${valueColor} mx-auto mb-4 group-hover:scale-110 transition-transform`} />
       <h3 className="font-semibold text-gray-800 text-lg">{title}</h3>
@@ -124,7 +124,7 @@ function SellerDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4 mx-auto"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mb-4 mx-auto"></div>
           <p className="text-xl font-bold text-gray-700">Loading your seller dashboard...</p>
         </div>
       </div>
@@ -134,13 +134,13 @@ function SellerDashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-xl shadow-2xl border border-gray-100 max-w-md">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-2xl max-w-md">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={loadDashboard}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             Retry
           </button>
@@ -151,42 +151,41 @@ function SellerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
-          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
-            <Leaf className="w-8 h-8 text-green-600" />
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+            <Leaf className="w-8 h-8 text-blue-600" />
             Seller Dashboard
           </h1>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <button
               onClick={loadDashboard}
               disabled={loading}
-              className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg shadow-md hover:bg-gray-200 transition flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button
-              // FIX 1: Corrected navigation path to match App.jsx route
               onClick={() => navigate('/seller/product/new')}
-              className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
             >
-              <PlusCircle className="w-6 h-6" />
+              <PlusCircle className="w-5 h-5" />
               Add Product
             </button>
           </div>
         </div>
 
         {/* Product Stats */}
-        <div className="mt-10">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Product Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Product Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <SellerStatCard 
               title="Total Products" 
               value={stats.totalProducts} 
               icon={Package} 
-              valueColor="text-green-600" 
+              valueColor="text-blue-600" 
               onClick={() => navigate('/seller/products')}
             />
             <SellerStatCard 
@@ -213,9 +212,9 @@ function SellerDashboard() {
         </div>
 
         {/* Order Stats */}
-        <div className="mt-10">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-5">Order Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Order Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <SellerStatCard 
               title="Total Orders" 
               value={stats.totalOrders} 
@@ -240,7 +239,7 @@ function SellerDashboard() {
             <SellerStatCard 
               title="Shipped" 
               value={stats.shippedOrders} 
-              icon={TrendingUp} 
+              icon={Truck} 
               valueColor="text-purple-600" 
               onClick={() => navigate('/seller/orders?status=shipped')}
             />
@@ -255,33 +254,31 @@ function SellerDashboard() {
         </div>
 
         {/* Recent Products */}
-        <div className="mt-10">
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-2xl font-semibold text-gray-700">Recent Products</h2>
+        <div className="mb-16">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Recent Products</h2>
             <button
               onClick={() => navigate('/seller/products')}
-              className="text-green-600 hover:text-green-700 font-medium"
+              className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
             >
               View All →
             </button>
           </div>
         
           {products.length === 0 ? (
-            <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-2xl text-center">
               <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-700 mb-2">No Products Yet</h3>
-              <p className="text-gray-500 mb-6">Start by listing your first product</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Products Yet</h3>
+              <p className="text-gray-600 mb-6">Start by listing your first product</p>
               <button
-                // FIX 2: Corrected navigation path to match App.jsx route
                 onClick={() => navigate('/seller/product/new')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
-                <PlusCircle className="w-5 h-5" />
                 Add Product
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {products.slice(0, 6).map(product => {
                 const productImage = product.images?.[0]?.url || product.images?.[0];
                 
@@ -289,9 +286,9 @@ function SellerDashboard() {
                   <div
                     key={product._id}
                     onClick={() => navigate(`/seller/products/${product._id}`)}
-                    className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer overflow-hidden"
+                    className="product-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer"
                   >
-                    <div className="relative h-48 bg-gray-100">
+                    <div className="relative h-48 bg-gray-50">
                       {productImage ? (
                         <img
                           src={productImage}
@@ -299,25 +296,25 @@ function SellerDashboard() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Image className="w-16 h-16 text-gray-400" />
+                        <div className="w-full h-full flex items-center justify-center text-6xl">
+                          📦
                         </div>
                       )}
                       {!product.approved && (
-                        <div className="absolute top-3 left-3 px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
+                        <span className="absolute top-3 left-3 px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold rounded-full flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Pending
-                        </div>
+                        </span>
                       )}
                       {product.approved && (
-                        <div className="absolute top-3 left-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
+                        <span className="absolute top-3 left-3 px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
                           Approved
-                        </div>
+                        </span>
                       )}
                     </div>
                     <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
                         {product.name}
                       </h3>
                       <p className="text-green-600 font-bold text-lg mb-3">
@@ -343,27 +340,27 @@ function SellerDashboard() {
         </div>
 
         {/* Recent Orders */}
-        <div className="mt-10">
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-2xl font-semibold text-gray-700">Recent Orders</h2>
+        <div className="mb-16">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Recent Orders</h2>
             <button
               onClick={() => navigate('/seller/orders')}
-              className="text-green-600 hover:text-green-700 font-medium"
+              className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
             >
               View All →
             </button>
           </div>
           
           {recentOrders.length === 0 ? (
-            <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-2xl text-center">
               <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-700 mb-2">No Orders Yet</h3>
-              <p className="text-gray-500">Orders will appear here once customers start purchasing</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Orders Yet</h3>
+              <p className="text-gray-600">Orders will appear here once customers start purchasing</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-max">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
@@ -372,7 +369,7 @@ function SellerDashboard() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
                     {recentOrders.map(order => (
                       <tr 
                         key={order._id}
