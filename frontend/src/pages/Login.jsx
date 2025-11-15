@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,6 +35,11 @@ function Login() {
   // Handle form input changes
   const handleFormChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Back button handler
+  const handleBackToHome = () => {
+    navigate('/products');
   };
 
   return (
@@ -160,6 +165,16 @@ function Login() {
                 />
               </div>
             </div>
+
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={handleBackToHome}
+              className="p-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 group"
+              title="Back to products"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:text-white" />
+            </button>
 
             <button
               type="submit"

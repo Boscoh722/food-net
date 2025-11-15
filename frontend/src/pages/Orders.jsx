@@ -1,229 +1,246 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import { 
-  Package, 
-  Truck, 
-  Calendar, 
-  DollarSign, 
-  MapPinHouse, 
-  ShoppingBag, 
-  AlertCircle,
-  ChevronRight
+import { useAuth } from '../context/AuthContext';
+import {
+  Package, Truck, Calendar, DollarSign, MapPin, User, AlertCircle, CheckCircle2, ChevronLeft, XCircle, Tag, TrendingUp
 } from 'lucide-react';
 
-export default function Orders() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+const getStatusConfig = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'pending':
+      return { color: 'bg-yellow-900 text-yellow-200 border border-yellow-700', icon: AlertCircle, label: 'Pending' };
+    case 'confirmed':
+      return { color: 'bg-blue-900 text-blue-200 border border-blue-700', icon: CheckCircle2, label: 'Confirmed' };
+    case 'shipped':
+      return { color: 'bg-purple-900 text-purple-200 border border-purple-700', icon: Truck, label: 'Shipped' };
+    case 'delivered':
+      return { color: 'bg-green-900 text-green-200 border border-green-700', icon: CheckCircle2, label: 'Delivered' };
+    case 'cancelled':
+      return { color: 'bg-red-900 text-red-200 border border-red-700', icon: XCircle, label: 'Cancelled' };
+    case 'refunded':
+      return { color: 'bg-gray-700 text-gray-200 border border-gray-600', icon: DollarSign, label: 'Refunded' };
+    default:
+      return { color: 'bg-gray-700 text-gray-200 border border-gray-600', icon: AlertCircle, label: 'Unknown' };
+  }
+};
+
+export default function OrderDetail() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  useEffect(() => {
-    if (user?.role === 'buyer') {
-      loadOrders();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadOrders = async () => {
+  const loadOrder = async () => {
+    setLoading(true);
     try {
-      const res = await api.get('/orders/my');
-      const data = Array.isArray(res.data) ? res.data : res.data?.orders || [];
-      setOrders(data);
+      const { data } = await api.get(`/orders/${id}`);
+      const fetchedOrder = data?.order || data?.data || data;
+      setOrder(fetchedOrder || null);
     } catch (err) {
-      alert('Failed to load orders');
+      setError(err?.response?.data?.message || 'Failed to load order details.');
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusConfig = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle, label: 'Pending' };
-      case 'confirmed':
-        return { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Package, label: 'Confirmed' };
-      case 'shipped':
-        return { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Truck, label: 'Shipped' };
-      case 'delivered':
-        return { color: 'bg-green-100 text-green-800 border-green-200', icon: Package, label: 'Delivered' };
-      case 'cancelled':
-        return { color: 'bg-red-100 text-red-800 border-red-200', icon: AlertCircle, label: 'Cancelled' };
-      default:
-        return { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Package, label: 'Unknown' };
+  useEffect(() => {
+    if (user && id) {
+      loadOrder();
+    }
+  }, [id, user]);
+
+  const handleCancel = async () => {
+    if (!user || user.role !== 'buyer') return;
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+
+    setIsCancelling(true);
+    try {
+      await api.patch(`/orders/my/${id}/cancel`);
+      setOrder(prev => (prev ? {
+        ...prev,
+        status: 'cancelled',
+        cancelledBy: user._id,
+        cancelledReason: 'Cancelled by buyer',
+      } : prev));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to cancel order.');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-        <div className="text-center bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <p className="text-xl font-bold text-gray-700 mb-4">Please login to view your orders</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition"
-          >
-            Login Now
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (user.role !== 'buyer') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
-          <p className="text-xl font-bold text-gray-700">Only buyers can access this page</p>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4"></div>
-          <p className="text-xl font-bold text-gray-700">Loading your orders...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-xl font-bold text-white">Loading order details...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-10">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
-          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
-            <ShoppingBag className="w-8 h-8 text-green-600" />
-            My Orders
-          </h1>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 max-w-md">
+          <div className="bg-red-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-700">
+            <AlertCircle className="w-10 h-10 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Error</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
           <button
-            onClick={() => navigate('/products')}
-            className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
+            onClick={() => navigate(-1)}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold border border-blue-500"
           >
-            <ShoppingBag className="w-6 h-6" />
-            Continue Shopping
+            Go Back
           </button>
         </div>
+      </div>
+    );
+  }
 
-        {orders.length === 0 ? (
-          /* Empty State */
-          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
-            <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-700 mb-2">No orders yet!</h3>
-            <p className="text-gray-500 mb-6">Start shopping now and your orders will appear here with full tracking.</p>
-            <button
-              onClick={() => navigate('/products')}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              Browse Products Now
-            </button>
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700">
+          <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
+            <Package className="w-10 h-10 text-gray-400" />
           </div>
-        ) : (
-          /* Orders List */
-          <div className="space-y-6">
-            {orders.map((order) => {
-              const primaryItem = order.items?.[0];
-              const status = getStatusConfig(order.status);
-              const StatusIcon = status.icon;
+          <h2 className="text-2xl font-bold text-white mb-2">Order Not Found</h2>
+          <p className="text-gray-300">The requested order could not be found.</p>
+        </div>
+      </div>
+    );
+  }
 
-              return (
-                <div
-                  key={order._id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
-                  onClick={() => navigate(`/orders/${order._id}`)}
-                >
-                  <div className="p-6">
-                    {/* Header: Product + Status */}
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-gray-800">
-                          {primaryItem?.productName || primaryItem?.product?.name || 'Product Name Unavailable'}
-                        </h3>
-                        <div className="flex items-center gap-4 mt-2 text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <MapPinHouse className="w-4 h-4" />
-                            Seller: <span className="font-medium">{order.seller?.name || 'Unknown'}</span>
-                          </span>
-                          {order.logistics && (
-                            <span className="flex items-center gap-1">
-                              <Truck className="w-4 h-4 text-green-600" />
-                              {order.logistics.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+  const statusConfig = getStatusConfig(order.status);
+  const canCancel = user?.role === 'buyer' && ['pending', 'confirmed'].includes(order.status);
+  const formattedDate = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'N/A';
 
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${status.color} font-bold text-sm`}>
-                        <StatusIcon className="w-5 h-5" />
-                        {status.label}
-                      </div>
-                    </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex items-center text-blue-400 hover:text-blue-300 font-medium mb-6 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 mr-1" /> Back to Orders
+        </button>
 
-                    {/* Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-gray-50 rounded-xl p-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <Calendar className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Order Date</p>
-                          <p className="font-bold text-gray-800">
-                            {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                              month: 'short', day: 'numeric', year: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <DollarSign className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Total Price</p>
-                          <p className="font-bold text-green-600 text-xl">
-                            KSh {Number(order.total || primaryItem?.subtotal || 0).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {order.trackingNumber && (
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-gray-100 rounded-lg">
-                            <Truck className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider">Tracking</p>
-                            <p className="font-bold text-green-600">{order.trackingNumber}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-end">
-                        <div
-                          className="flex items-center gap-2 text-green-600 font-bold hover:text-green-700 transition-colors group"
-                        >
-                          View Details
-                          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-6 md:p-10">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-700 pb-6 mb-6">
+            <h1 className="text-3xl font-bold text-white mb-2 md:mb-0">
+              Order #{order.orderNumber}
+            </h1>
+            <div className={`px-4 py-2 text-sm font-bold rounded-full border ${statusConfig.color} flex items-center gap-2`}>
+              <statusConfig.icon className="w-4 h-4" />
+              {statusConfig.label}
+            </div>
           </div>
-        )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <DetailCard icon={Calendar} title="Order Date" value={formattedDate} />
+            <DetailCard icon={DollarSign} title="Total Cost" value={`KSh ${Number(order.total || 0).toLocaleString()}`} />
+            <DetailCard icon={Truck} title="Tracking Number" value={order.trackingNumber || 'N/A'} />
+            <DetailCard icon={MapPin} title="Shipping Address" value={order.shippingAddress} />
+            <DetailCard icon={Tag} title="Payment Method" value={order.paymentMethod?.toUpperCase() || 'N/A'} />
+            <DetailCard icon={TrendingUp} title="Payment Status" value={order.paymentStatus?.toUpperCase() || 'PENDING'} />
+          </div>
+
+          <h2 className="text-2xl font-bold text-white border-l-4 border-blue-500 pl-3 mb-4">Involved Parties</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <UserCard role="Buyer" user={order.buyer} />
+            <UserCard role="Seller" user={order.seller} />
+            <UserCard role="Logistics" user={order.logistics} />
+          </div>
+
+          <h2 className="text-2xl font-bold text-white border-l-4 border-green-500 pl-3 mb-4">Order Items ({order.items?.length || 0})</h2>
+          <div className="bg-gray-700 rounded-2xl border-2 border-gray-600 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-600">
+                  <tr className="text-left text-sm font-semibold uppercase tracking-wider text-gray-300">
+                    <th className="px-6 py-4">Product</th>
+                    <th className="px-6 py-4">Unit Price</th>
+                    <th className="px-6 py-4">Quantity</th>
+                    <th className="px-6 py-4 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-600">
+                  {order.items?.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-650 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-white flex items-center">
+                        <img
+                          src={item.productImage || item.product?.images?.[0]?.url}
+                          alt={item.productName}
+                          className="w-10 h-10 object-cover rounded-md mr-3 border border-gray-600"
+                        />
+                        {item.productName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">KSh {item.unitPrice?.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">{item.quantity}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-green-400">
+                        KSh {item.subtotal?.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {canCancel && (
+            <div className="mt-10 pt-6 border-t border-gray-700 flex justify-end">
+              <button
+                onClick={handleCancel}
+                disabled={isCancelling}
+                className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl border border-red-500 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isCancelling ? 'Cancelling...' : <><XCircle className="w-5 h-5" /> Cancel Order</>}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
+const DetailCard = ({ icon: Icon, title, value }) => (
+  <div className="bg-gray-700 p-4 rounded-xl border-2 border-gray-600 flex items-center hover:border-blue-500 transition-colors">
+    <Icon className="w-6 h-6 text-blue-400 mr-4" />
+    <div>
+      <p className="text-xs font-semibold uppercase text-gray-400">{title}</p>
+      <p className="font-bold text-white text-lg">{value}</p>
+    </div>
+  </div>
+);
+
+const UserCard = ({ role, user }) => (
+  <div className="bg-gray-700 p-5 rounded-xl border-2 border-gray-600 hover:border-green-500 transition-colors">
+    <p className="text-sm font-semibold uppercase text-green-400 mb-2">{role}</p>
+    {user ? (
+      <>
+        <p className="text-xl font-bold text-white">{user.name}</p>
+        <p className="text-sm text-gray-300">{user.email}</p>
+        <p className="text-sm text-gray-400 mt-1">Phone: {user.phone || 'N/A'}</p>
+      </>
+    ) : (
+      <p className="text-gray-400 italic">Not assigned</p>
+    )}
+  </div>
+);

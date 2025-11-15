@@ -49,7 +49,7 @@ const agriculturalZones = [
 export default function KenyanAgriMap() {
   return (
     <MapContainer
-      center={[-1.2921, 36.8219]} // Centered on Nairobi
+      center={[-1.2921, 36.8219]} 
       zoom={7}
       className="h-full w-full z-0"
     >

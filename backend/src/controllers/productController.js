@@ -128,14 +128,12 @@ export const approveProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
   try {
-    // Admin: return all products regardless of approval
+    
     const products = await Product.find()
       .populate('seller', 'name location email');
     
-    res.json({
-      success: true,
-      data: products
-    });
+    res.json(products);
+    
   } catch (err) {
     console.error('Get all products error:', err);
     res.status(500).json({ 
@@ -199,7 +197,6 @@ export const getSellerProducts = async (req, res) => {
     });
   }
 };
-// src/controllers/productController.js (ADD THIS NEW FUNCTION)
 
 export const getProductDetails = async (req, res) => {
   try {

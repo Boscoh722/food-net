@@ -1,71 +1,75 @@
 import { Link } from 'react-router-dom';
-import { Mail, MapPin } from 'lucide-react';
+import { Mail, MapPin, Truck, Package, Users, Shield } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="gradient-bg text-white py-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-10"></div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 border-t-2 border-gray-700 py-16 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🌱</span>
+              <div className="bg-gray-800 p-3 rounded-xl border-2 border-gray-700">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">🌱</span>
+                </div>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Food-Net</span>
+              <span className="text-3xl font-bold text-white">Food-Net</span>
             </div>
-            <p className="text-gray-200 mb-6">
+            <p className="text-gray-300 mb-6 text-lg">
               Connecting farmers, buyers, and logistics across Kenya. Fresh produce from farm to table.
             </p>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-gray-200">
-                <Mail className="w-5 h-5" />
-                <span>boscobrilli8@gmail.com</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-200">
-                <MapPin className="w-5 h-5" />
-                <span>Private Box, Nairobi-Kenya</span>
-              </div>
             </div>
-          </div>
-
+           
           {/* Quick Links */}
           <div>
-            <h4 className="text-xl font-bold mb-6">Quick Links</h4>
-            <div className="flex flex-col gap-4">
-              <Link to="/products" className="text-gray-200 hover:text-white transition-colors duration-300">
+            <div className="bg-gray-800 p-4 rounded-2xl border-2 border-gray-700 mb-4">
+              <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                <div className="bg-purple-900 p-1 rounded-lg border border-purple-700">
+                  <Package className="w-5 h-5 text-purple-400" />
+                </div>
+                Quick Links
+              </h4>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Link to="/products" className="text-gray-300 hover:text-blue-400 transition-all duration-300 bg-gray-800 hover:bg-gray-750 rounded-xl p-3 border-2 border-gray-700 hover:border-blue-500">
                 Browse Products
               </Link>
-              <Link to="/register" className="text-gray-200 hover:text-white transition-colors duration-300">
+              <Link to="/register" className="text-gray-300 hover:text-green-400 transition-all duration-300 bg-gray-800 hover:bg-gray-750 rounded-xl p-3 border-2 border-gray-700 hover:border-green-500">
                 Become a Seller
-              </Link>
-              <Link to="/orders" className="text-gray-200 hover:text-white transition-colors duration-300">
-                Track Orders
-              </Link>
-              <Link to="/complaints" className="text-gray-200 hover:text-white transition-colors duration-300">
-                Support
               </Link>
             </div>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="text-xl font-bold mb-6">Legal</h4>
-            <div className="flex flex-col gap-4">
-              <Link to="/privacy" className="text-gray-200 hover:text-white transition-colors duration-300">
+            <div className="bg-gray-800 p-4 rounded-2xl border-2 border-gray-700 mb-4">
+              <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                <div className="bg-red-900 p-1 rounded-lg border border-red-700">
+                  <Shield className="w-5 h-5 text-red-400" />
+                </div>
+                Legal
+              </h4>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Link to="/privacy" className="text-gray-300 hover:text-red-400 transition-all duration-300 bg-gray-800 hover:bg-gray-750 rounded-xl p-3 border-2 border-gray-700 hover:border-red-500">
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="text-gray-200 hover:text-white transition-colors duration-300">
+              <Link to="/terms" className="text-gray-300 hover:text-orange-400 transition-all duration-300 bg-gray-800 hover:bg-gray-750 rounded-xl p-3 border-2 border-gray-700 hover:border-orange-500">
                 Terms & Conditions
               </Link>
             </div>
           </div>
         </div>
+    
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 text-center text-gray-300 text-sm">
-          &copy; {new Date().getFullYear()} Food-Net. All rights reserved.
+        <div className="border-t-2 border-gray-700 pt-8 text-center">
+          <div className="bg-gray-800 rounded-2xl p-4 border-2 border-gray-700">
+            <p className="text-gray-300 text-sm">
+              &copy; {new Date().getFullYear()} Food-Net. All rights reserved. | Connecting Kenya's agricultural ecosystem
+            </p>
+          </div>
         </div>
       </div>
     </footer>

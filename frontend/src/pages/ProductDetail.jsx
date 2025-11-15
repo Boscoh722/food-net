@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
@@ -10,7 +9,6 @@ import {
 } from 'lucide-react';
 import L from 'leaflet';
 
-// === LEAFLET ICON FIX ===
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -20,10 +18,8 @@ L.Icon.Default.mergeOptions({
 
 const KENYA_CENTER = [-1.2921, 36.8219];
 const DEFAULT_ZOOM = 6;
-
 const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
 
-// SAFE MARKER – NEVER PASSES NaN
 function LocationMarker({ position, setPosition }) {
   const map = useMapEvents({
     click(e) {
@@ -53,22 +49,18 @@ function LocationMarker({ position, setPosition }) {
 export default function Products() {
   const { user } = useAuth();
   const isSeller = user?.role === 'seller';
-  const [products, setProducts] = useState([]);     
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const fileInputRef = useRef(null);
 
-  // --- MODIFICATION ---
-  const [categories, setCategories] = useState([]); // State for fetched categories
-  const [categoryLoading, setCategoryLoading] = useState(true); // Loading state for categories
-
   const [form, setForm] = useState({
-    name: '', description: '', 
-    category: '', // --- MODIFICATION --- Default to empty string, not 'vegetables'
-    price: '', unit: 'kg',
+    name: '', description: '', category: '', price: '', unit: 'kg',
     quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
     harvestDate: '', images: []
   });
@@ -77,15 +69,13 @@ export default function Products() {
 
   useEffect(() => {
     loadProducts();
-    
-    // --- MODIFICATION --- Fetch categories when component mounts
     const fetchCategories = async () => {
       setCategoryLoading(true);
       try {
         const { data } = await api.get('/categories');
-        setCategories(data.data); // Store the full category objects
+        setCategories(data.data);
       } catch (err) {
-        console.error('Failed to fetch categories for form:', err);
+        console.error('Failed to fetch categories:', err);
       } finally {
         setCategoryLoading(false);
       }
@@ -97,7 +87,6 @@ export default function Products() {
     try {
       setLoading(true);
       const res = await api.get('/products?approved=true');
-      // Handle different response structures
       let data = [];
       if (Array.isArray(res.data)) {
         data = res.data;
@@ -125,7 +114,7 @@ export default function Products() {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'Unsigned'); 
+        formData.append('upload_preset', 'Unsigned');
         const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
           method: 'POST',
           body: formData
@@ -164,7 +153,7 @@ export default function Products() {
     if (!form.location.trim()) err.location = 'Required';
     if (form.images.length === 0) err.images = 'Upload 1+ photo';
     if (!form.unit || !units.includes(form.unit)) err.unit = 'Unit required';
-    if (!form.category) err.category = 'Category is required'; 
+    if (!form.category) err.category = 'Category required';
 
     const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
     if (!validCoords) err.coordinates = 'Pin farm on map';
@@ -179,7 +168,6 @@ export default function Products() {
     try {
       const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
       
-      // Prepare payload with correct data types
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -191,26 +179,21 @@ export default function Products() {
         location: form.location.trim(),
         coordinates: validCoords ? { type: 'Point', coordinates: form.coordinates } : undefined,
         harvestDate: form.harvestDate || undefined,
-        images: form.images // Array of objects with { url, publicId, isPrimary }
+        images: form.images
       };
       
-     
       await api.post('/products/my-products', payload);
       alert('Submitted! Awaiting approval.');
       setShowForm(false);
       setForm({
-        name: '', description: '', 
-        category: '', 
-        price: '', unit: 'kg',
+        name: '', description: '', category: '', price: '', unit: 'kg',
         quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
         harvestDate: '', images: []
       });
       setErrors({});
-      
+      loadProducts();
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 
-        (err.response?.data?.errors?.map(e => e.msg || e.message).join(', ')) ||
-        'Failed to submit product';
+      const errorMsg = err.response?.data?.message || 'Failed to submit product';
       alert(errorMsg);
     } finally {
       setSubmitting(false);
@@ -219,7 +202,6 @@ export default function Products() {
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // RENDER MAP SAFELY
   const renderMap = () => {
     if (!showForm) return null;
 
@@ -233,7 +215,7 @@ export default function Products() {
     }
 
     return (
-      <div className="h-80 rounded-xl overflow-hidden border border-gray-100">
+      <div className="h-80 rounded-xl overflow-hidden border-2 border-gray-600">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -255,23 +237,27 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
-          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
-            <Leaf className="w-8 h-8 text-green-600" />
-            Fresh Marketplace
-          </h1>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+          <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
+            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+              <div className="bg-green-900 p-2 rounded-lg border border-green-700">
+                <Leaf className="w-8 h-8 text-green-400" />
+              </div>
+              Fresh Marketplace
+            </h1>
+            <p className="text-gray-300 mt-2 text-lg">Discover fresh farm products</p>
+          </div>
           {isSeller && (
             <button
               onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow-md hover:bg-green-700 transition flex items-center gap-3"
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 border border-green-500"
             >
               {showForm ? 'Cancel' : (
                 <>
-                  <PlusCircle className="w-6 h-6" />
+                  <PlusCircle className="w-5 h-5" />
                   List Product
                 </>
               )}
@@ -279,7 +265,6 @@ export default function Products() {
           )}
         </div>
 
-        {/* SEARCH */}
         <div className="relative max-w-xl mx-auto mb-8">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -287,35 +272,31 @@ export default function Products() {
             placeholder="Search products..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+            className="w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition"
           />
         </div>
 
-        {/* FORM */}
         {isSeller && showForm && (
-          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 mb-10">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-5 flex items-center gap-3">
-              <Package className="w-6 h-6 text-green-600" />
+          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 mb-10">
+            <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
+              <Package className="w-6 h-6 text-green-400" />
               List Your Produce
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-
-              {/* NAME & CATEGORY */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
                   <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="Fresh Sukuma Wiki" />
-                  {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400" placeholder="Fresh Sukuma Wiki" />
+                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  {/* --- MODIFICATION --- Dynamic Category Select */}
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
                   <select 
                     value={form.category} 
                     onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white"
                   >
                     <option value="" disabled>
                       {categoryLoading ? 'Loading...' : 'Select a category'}
@@ -326,110 +307,104 @@ export default function Products() {
                       </option>
                     ))}
                   </select>
-                  {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+                  {errors.category && <p className="text-red-400 text-sm">{errors.category}</p>}
                 </div>
               </div>
 
-              {/* DESCRIPTION */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
                 <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
-                  rows="4" className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none"
+                  rows="4" className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 resize-none"
                   placeholder="Describe your produce..." />
-                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                {errors.description && <p className="text-red-400 text-sm">{errors.description}</p>}
               </div>
 
-              {/* PRICE, UNIT, STOCK */}
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (KSh)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Price (KSh)</label>
                   <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="500" />
-                  {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="500" />
+                  {errors.price && <p className="text-red-400 text-sm">{errors.price}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Unit</label>
                   <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl">
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white">
                     {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                   </select>
-                  {errors.unit && <p className="text-red-500 text-sm">{errors.unit}</p>}
+                  {errors.unit && <p className="text-red-400 text-sm">{errors.unit}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Stock</label>
                   <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" placeholder="50" />
-                  {errors.quantityInStock && <p className="text-red-500 text-sm">{errors.quantityInStock}</p>}
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="50" />
+                  {errors.quantityInStock && <p className="text-red-400 text-sm">{errors.quantityInStock}</p>}
                 </div>
               </div>
 
-              {/* NEGOTIABLE & HARVEST */}
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
                     className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-gray-700">Negotiable</span>
+                  <span className="text-sm font-medium text-gray-300">Negotiable</span>
                 </label>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Harvest Date</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Harvest Date</label>
                   <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl" />
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" />
                 </div>
               </div>
 
-              {/* LOCATION + MAP */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-1">
                   <MapPin className="w-5 h-5" />Farm Location
                 </label>
                 <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-4" placeholder="Kitengela" />
-                {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
-                {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
+                  className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white mb-4" placeholder="Kitengela" />
+                {errors.location && <p className="text-red-400 text-sm mb-3">{errors.location}</p>}
+                {errors.coordinates && <p className="text-red-400 text-sm mb-3">{errors.coordinates}</p>}
 
                 {renderMap()}
 
                 <div className="mt-3 flex items-center gap-2 text-sm">
                   {form.coordinates ? (
-                    <><CheckCircle2 className="w-5 h-5 text-green-600" /> Location set</>
+                    <><CheckCircle2 className="w-5 h-5 text-green-400" /> Location set</>
                   ) : (
-                    <><AlertCircle className="w-5 h-5 text-orange-600" /> Click map to pin</>
+                    <><AlertCircle className="w-5 h-5 text-yellow-400" /> Click map to pin</>
                   )}
                 </div>
               </div>
 
-              {/* IMAGES */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Photos</label>
-                <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Photos</label>
+                <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center bg-gray-700">
                   <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
                   <label htmlFor="img" className="cursor-pointer">
                     <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="font-medium text-gray-700">Upload</p>
+                    <p className="font-medium text-gray-300">Upload</p>
                   </label>
-                  {uploading && <p className="text-green-600 font-medium">Uploading...</p>}
+                  {uploading && <p className="text-green-400 font-medium">Uploading...</p>}
                 </div>
                 <div className="grid grid-cols-4 gap-4 mt-6">
                   {form.images.map((img, i) => (
                     <div key={i} className="relative group">
-                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl" />
-                      {img.isPrimary && <span className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
+                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl border-2 border-gray-600" />
+                      {img.isPrimary && <span className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
                       <button type="button" onClick={() => removeImage(i)}
-                        className="absolute top-2 right-2 bg-red-500 p-2 rounded-full text-white opacity-0 group-hover:opacity-100">
+                        className="absolute top-2 right-2 bg-red-600 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
                 </div>
-                {errors.images && <p className="text-red-500 text-sm mt-2">{errors.images}</p>}
+                {errors.images && <p className="text-red-400 text-sm mt-2">{errors.images}</p>}
               </div>
 
-              {/* SUBMIT */}
               <div className="flex justify-end gap-4">
                 <button type="button" onClick={() => setShowForm(false)}
-                  className="px-6 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition">Cancel</button>
+                  className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-medium hover:bg-gray-600 hover:border-gray-500 transition-all duration-300">Cancel</button>
                 <button type="submit" disabled={submitting}
-                  className="px-6 py-3 bg-green-600 text-white font-medium rounded-xl shadow-md hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-3">
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl border border-green-500 disabled:opacity-50 flex items-center gap-3">
                   {submitting ? 'Submitting...' : <><CheckCircle2 className="w-5 h-5" /> Submit</>}
                 </button>
               </div>
@@ -437,19 +412,18 @@ export default function Products() {
           </div>
         )}
 
-        {/* PRODUCTS */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mb-4"></div>
-              <p className="text-xl font-bold text-gray-700">Loading products...</p>
-            </div>
+          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
+            <p className="text-xl font-bold text-white">Loading products...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="bg-white p-8 rounded-xl shadow-2xl border border-gray-100 text-center">
-            <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-700 mb-2">No products found</h3>
-            <p className="text-gray-500 mb-6">Try adjusting your search</p>
+          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 text-center">
+            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
+              <Package className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
+            <p className="text-gray-300">Try adjusting your search</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -461,10 +435,9 @@ export default function Products() {
           </div>
         )}
 
-        {/* FAB */}
         {isSeller && !showForm && (
           <button onClick={() => setShowForm(true)}
-            className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-2xl lg:hidden">
+            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 lg:hidden border border-green-500">
             <PlusCircle className="w-6 h-6" />
           </button>
         )}
