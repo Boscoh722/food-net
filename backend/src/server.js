@@ -36,7 +36,7 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'https://food-nett.vercel.app/',
+    origin: process.env.CLIENT_URL || 'https://food-nett.vercel.app',
     credentials: true,
   })
 );
