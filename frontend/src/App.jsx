@@ -1,6 +1,6 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Header from './components/Header';
+import Header from './components/Header';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import NotFound from './pages/NotFound.jsx';
@@ -53,7 +53,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
-        {/* <Header /> */}
+        <Header />
         <main className="flex-grow">
           <Routes>
             {/* Public Routes */}

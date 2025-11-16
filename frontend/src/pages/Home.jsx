@@ -5,9 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  Search, ArrowRight, ShoppingBag, Users, Truck
-} from 'lucide-react';
+import { Search, ArrowRight, ShoppingBag, Users, Truck } from 'lucide-react';
 import L from 'leaflet';
 
 // Fix Leaflet icons
@@ -18,7 +16,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// Updated palette mapping to match original
+// Category gradient mapping
 const categoryColorMap = {
   fruits: { color: 'from-red-500 to-pink-500' },
   vegetables: { color: 'from-green-500 to-emerald-500' },
@@ -41,17 +39,16 @@ const features = [
 
 const featureIconColors = ['bg-green-500', 'bg-blue-500', 'bg-purple-500'];
 
-function Home() {
+export default function Home() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoryLoading, setCategoryLoading] = useState(true);
-  const [showDropdown, setShowDropdown] = useState(false);
   const debounceRef = useRef(null);
 
-  // Fetch products with search
+  // Fetch products
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -65,15 +62,11 @@ function Home() {
         setLoading(false);
       }
     };
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       loadProducts();
     }, 300);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+    return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
   // Fetch categories
@@ -100,18 +93,14 @@ function Home() {
     fetchCategories();
   }, []);
 
-  // Filtered categories (client-side)
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return categories;
-
     const q = searchQuery.toLowerCase();
     return categories.filter(cat => cat.name.toLowerCase().includes(q));
   }, [categories, searchQuery]);
 
-  // Filtered products are now from server, but for map and display
   const filteredProducts = products;
 
-  // Dynamic map center
   const mapCenter = useMemo(() => {
     const withCoords = filteredProducts
       .map(p => {
@@ -119,10 +108,8 @@ function Home() {
         if (Array.isArray(p.coordinates?.coordinates)) return p.coordinates.coordinates;
         return null;
       })
-      .filter(coords => Array.isArray(coords) && coords.length === 2);
-
-    if (withCoords.length === 0) return [-1.2921, 36.8219];
-
+      .filter(c => Array.isArray(c) && c.length === 2);
+    if (!withCoords.length) return [-1.2921, 36.8219];
     const avgLat = withCoords.reduce((sum, c) => sum + c[0], 0) / withCoords.length;
     const avgLng = withCoords.reduce((sum, c) => sum + c[1], 0) / withCoords.length;
     return [avgLat, avgLng];
@@ -131,141 +118,31 @@ function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <style>{`
-        body {
-            box-sizing: border-box;
-        }
-       
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-       
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-       
-        .hover-lift {
-            transition: all 0.3s ease;
-        }
-       
-        .hover-lift:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-       
-        .category-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-       
-        .category-card:hover {
-            transform: scale(1.05);
-        }
-       
-        .product-card {
-            transition: all 0.3s ease;
-            border: 1px solid rgba(229, 231, 235, 0.5);
-        }
-       
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
-        }
-       
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-       
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-       
-        .animate-slide-in {
-            animation: slideIn 0.8s ease-out;
-        }
-       
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-       
-        .search-glow:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-       
-        .leaflet-container {
-            border-radius: 16px;
-        }
+        body { box-sizing: border-box; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); }
+        .hover-lift { transition: all 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,0.15);}
+        .category-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1);}
+        .category-card:hover { transform: scale(1.05);}
+        .product-card { transition: all 0.3s ease; border:1px solid rgba(229,231,235,0.5);}
+        .product-card:hover { transform: translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,0.1); border-color:#667eea;}
+        .animate-fade-in { animation: fadeIn 0.6s ease-out;}
+        @keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+        .animate-slide-in { animation: slideIn 0.8s ease-out;}
+        @keyframes slideIn { from{opacity:0;transform:translateX(-30px);} to{opacity:1;transform:translateX(0);} }
+        .search-glow:focus { box-shadow:0 0 0 3px rgba(102,126,234,0.1);}
+        .leaflet-container { border-radius:16px; }
       `}</style>
-
-      {/* Navigation */}
-      <nav className="bg-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🌱</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Food-Net</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {!user ? (
-                <>
-                  <Link to="/login" className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors">Sign In</Link>
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowDropdown(!showDropdown)}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                      Get Started
-                    </button>
-                    {showDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50">
-                        <Link 
-                          to="/register?role=seller" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Seller
-                        </Link>
-                        <Link 
-                          to="/register?role=buyer" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Buyer
-                        </Link>
-                        <Link 
-                          to="/register?role=logistics" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Logistics
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <Link to="/dashboard" className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">Dashboard</Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* HERO */}
       <section className="gradient-bg text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Fresh Food <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Direct from Kenyan Farms</span>
             </h1>
-
             <p className="text-xl md:text-2xl mb-8 text-gray-100 max-w-3xl mx-auto">
               Connect directly with producers. Buy fresh, sell fair, deliver fast.
             </p>
@@ -286,7 +163,7 @@ function Home() {
 
             {/* Feature Cards */}
             <div className="grid md:grid-cols-3 gap-8 mt-16">
-              {features.map((f, i) => (
+              {features.map((f,i) => (
                 <div key={i} className="glass-effect rounded-2xl p-6 hover-lift text-white">
                   <div className={`${featureIconColors[i]} rounded-xl w-12 h-12 flex items-center justify-center mb-4 mx-auto`}>
                     <f.icon className="w-6 h-6 text-white" />
@@ -300,12 +177,14 @@ function Home() {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-slide-in">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Shop by Category</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Explore our wide range of fresh produce and agricultural products</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Explore our wide range of fresh produce and agricultural products
+            </p>
           </div>
           {categoryLoading ? (
             <div className="text-center py-10 text-gray-500">Loading categories...</div>
@@ -321,7 +200,7 @@ function Home() {
                     <div className="text-4xl mb-3">{cat.icon}</div>
                     <h3 className="font-semibold text-lg">{cat.name}</h3>
                   </div>
-                  <ArrowRight className="absolute bottom-3 right-3 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRight className="absolute bottom-3 right-3 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity"/>
                 </Link>
               ))}
             </div>
@@ -329,7 +208,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Products Section */}
+      {/* Featured Products */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -344,10 +223,7 @@ function Home() {
                 const categoryName = product.category?.name || product.category || '';
                 const icon = categories.find(cat => cat.name === categoryName)?.icon || '📦';
                 return (
-                  <div
-                    key={product._id}
-                    className="product-card bg-white rounded-2xl shadow-lg overflow-hidden"
-                  >
+                  <div key={product._id} className="product-card bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="p-6">
                       <div className="text-center mb-4">
                         <div className="text-6xl mb-2">{icon}</div>
@@ -384,7 +260,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Map Section */}
+      {/* Map */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -407,19 +283,14 @@ function Home() {
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   {filteredProducts
-                    .filter(product => product.coordinates && product.coordinates.lat && product.coordinates.lng)
-                    .map(product => (
-                      <Marker
-                        key={product._id}
-                        position={[product.coordinates.lat, product.coordinates.lng]}
-                      >
+                    .filter(p => p.coordinates && p.coordinates.lat && p.coordinates.lng)
+                    .map(p => (
+                      <Marker key={p._id} position={[p.coordinates.lat, p.coordinates.lng]}>
                         <Popup>
                           <div className="text-center p-2">
-                            <div className="text-2xl mb-2">
-                              {categories.find(cat => cat.name === (product.category?.name || product.category))?.icon || '📦'}
-                            </div>
-                            <h3 className="font-bold">{product.name}</h3>
-                            <p className="text-green-600 font-bold">KSh {product.price}/kg</p>
+                            <div className="text-2xl mb-2">{categories.find(cat => cat.name === (p.category?.name || p.category))?.icon || '📦'}</div>
+                            <h3 className="font-bold">{p.name}</h3>
+                            <p className="text-green-600 font-bold">KSh {p.price}/kg</p>
                           </div>
                         </Popup>
                       </Marker>
@@ -430,9 +301,6 @@ function Home() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }
-
-export default Home;
