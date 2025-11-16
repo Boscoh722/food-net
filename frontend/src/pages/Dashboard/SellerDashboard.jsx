@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  DollarSign, Package, PlusCircle, Clock, Clock, 
+  DollarSign, Package, PlusCircle, Clock,
   Leaf, AlertTriangle, CheckCircle2, MapPin, 
   ShoppingBag, RefreshCw, Truck, Home, LogOut, LayoutDashboard
 } from 'lucide-react';
