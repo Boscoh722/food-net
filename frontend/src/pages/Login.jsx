@@ -37,11 +37,7 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Back button handler
-  const handleBackToHome = () => {
-    navigate('/products');
-  };
-
+ 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <style>{`
@@ -165,17 +161,6 @@ function Login() {
                 />
               </div>
             </div>
-
-            {/* Back Button */}
-            <button
-              type="button"
-              onClick={handleBackToHome}
-              className="p-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 group"
-              title="Back to products"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:text-white" />
-            </button>
-
             <button
               type="submit"
               disabled={loading}
