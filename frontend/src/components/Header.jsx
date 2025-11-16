@@ -1,14 +1,31 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Determine dashboard path dynamically based on user role
+  const dashboardPath = user ? `/dashboard/${user.role || "user"}` : "/dashboard";
+
+  // Close dropdown if clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
         
         {/* Logo */}
         <Link 
@@ -18,42 +35,39 @@ export default function Header() {
           FoodNet
         </Link>
 
-        {/* RIGHT SIDE BUTTONS */}
-        <div className="flex items-center gap-4">
+        {/* Desktop / large screens */}
+        <div className="hidden md:flex items-center gap-3 sm:gap-4 flex-wrap">
 
-          {/* If NO USER IS LOGGED IN */}
           {!user ? (
             <>
-              {/* PRODUCTS BUTTON — MATCHED */}
               <Link
                 to="/products"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Products
               </Link>
 
-              {/* LOGIN BUTTON — MATCHED */}
               <Link
                 to="/login"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Login
               </Link>
 
-              {/* GET STARTED BUTTON WITH DROPDOWN */}
-              <div className="relative">
+              {/* GET STARTED DROPDOWN */}
+              <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                  hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                  hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
                 >
                   Get Started
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50">
+                  <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-lg shadow-xl z-50">
                     <Link 
                       to="/register?role=seller"
                       className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -80,14 +94,12 @@ export default function Header() {
               </div>
             </>
           ) : (
-            
-            /* IF USER IS LOGGED IN */
             <>
-              {/* DASHBOARD */}
+              {/* DASHBOARD - Dynamic */}
               <Link 
-                to="/dashboard"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                to={dashboardPath}
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Dashboard
               </Link>
@@ -95,15 +107,99 @@ export default function Header() {
               {/* LOGOUT */}
               <button
                 onClick={logout}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Logout
               </button>
             </>
           )}
-
         </div>
+
+        {/* Mobile Hamburger */}
+        <div className="md:hidden">
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 w-full bg-white shadow-lg flex flex-col gap-2 p-4 md:hidden z-40">
+            {!user ? (
+              <>
+                <Link
+                  to="/products"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-base text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Products
+                </Link>
+
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-base text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+
+                {/* Get Started Dropdown */}
+                <div ref={dropdownRef} className="relative">
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="px-4 py-2 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-base text-center"
+                  >
+                    Get Started
+                  </button>
+
+                  {showDropdown && (
+                    <div className="mt-2 bg-white rounded-lg shadow-xl flex flex-col">
+                      <Link
+                        to="/register?role=seller"
+                        className="px-4 py-2 text-gray-800 hover:bg-gray-100"
+                        onClick={() => { setShowDropdown(false); setMobileMenuOpen(false); }}
+                      >
+                        Seller
+                      </Link>
+                      <Link
+                        to="/register?role=buyer"
+                        className="px-4 py-2 text-gray-800 hover:bg-gray-100"
+                        onClick={() => { setShowDropdown(false); setMobileMenuOpen(false); }}
+                      >
+                        Buyer
+                      </Link>
+                      <Link
+                        to="/register?role=logistics"
+                        className="px-4 py-2 text-gray-800 hover:bg-gray-100"
+                        onClick={() => { setShowDropdown(false); setMobileMenuOpen(false); }}
+                      >
+                        Logistics
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  to={dashboardPath}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-base text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+
+                <button
+                  onClick={() => { logout(); setMobileMenuOpen(false); }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-base text-center"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </nav>
     </header>
   );
