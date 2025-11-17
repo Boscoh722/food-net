@@ -1,63 +1,77 @@
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Truck, Package, Users, Shield } from 'lucide-react';
+import { Package, Shield } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 py-12 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <footer className="bg-gradient-to-br from-gray-900 via-primary-950 to-gray-950 py-16 text-gray-300">
+      <div className="container-custom">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
 
           {/* Logo and Description */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">🌱</span>
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center shadow-glow">
+                <span className="text-white font-bold text-xl">🌱</span>
               </div>
-              <span className="text-xl font-bold text-white">Food-Net</span>
+              <span className="text-2xl font-bold text-white font-['Plus_Jakarta_Sans']">Food-Net</span>
             </div>
-            <p className="text-gray-300 text-sm">
-              Connecting farmers, buyers, and logistics across Kenya. Fresh produce from farm to table.
+            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
+              Connecting farmers, buyers, and logistics across Kenya. Fresh produce from farm to table with premium quality and service.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-3">
-              <Package className="w-4 h-4 text-purple-400" /> Quick Links
+            <h4 className="text-xl font-semibold text-white font-['Plus_Jakarta_Sans'] flex items-center gap-3 mb-6">
+              <Package className="w-5 h-5 text-accent-400" /> 
+              Quick Links
             </h4>
-            <div className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-col gap-4 text-base">
               <Link
                 to="/products"
-                className="hover:text-blue-400 transition-all duration-300"
+                className="footer-link hover:text-accent-400 transition-all duration-300 transform hover:translate-x-2"
               >
                 Browse Products
               </Link>
               <Link
                 to="/register"
-                className="hover:text-green-400 transition-all duration-300"
+                className="footer-link hover:text-success-400 transition-all duration-300 transform hover:translate-x-2"
               >
                 Become a Seller
+              </Link>
+              <Link
+                to="/about"
+                className="footer-link hover:text-primary-400 transition-all duration-300 transform hover:translate-x-2"
+              >
+                About Us
               </Link>
             </div>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-3">
-              <Shield className="w-4 h-4 text-red-400" /> Legal
+            <h4 className="text-xl font-semibold text-white font-['Plus_Jakarta_Sans'] flex items-center gap-3 mb-6">
+              <Shield className="w-5 h-5 text-primary-400" /> 
+              Legal
             </h4>
-            <div className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-col gap-4 text-base">
               <Link
                 to="/privacy"
-                className="hover:text-red-400 transition-all duration-300"
+                className="footer-link hover:text-primary-400 transition-all duration-300 transform hover:translate-x-2"
               >
                 Privacy Policy
               </Link>
               <Link
                 to="/terms"
-                className="hover:text-orange-400 transition-all duration-300"
+                className="footer-link hover:text-warning-400 transition-all duration-300 transform hover:translate-x-2"
               >
                 Terms & Conditions
+              </Link>
+              <Link
+                to="/contact"
+                className="footer-link hover:text-accent-400 transition-all duration-300 transform hover:translate-x-2"
+              >
+                Contact Support
               </Link>
             </div>
           </div>
@@ -65,8 +79,13 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-4 text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} Food-Net. All rights reserved. | Connecting Kenya's agricultural ecosystem
+        <div className="pt-8 border-t border-gray-700/50 text-center">
+          <div className="text-gradient-premium text-sm font-semibold mb-2">
+            &copy; {new Date().getFullYear()} Food-Net. All rights reserved.
+          </div>
+          <p className="text-gray-400 text-sm">
+            Connecting Kenya's agricultural ecosystem with premium technology solutions
+          </p>
         </div>
       </div>
     </footer>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { 
   ArrowLeft, MessageSquare, RefreshCw, Trash2, 
-  AlertTriangle, Eye, CheckCircle2, XCircle, Archive
+  AlertTriangle, Eye, CheckCircle2, Archive 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
@@ -21,13 +21,13 @@ export default function AdminComplaints() {
       setItems(data);
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
-    } finally { 
-      setLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => { 
-    load(); 
+  useEffect(() => {
+    load();
   }, []);
 
   const handleStatus = async (id, status) => {
@@ -43,7 +43,7 @@ export default function AdminComplaints() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this complaint? This action cannot be undone.')) return;
+    if (!confirm('Delete this complaint?')) return;
     try {
       setActionLoading(id);
       await api.delete(`/complaints/${id}`);
@@ -55,23 +55,19 @@ export default function AdminComplaints() {
     }
   };
 
-  const handleBackToAdmin = () => {
-    navigate('/dashboard/admin');
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      open: 'bg-yellow-900 text-yellow-200 border border-yellow-700',
-      in_progress: 'bg-blue-900 text-blue-200 border border-blue-700',
-      resolved: 'bg-green-900 text-green-200 border border-green-700',
-      closed: 'bg-gray-700 text-gray-200 border border-gray-600'
+  const getStatusBadge = (status) => {
+    const styles = {
+      open: 'badge-warning',
+      in_progress: 'badge-accent',
+      resolved: 'badge-success',
+      closed: 'badge-primary'
     };
-    return colors[status] || 'bg-gray-700 text-gray-200 border border-gray-600';
+    return styles[status] || 'badge-primary';
   };
 
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -80,179 +76,156 @@ export default function AdminComplaints() {
     });
   };
 
-  const truncateMessage = (message, length = 100) => {
-    if (!message) return 'No message';
-    return message.length > length ? message.substring(0, length) + '...' : message;
-  };
+  const truncate = (msg, len = 100) =>
+    !msg ? 'No message' : msg.length > len ? msg.substring(0, len) + '...' : msg;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        
+    <div className="admin-complaints-page">
+      <div className="page-container">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
-            <div className="flex items-center gap-4">
-              {/* Back Button */}
-              <button
-                onClick={handleBackToAdmin}
-                className="p-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 group"
-                title="Back to Admin Dashboard"
-              >
-                <ArrowLeft className="w-5 h-5 group-hover:text-white" />
-              </button>
-              
-              <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
-                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-blue-900 p-2 rounded-lg border border-blue-700">
-                    <MessageSquare className="w-8 h-8 text-blue-400" />
-                  </div>
-                  Complaints & Support
-                </h1>
-                <p className="text-gray-300 mt-2 text-lg">Manage customer complaints and support requests</p>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={load}
-                disabled={loading}
-                className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-semibold hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
+        <div className="page-header">
+          <div className="header-left">
+            <button
+              onClick={() => navigate('/dashboard/admin')}
+              className="btn-secondary"
+            >
+              <ArrowLeft className="icon-sm" />
+            </button>
+
+            <div className="page-title-card">
+              <h1 className="page-title">
+                <div className="icon-container">
+                  <MessageSquare className="icon-lg text-white" />
+                </div>
+                Complaints & Support
+              </h1>
+              <p className="page-subtitle">
+                Manage customer complaints and support tickets
+              </p>
             </div>
           </div>
+
+          <button
+            onClick={load}
+            disabled={loading}
+            className="btn-primary"
+          >
+            <RefreshCw className={`icon-sm ${loading && 'spinning'}`} />
+            Refresh
+          </button>
         </div>
 
-        {/* Error State */}
+        {/* Error */}
         {error && (
-          <div className="bg-red-900 border-2 border-red-700 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            <p className="text-red-200">{error}</p>
+          <div className="alert-error">
+            <AlertTriangle className="icon-sm" />
+            <p>{error}</p>
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading */}
         {loading ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading complaints...</p>
+          <div className="loading-card">
+            <div className="spinner-large"></div>
+            <p>Loading complaints...</p>
           </div>
         ) : items.length === 0 ? (
-          /* Empty State */
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-              <MessageSquare className="w-10 h-10 text-gray-400" />
+          <div className="empty-state">
+            <div className="empty-icon">
+              <MessageSquare className="icon-xl text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No Complaints Found</h3>
-            <p className="text-gray-300">All customer issues are resolved!</p>
+            <h3>No Complaints Found</h3>
+            <p>Everything looks good!</p>
           </div>
         ) : (
-          /* Complaints Table */
           <>
-            <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-700 border-b border-gray-600">
+            {/* Table */}
+            <div className="table-card">
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                        User & Complaint
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                        Message
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                        Actions
-                      </th>
+                      {['User & Complaint', 'Message', 'Date', 'Status', 'Actions'].map(h => (
+                        <th key={h}>
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-700">
-                    {items.map(complaint => (
-                      <tr key={complaint._id} className="hover:bg-gray-750 transition-all duration-300">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center border border-blue-700">
-                              <MessageSquare className="w-5 h-5 text-blue-200" />
+
+                  <tbody>
+                    {items.map(c => (
+                      <tr key={c._id}>
+                        <td>
+                          <div className="user-info">
+                            <div className="user-avatar">
+                              <MessageSquare className="icon-sm text-primary" />
                             </div>
                             <div>
-                              <p className="font-semibold text-white">{complaint.user?.name || complaint.user || 'Unknown User'}</p>
-                              <p className="text-sm text-gray-400">
-                                {complaint.user?.email || 'No email'}
+                              <p className="user-name">
+                                {c.user?.name || 'Unknown User'}
+                              </p>
+                              <p className="user-email">
+                                {c.user?.email || 'No email'}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="max-w-md">
-                            <p className="text-white font-medium mb-1">
-                              {complaint.subject || 'No Subject'}
-                            </p>
-                            <p className="text-gray-300 text-sm">
-                              {truncateMessage(complaint.message)}
-                            </p>
-                          </div>
+
+                        <td>
+                          <p className="complaint-subject">
+                            {c.subject || 'No Subject'}
+                          </p>
+                          <p className="complaint-message">
+                            {truncate(c.message)}
+                          </p>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-300">
-                            {formatDate(complaint.createdAt)}
-                          </div>
+
+                        <td className="date-cell">
+                          {formatDate(c.createdAt)}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-2 rounded-full text-xs font-semibold ${getStatusColor(complaint.status)}`}>
-                            {complaint.status?.toUpperCase() || 'OPEN'}
+
+                        <td>
+                          <span className={`badge ${getStatusBadge(c.status)}`}>
+                            {c.status?.toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {/* View Button */}
+
+                        <td>
+                          <div className="action-buttons">
                             <button
-                              onClick={() => navigate(`/admin/complaints/${complaint._id}`)}
-                              className="p-2 text-blue-400 hover:bg-blue-900 rounded-lg transition-all duration-300 border border-blue-800 hover:border-blue-600"
-                              title="View Details"
+                              onClick={() => navigate(`/admin/complaints/${c._id}`)}
+                              className="btn-icon"
                             >
-                              <Eye className="w-5 h-5" />
+                              <Eye className="icon-sm text-primary" />
                             </button>
 
-                            {/* Resolve Button - Show only for non-resolved complaints */}
-                            {(complaint.status !== 'resolved' && complaint.status !== 'closed') && (
+                            {(c.status !== 'resolved' && c.status !== 'closed') && (
                               <button
-                                onClick={() => handleStatus(complaint._id, 'resolved')}
-                                disabled={actionLoading === complaint._id}
-                                className="p-2 text-green-400 hover:bg-green-900 rounded-lg transition-all duration-300 border border-green-800 hover:border-green-600 disabled:opacity-50"
-                                title="Mark as Resolved"
+                                onClick={() => handleStatus(c._id, 'resolved')}
+                                disabled={actionLoading === c._id}
+                                className="btn-icon success"
                               >
-                                <CheckCircle2 className="w-5 h-5" />
+                                <CheckCircle2 className="icon-sm" />
                               </button>
                             )}
 
-                            {/* Reopen Button - Show only for resolved/closed complaints */}
-                            {(complaint.status === 'resolved' || complaint.status === 'closed') && (
+                            {(c.status === 'resolved' || c.status === 'closed') && (
                               <button
-                                onClick={() => handleStatus(complaint._id, 'open')}
-                                disabled={actionLoading === complaint._id}
-                                className="p-2 text-yellow-400 hover:bg-yellow-900 rounded-lg transition-all duration-300 border border-yellow-800 hover:border-yellow-600 disabled:opacity-50"
-                                title="Reopen Complaint"
+                                onClick={() => handleStatus(c._id, 'open')}
+                                disabled={actionLoading === c._id}
+                                className="btn-icon warning"
                               >
-                                <Archive className="w-5 h-5" />
+                                <Archive className="icon-sm" />
                               </button>
                             )}
 
-                            {/* Delete Button */}
                             <button
-                              onClick={() => handleDelete(complaint._id)}
-                              disabled={actionLoading === complaint._id}
-                              className="p-2 text-red-400 hover:bg-red-900 rounded-lg transition-all duration-300 border border-red-800 hover:border-red-600 disabled:opacity-50"
-                              title="Delete Complaint"
+                              onClick={() => handleDelete(c._id)}
+                              disabled={actionLoading === c._id}
+                              className="btn-icon danger"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="icon-sm" />
                             </button>
                           </div>
                         </td>
@@ -264,18 +237,14 @@ export default function AdminComplaints() {
             </div>
 
             {/* Summary */}
-            <div className="mt-6 bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 px-6 py-4">
-              <div className="text-sm text-gray-300">
-                Showing <span className="font-semibold text-white">{items.length}</span> complaints
-                <span className="mx-2">•</span>
-                Open: <span className="font-semibold text-yellow-400">
-                  {items.filter(c => c.status === 'open').length}
-                </span>
-                <span className="mx-2">•</span>
-                Resolved: <span className="font-semibold text-green-400">
-                  {items.filter(c => c.status === 'resolved').length}
-                </span>
-              </div>
+            <div className="summary-card">
+              Showing <span className="count">{items.length}</span> complaints • 
+              Open: <span className="count warning">
+                {items.filter(c => c.status === 'open').length}
+              </span> • 
+              Resolved: <span className="count success">
+                {items.filter(c => c.status === 'resolved').length}
+              </span>
             </div>
           </>
         )}

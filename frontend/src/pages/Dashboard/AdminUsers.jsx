@@ -172,49 +172,47 @@ export default function AdminUsersDashboard() {
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: 'bg-purple-900 text-purple-200 border border-purple-700',
-      seller: 'bg-green-900 text-green-200 border border-green-700',
-      buyer: 'bg-blue-900 text-blue-200 border border-blue-700',
-      logistics: 'bg-orange-900 text-orange-200 border border-orange-700'
+      admin: 'badge-primary',
+      seller: 'badge-success', 
+      buyer: 'badge-accent',
+      logistics: 'badge-warning'
     };
     return badges[role] || 'bg-gray-700 text-gray-200 border border-gray-600';
   };
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 max-w-md">
-          <div className="bg-red-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-700">
-            <AlertTriangle className="w-10 h-10 text-red-400" />
+      <div className="min-h-screen bg-gradient-premium flex items-center justify-center p-4">
+        <div className="card text-center max-w-md">
+          <div className="bg-gradient-to-r from-error-100 to-error-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-error-300/50">
+            <AlertTriangle className="w-10 h-10 text-error-800" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-300">You need admin privileges to access this page.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-700">You need admin privileges to access this page.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div className="min-h-screen bg-gradient-premium pb-20">
+      <div className="container-custom py-20">
 
-        {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
             <div className="flex items-center gap-4">
-
               <button
                 onClick={handleBackToAdmin}
-                className="p-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 group"
+                className="btn btn-ghost p-3 text-gray-300 hover:text-white"
                 title="Back to Admin Dashboard"
               >
-                <ArrowLeft className="w-5 h-5 group-hover:text-white" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
 
-              <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
+              <div className="card-premium p-6">
                 <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-blue-900 p-2 rounded-lg border border-blue-700">
-                    <Users className="w-8 h-8 text-blue-400" />
+                  <div className="bg-gradient-primary p-3 rounded-xl border border-primary-500">
+                    <Users className="w-8 h-8 text-white" />
                   </div>
                   User Management
                 </h1>
@@ -226,7 +224,7 @@ export default function AdminUsersDashboard() {
               <button
                 onClick={loadUsers}
                 disabled={loading}
-                className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-semibold hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                className="btn btn-secondary flex items-center gap-2"
               >
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -234,15 +232,13 @@ export default function AdminUsersDashboard() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-6 space-y-4">
+          <div className="card-premium p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <h2 className="text-lg font-semibold text-gray-200">Filters</h2>
+              <Filter className="w-5 h-5 text-gray-300" />
+              <h2 className="text-lg font-semibold text-white">Filters</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -251,16 +247,16 @@ export default function AdminUsersDashboard() {
                     placeholder="Search by name or email..."
                     value={filters.search}
                     onChange={(e) => handleFilterChange('search', e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="input w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-gray-400"
                   />
                 </div>
               </div>
 
-              <div>
+              <div className="relative">
                 <select
                   value={filters.role}
                   onChange={(e) => handleFilterChange('role', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                  className="input w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white appearance-none pr-10"
                 >
                   <option value="">All Roles</option>
                   <option value="buyer">Buyer</option>
@@ -268,25 +264,35 @@ export default function AdminUsersDashboard() {
                   <option value="logistics">Logistics</option>
                   <option value="admin">Admin</option>
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
-              <div>
+              <div className="relative">
                 <select
                   value={filters.approved}
                   onChange={(e) => handleFilterChange('approved', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                  className="input w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white appearance-none pr-10"
                 >
                   <option value="">All Status</option>
                   <option value="true">Approved</option>
                   <option value="false">Pending</option>
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
             {(filters.role || filters.approved || filters.search) && (
               <button
                 onClick={handleClearFilters}
-                className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors"
               >
                 Clear all filters
               </button>
@@ -295,19 +301,19 @@ export default function AdminUsersDashboard() {
         </div>
 
         {error && (
-          <div className="bg-red-900 border-2 border-red-700 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            <p className="text-red-200">{error}</p>
+          <div className="alert alert-error mb-6 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5" />
+            <p className="text-error-200 font-medium">{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <div className="card-premium p-12 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
             <p className="text-gray-300">Loading users...</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
+          <div className="card-premium p-12 text-center">
             <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
               <Users className="w-10 h-10 text-gray-400" />
             </div>
@@ -316,7 +322,7 @@ export default function AdminUsersDashboard() {
           </div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 overflow-hidden">
+            <div className="card-premium overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-700 border-b border-gray-600">
@@ -344,8 +350,8 @@ export default function AdminUsersDashboard() {
                       <tr key={u._id} className="hover:bg-gray-750 transition-all duration-300">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center border border-blue-700">
-                              <span className="text-blue-200 font-bold">
+                            <div className="w-10 h-10 bg-gradient-to-r from-primary-100 to-primary-200 rounded-full flex items-center justify-center border border-primary-300/50">
+                              <span className="text-primary-800 font-bold">
                                 {u.name?.charAt(0).toUpperCase() || 'U'}
                               </span>
                             </div>
@@ -357,7 +363,7 @@ export default function AdminUsersDashboard() {
                         </td>
 
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-2 rounded-full text-xs font-semibold ${getRoleBadge(u.role)}`}>
+                          <span className={`badge ${getRoleBadge(u.role)}`}>
                             {u.role?.toUpperCase()}
                           </span>
                         </td>
@@ -386,7 +392,6 @@ export default function AdminUsersDashboard() {
 
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-
                             <button
                               onClick={() => handleViewUser(u._id)}
                               className="p-2 text-blue-400 hover:bg-blue-900 rounded-lg transition-all duration-300 border border-blue-800 hover:border-blue-600"
@@ -425,7 +430,6 @@ export default function AdminUsersDashboard() {
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
-
                           </div>
                         </td>
                       </tr>
@@ -436,7 +440,7 @@ export default function AdminUsersDashboard() {
             </div>
 
             {pagination.pages > 1 && (
-              <div className="mt-6 flex items-center justify-between bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 px-6 py-4">
+              <div className="mt-6 card-premium px-6 py-4 flex items-center justify-between">
                 <div className="text-sm text-gray-300">
                   Showing <span className="font-semibold text-white">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
                   <span className="font-semibold text-white">
@@ -449,7 +453,7 @@ export default function AdminUsersDashboard() {
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="p-2 bg-gray-700 border-2 border-gray-600 rounded-xl hover:bg-gray-600 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-gray-300"
+                    className="btn btn-ghost p-2 text-gray-300 hover:text-white disabled:opacity-50"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -461,7 +465,7 @@ export default function AdminUsersDashboard() {
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.pages}
-                    className="p-2 bg-gray-700 border-2 border-gray-600 rounded-xl hover:bg-gray-600 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-gray-300"
+                    className="btn btn-ghost p-2 text-gray-300 hover:text-white disabled:opacity-50"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -474,22 +478,20 @@ export default function AdminUsersDashboard() {
 
       {showModal && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-
-            <div className="p-6 border-b border-gray-700">
+          <div className="card-premium max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-600">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-white">User Details</h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-all duration-300 border border-gray-600 hover:border-gray-500"
+                  className="btn btn-ghost p-2 text-gray-400 hover:text-white"
                 >
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6" />
                 </button>
               </div>
             </div>
 
             <div className="p-6 space-y-6">
-
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
                 <div className="space-y-3">
@@ -532,15 +534,13 @@ export default function AdminUsersDashboard() {
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Role & Status</h3>
                 <div className="flex items-center gap-4">
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getRoleBadge(selectedUser.role)}`}>
+                  <span className={`badge ${getRoleBadge(selectedUser.role)}`}>
                     {selectedUser.role?.toUpperCase()}
                   </span>
 
                   {selectedUser.role === 'seller' && (
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                      selectedUser.approved
-                        ? 'bg-green-900 text-green-200 border border-green-700'
-                        : 'bg-yellow-900 text-yellow-200 border border-yellow-700'
+                    <span className={`badge ${
+                      selectedUser.approved ? 'badge-success' : 'badge-warning'
                     }`}>
                       {selectedUser.approved ? 'Approved' : 'Pending Approval'}
                     </span>
@@ -552,7 +552,6 @@ export default function AdminUsersDashboard() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Seller Information</h3>
                   <div className="space-y-2 text-sm bg-gray-700 rounded-xl p-4 border border-gray-600">
-
                     {selectedUser.storeName && (
                       <p className="text-gray-300">
                         <span className="text-gray-400">Store Name:</span>{' '}
@@ -566,13 +565,10 @@ export default function AdminUsersDashboard() {
                         <span className="font-semibold text-white">{selectedUser.businessRegistration}</span>
                       </p>
                     )}
-
                   </div>
                 </div>
               )}
-
             </div>
-
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import NotFound from './pages/NotFound.jsx';
+import './index.css';
 
 // Pages
 import Home from './pages/Home';

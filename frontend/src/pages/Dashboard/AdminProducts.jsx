@@ -73,30 +73,27 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         
-        {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
             <div className="flex items-center gap-4">
-              {/* Back Button */}
               <button
                 onClick={handleBackToAdmin}
-                className="p-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 group"
-                title="Back to Admin Dashboard"
+                className="p-3 bg-card border border-border text-card-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2"
               >
-                <ArrowLeft className="w-5 h-5 group-hover:text-white" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
               
-              <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
-                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-blue-900 p-2 rounded-lg border border-blue-700">
-                    <Package className="w-8 h-8 text-blue-400" />
+              <div className="bg-card p-6 rounded-xl border border-border">
+                <h1 className="text-3xl font-bold text-card-foreground flex items-center gap-3">
+                  <div className="bg-primary p-2 rounded-lg">
+                    <Package className="w-6 h-6 text-primary-foreground" />
                   </div>
                   Product Management
                 </h1>
-                <p className="text-gray-300 mt-2 text-lg">Manage all platform products</p>
+                <p className="text-muted-foreground mt-2">Manage all platform products</p>
               </div>
             </div>
             
@@ -104,7 +101,7 @@ export default function AdminProducts() {
               <button
                 onClick={load}
                 disabled={loading}
-                className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-semibold hover:bg-gray-600 hover:border-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                className="px-6 py-3 bg-card border border-border text-card-foreground rounded-lg font-medium hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -113,60 +110,56 @@ export default function AdminProducts() {
           </div>
         </div>
 
-        {/* Error State */}
         {error && (
-          <div className="bg-red-900 border-2 border-red-700 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            <p className="text-red-200">{error}</p>
+          <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive" />
+            <p className="text-destructive">{error}</p>
           </div>
         )}
 
-        {/* Loading State */}
         {loading ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading products...</p>
+          <div className="bg-card rounded-xl border border-border p-12 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading products...</p>
           </div>
         ) : products.length === 0 ? (
-          /* Empty State */
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-              <Package className="w-10 h-10 text-gray-400" />
+          <div className="bg-card rounded-xl border border-border p-12 text-center">
+            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No Products Found</h3>
-            <p className="text-gray-300">Products will appear here once sellers start listing</p>
+            <h3 className="text-xl font-bold text-card-foreground mb-2">No Products Found</h3>
+            <p className="text-muted-foreground">Products will appear here once sellers start listing</p>
           </div>
         ) : (
-          /* Products Table */
           <>
-            <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 overflow-hidden">
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-700 border-b border-gray-600">
+                  <thead className="bg-muted border-b border-border">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Product
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Details
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Seller & Location
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-700">
+                  <tbody className="divide-y divide-border">
                     {products.map((product) => (
-                      <tr key={product._id} className="hover:bg-gray-750 transition-all duration-300">
+                      <tr key={product._id} className="hover:bg-muted/50 transition-colors duration-200">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 bg-gray-700 rounded-xl border-2 border-gray-600 overflow-hidden flex items-center justify-center">
+                            <div className="w-12 h-12 bg-muted rounded-lg border border-border overflow-hidden flex items-center justify-center">
                               {product.images?.[0]?.url ? (
                                 <img
                                   src={product.images[0].url}
@@ -174,14 +167,14 @@ export default function AdminProducts() {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <Package className="w-8 h-8 text-gray-400" />
+                                <Package className="w-6 h-6 text-muted-foreground" />
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="font-bold text-white truncate">
+                              <p className="font-semibold text-card-foreground truncate">
                                 {product.name || product.title || 'Untitled Product'}
                               </p>
-                              <p className="text-sm text-gray-400 capitalize">
+                              <p className="text-sm text-muted-foreground capitalize">
                                 {product.category || 'Uncategorized'}
                               </p>
                             </div>
@@ -190,28 +183,28 @@ export default function AdminProducts() {
 
                         <td className="px-6 py-4">
                           <div className="space-y-2">
-                            <div className="bg-gray-700 rounded-lg p-2 border border-gray-600">
-                              <p className="text-green-400 font-bold text-lg">
+                            <div className="bg-muted rounded-lg p-2 border border-border">
+                              <p className="text-primary font-semibold text-lg">
                                 {formatPrice(product.price)}
                               </p>
-                              <p className="text-sm text-gray-300">
+                              <p className="text-sm text-muted-foreground">
                                 per {product.unit || 'unit'}
                               </p>
                             </div>
                             <div className="flex items-center gap-4 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
                                 product.isNegotiable 
-                                  ? 'bg-green-900 text-green-200 border border-green-700'
-                                  : 'bg-gray-700 text-gray-300 border border-gray-600'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                  : 'bg-muted text-muted-foreground'
                               }`}>
                                 {product.isNegotiable ? 'Negotiable' : 'Fixed Price'}
                               </span>
-                              <span className="text-gray-300">
-                                Stock: <span className="font-semibold text-white">{product.quantityInStock || 0}</span>
+                              <span className="text-muted-foreground">
+                                Stock: <span className="font-medium text-card-foreground">{product.quantityInStock || 0}</span>
                               </span>
                             </div>
                             {product.harvestDate && (
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-muted-foreground">
                                 Harvest: {formatDate(product.harvestDate)}
                               </p>
                             )}
@@ -221,15 +214,15 @@ export default function AdminProducts() {
                         <td className="px-6 py-4">
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm">
-                              <User className="w-4 h-4 text-blue-400" />
-                              <span className="text-white font-medium">
+                              <User className="w-4 h-4 text-blue-500" />
+                              <span className="text-card-foreground font-medium">
                                 {product.seller?.name || product.seller || 'Unknown Seller'}
                               </span>
                             </div>
                             {product.location && (
                               <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="w-4 h-4 text-green-400" />
-                                <span className="text-gray-300 truncate">
+                                <MapPin className="w-4 h-4 text-green-500" />
+                                <span className="text-muted-foreground truncate">
                                   {product.location}
                                 </span>
                               </div>
@@ -238,10 +231,10 @@ export default function AdminProducts() {
                         </td>
 
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-2 rounded-full text-xs font-semibold ${
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             product.approved
-                              ? 'bg-green-900 text-green-200 border border-green-700'
-                              : 'bg-yellow-900 text-yellow-200 border border-yellow-700'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                           }`}>
                             {product.approved ? 'APPROVED' : 'PENDING'}
                           </span>
@@ -249,35 +242,29 @@ export default function AdminProducts() {
 
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {/* View Button */}
                             <button
                               onClick={() => navigate(`/admin/products/${product._id}`)}
-                              className="p-2 text-blue-400 hover:bg-blue-900 rounded-lg transition-all duration-300 border border-blue-800 hover:border-blue-600"
-                              title="View Details"
+                              className="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
                             >
-                              <Eye className="w-5 h-5" />
+                              <Eye className="w-4 h-4" />
                             </button>
 
-                            {/* Approve Button - Show only for unapproved products */}
                             {!product.approved && (
                               <button
                                 onClick={() => handleApprove(product._id)}
                                 disabled={actionLoading === product._id}
-                                className="p-2 text-green-400 hover:bg-green-900 rounded-lg transition-all duration-300 border border-green-800 hover:border-green-600 disabled:opacity-50"
-                                title="Approve Product"
+                                className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 disabled:opacity-50"
                               >
-                                <CheckCircle2 className="w-5 h-5" />
+                                <CheckCircle2 className="w-4 h-4" />
                               </button>
                             )}
 
-                            {/* Delete Button */}
                             <button
                               onClick={() => handleDelete(product._id)}
                               disabled={actionLoading === product._id}
-                              className="p-2 text-red-400 hover:bg-red-900 rounded-lg transition-all duration-300 border border-red-800 hover:border-red-600 disabled:opacity-50"
-                              title="Delete Product"
+                              className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 disabled:opacity-50"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -288,16 +275,15 @@ export default function AdminProducts() {
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="mt-6 bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 px-6 py-4">
-              <div className="text-sm text-gray-300">
-                Showing <span className="font-semibold text-white">{products.length}</span> products
+            <div className="mt-6 bg-card rounded-xl border border-border px-6 py-4">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-card-foreground">{products.length}</span> products
                 <span className="mx-2">•</span>
-                Approved: <span className="font-semibold text-green-400">
+                Approved: <span className="font-medium text-green-600 dark:text-green-400">
                   {products.filter(p => p.approved).length}
                 </span>
                 <span className="mx-2">•</span>
-                Pending: <span className="font-semibold text-yellow-400">
+                Pending: <span className="font-medium text-yellow-600 dark:text-yellow-400">
                   {products.filter(p => !p.approved).length}
                 </span>
               </div>

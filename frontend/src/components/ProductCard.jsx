@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Package } from 'lucide-react';
+import { MapPin, Package, Eye } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -23,73 +23,80 @@ export default function ProductCard({ product }) {
 
   return (
     <div 
-      className="bg-gray-800 rounded-2xl shadow-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-2 border-gray-700 hover:border-blue-500 cursor-pointer overflow-hidden group"
+      className="card card-hover group cursor-pointer overflow-hidden h-full flex flex-col"
       onClick={() => navigate(`/products/${product._id}`)}
     >
-      <div className="bg-gray-700 h-48 flex items-center justify-center rounded-t-2xl overflow-hidden relative">
+      <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-48 flex items-center justify-center rounded-t-2xl overflow-hidden relative">
         {imageUrl ? (
           <img 
             src={imageUrl} 
             alt={product.name || 'Product'} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             onError={(e) => {
               e.target.style.display = 'none';
               e.target.nextSibling.style.display = 'flex';
             }}
           />
         ) : null}
-        <div className={`${imageUrl ? 'hidden' : 'flex'} items-center justify-center w-full h-full bg-gray-600`}>
-          <div className="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center border border-gray-600">
-            <Package className="w-8 h-8 text-gray-400" />
+        <div className={`${imageUrl ? 'hidden' : 'flex'} items-center justify-center w-full h-full bg-gradient-to-br from-gray-200 to-gray-300`}>
+          <div className="bg-white/80 w-16 h-16 rounded-2xl flex items-center justify-center border border-gray-300/50 shadow-sm">
+            <Package className="w-8 h-8 text-gray-500" />
           </div>
         </div>
         
         {/* Price Badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-green-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold border border-green-500">
+        <div className="absolute top-4 right-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white px-4 py-2 rounded-2xl text-sm font-bold shadow-glow border border-primary-500/30">
           KSh {product.price?.toLocaleString() || '0'}
         </div>
         
         {/* Unit Badge */}
         {product.unit && (
-          <div className="absolute top-3 left-3 bg-gray-900 text-gray-300 px-2 py-1 rounded-full text-xs font-medium border border-gray-700">
+          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-300/50 shadow-sm">
             / {product.unit}
           </div>
         )}
       </div>
       
-      <div className="p-6">
-        <h3 className="font-bold text-xl text-white mb-3 line-clamp-2 group-hover:text-blue-300 transition-colors">
+      <div className="p-6 flex flex-col flex-1">
+        <h3 className="font-bold text-xl text-gray-900 mb-3 line-clamp-2 group-hover:text-primary-700 transition-colors duration-300 font-['Plus_Jakarta_Sans']">
           {product.name}
         </h3>
         
-        <div className="flex items-center gap-2 text-gray-400 mb-4">
-          <MapPin className="w-4 h-4" />
-          <span className="text-sm">{product.location || 'Location not specified'}</span>
+        <div className="flex items-center gap-2 text-gray-600 mb-4">
+          <MapPin className="w-4 h-4 text-primary-500" />
+          <span className="text-sm font-medium">{product.location || 'Location not specified'}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
           {product.isNegotiable && (
-            <span className="bg-yellow-900 text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold border border-yellow-700">
-              Negotiable
+            <span className="badge badge-warning font-semibold">
+              💬 Negotiable
             </span>
           )}
           
-          {product.quantityInStock > 0 && (
-            <span className="text-green-400 text-sm font-medium">
-              {product.quantityInStock} in stock
+          {product.quantityInStock > 0 ? (
+            <span className="badge badge-success font-semibold">
+              ✅ {product.quantityInStock} in stock
+            </span>
+          ) : (
+            <span className="badge badge-error font-semibold">
+              ❌ Out of stock
             </span>
           )}
         </div>
 
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/products/${product._id}`);
-          }}
-          className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold border border-blue-500 group-hover:scale-105"
-        >
-          View Details
-        </button>
+        <div className="mt-auto">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/products/${product._id}`);
+            }}
+            className="btn btn-primary w-full font-semibold group-hover:scale-105 transform transition-all duration-300"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            View Details
+          </button>
+        </div>
       </div>
     </div>
   );

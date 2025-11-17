@@ -112,26 +112,8 @@ export default function Home() {
   }, [filteredProducts]);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-wondra">
-      <style>{`
-        body { box-sizing: border-box; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .glass-effect { backdrop-filter: blur(10px); background: rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); }
-        .hover-lift { transition: all 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,0.15);}
-        .category-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1);}
-        .category-card:hover { transform: scale(1.05);}
-        .product-card { transition: all 0.3s ease; border:1px solid rgba(229,231,235,0.5);}
-        .product-card:hover { transform: translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,0.1); border-color:#667eea;}
-        .animate-fade-in { animation: fadeIn 0.6s ease-out;}
-        @keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
-        .animate-slide-in { animation: slideIn 0.8s ease-out;}
-        @keyframes slideIn { from{opacity:0;transform:translateX(-30px);} to{opacity:1;transform:translateX(0);} }
-        .search-glow:focus { box-shadow:0 0 0 3px rgba(102,126,234,0.1);}
-        .leaflet-container { border-radius:16px; }
-      `}</style>
-
-      <section className="gradient-bg text-white py-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
+      <section className="bg-gradient-to-br from-primary-600 to-accent-600 text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center animate-fade-in">
@@ -149,7 +131,7 @@ export default function Home() {
                   placeholder="Search for products, locations, or categories..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full px-6 py-4 pl-14 text-gray-800 bg-white rounded-2xl shadow-2xl focus:outline-none search-glow transition-all duration-300"
+                  className="w-full px-6 py-4 pl-14 text-gray-800 bg-white rounded-2xl shadow-2xl focus:outline-none focus:ring-3 focus:ring-primary-200 transition-all duration-300"
                 />
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               </div>
@@ -157,7 +139,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-3 gap-8 mt-16">
               {features.map((f,i) => (
-                <div key={i} className="glass-effect rounded-2xl p-6 hover-lift text-white">
+                <div key={i} className="backdrop-blur-sm bg-white/10 rounded-2xl p-6 border border-white/20 transition-all duration-300 hover:-translate-y-2 text-white">
                   <div className={`${featureIconColors[i]} rounded-xl w-12 h-12 flex items-center justify-center mb-4 mx-auto`}>
                     <f.icon className="w-6 h-6 text-white" />
                   </div>
@@ -172,7 +154,7 @@ export default function Home() {
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-slide-in">
+          <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Shop by Category</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Explore our wide range of fresh produce and agricultural products
@@ -186,7 +168,7 @@ export default function Home() {
                 <Link
                   key={cat.path}
                   to={`/products/category/${cat.path}`}
-                  className={`category-card group p-6 rounded-2xl bg-gradient-to-br ${cat.color} text-white cursor-pointer shadow-lg`}
+                  className={`group p-6 rounded-2xl bg-gradient-to-br ${cat.color} text-white cursor-pointer shadow-lg transition-all duration-300 hover:scale-105`}
                 >
                   <div className="text-center">
                     <div className="text-4xl mb-3">{cat.icon}</div>
@@ -214,7 +196,7 @@ export default function Home() {
                 const categoryName = product.category?.name || product.category || '';
                 const icon = categories.find(cat => cat.name === categoryName)?.icon || '📦';
                 return (
-                  <div key={product._id} className="product-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                  <div key={product._id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary-300">
                     <div className="p-6">
                       <div className="text-center mb-4">
                         <div className="text-6xl mb-2">{icon}</div>
@@ -230,7 +212,7 @@ export default function Home() {
                       </div>
                       <Link
                         to={`/product/${product._id}`}
-                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 block text-center"
+                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-300 block text-center"
                       >
                         View Details
                       </Link>
@@ -243,7 +225,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Link
               to="/products"
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="px-8 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               View All Products
             </Link>
@@ -261,7 +243,7 @@ export default function Home() {
             <div className="h-96 w-full rounded-2xl">
               {loading ? (
                 <div className="flex items-center justify-center h-full bg-gray-100">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                 </div>
               ) : (
                 <MapContainer
@@ -269,7 +251,7 @@ export default function Home() {
                   zoom={filteredProducts.length === 1 ? 10 : 6}
                   style={{ height: "100%", width: "100%" }}
                   key={mapCenter.join(',')}
-                  className="leaflet-container"
+                  className="rounded-2xl"
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   {filteredProducts
