@@ -8,7 +8,6 @@ import 'leaflet/dist/leaflet.css';
 import { Search, ArrowRight, ShoppingBag, Users, Truck } from 'lucide-react';
 import L from 'leaflet';
 
-// Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -16,7 +15,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// Category gradient mapping
 const categoryColorMap = {
   fruits: { color: 'from-red-500 to-pink-500' },
   vegetables: { color: 'from-green-500 to-emerald-500' },
@@ -48,7 +46,6 @@ export default function Home() {
   const [categoryLoading, setCategoryLoading] = useState(true);
   const debounceRef = useRef(null);
 
-  // Fetch products
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -69,7 +66,6 @@ export default function Home() {
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       setCategoryLoading(true);
@@ -116,7 +112,7 @@ export default function Home() {
   }, [filteredProducts]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-wondra">
       <style>{`
         body { box-sizing: border-box; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -135,7 +131,6 @@ export default function Home() {
         .leaflet-container { border-radius:16px; }
       `}</style>
 
-      {/* HERO */}
       <section className="gradient-bg text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -147,7 +142,6 @@ export default function Home() {
               Connect directly with producers. Buy fresh, sell fair, deliver fast.
             </p>
 
-            {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-12">
               <div className="relative">
                 <input
@@ -161,7 +155,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Feature Cards */}
             <div className="grid md:grid-cols-3 gap-8 mt-16">
               {features.map((f,i) => (
                 <div key={i} className="glass-effect rounded-2xl p-6 hover-lift text-white">
@@ -177,7 +170,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-slide-in">
@@ -208,7 +200,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -260,7 +251,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Map */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">

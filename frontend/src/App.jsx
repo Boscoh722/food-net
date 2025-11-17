@@ -48,9 +48,11 @@ import BuyerOrderDetail from './pages/BuyerOrderDetail';
 
 // Categories
 import CategoryProducts from './pages/Categories/CategoryProducts';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -271,6 +273,7 @@ function App() {
         <Footer />
       </div>
     </Router>
+    </AuthProvider>
   );
 }
 

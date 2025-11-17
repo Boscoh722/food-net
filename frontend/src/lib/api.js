@@ -1,13 +1,20 @@
 import axios from 'axios';
 
-// For local development, use localhost:5000, for production use relative path
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.MODE === 'development' 
-    ? 'http://localhost:5000' 
-    : '');
+// Configuration for different environments
+const config = {
+  development: {
+    baseURL: 'http://localhost:5000/api',
+  },
+  production: {
+    baseURL: '/api',
+  }
+};
+
+const environment = import.meta.env.MODE || 'development';
+const { baseURL } = config[environment];
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL,
   withCredentials: true,
   timeout: 10000,
   headers: {
@@ -22,16 +29,5 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login'; 
-    }
-    return Promise.reject(err);
-  }
-);
 
 export default api;

@@ -1,0 +1,16 @@
+{
+  "name": "FoodNet - Kenyan Agricultural Marketplace",
+  "short_name": "FoodNet",
+  "description": "Connect directly with Kenyan farmers. Buy fresh, sell fair, deliver fast.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2E8B57",
+  "icons": [
+    {
+      "src": "/foodnet-logo.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ]
+}
