@@ -34,9 +34,25 @@ app.use(
   })
 );
 
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'https://food-nett.vercel.app',
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        'http://localhost:5173', // Vite default
+        'http://localhost:3000', // Create React App default
+        'https://food-nett.vercel.app'
+      ];
+      
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -148,13 +164,25 @@ app.use((err, req, res, next) => {
 // ──────────────────────────────────────────────────────────────
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected');
+    const MONGO_URI =
+      process.env.NODE_ENV === "production"
+        ? process.env.MONGO_URI_PROD
+        : process.env.MONGO_URI_LOCAL;
+
+    if (!MONGO_URI) {
+      throw new Error(
+        "MongoDB URI is missing. Ensure MONGO_URI_LOCAL or MONGO_URI_PROD is set."
+      );
+    }
+
+    await mongoose.connect(MONGO_URI);
+    console.log("MongoDB Connected");
   } catch (err) {
-    console.error('MongoDB Connection Failed:', err.message);
+    console.error("MongoDB Connection Failed:", err.message);
     process.exit(1);
   }
 };
+
 
 connectDB();
 

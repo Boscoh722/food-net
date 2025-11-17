@@ -1,0 +1,21 @@
+export default function Footer() {
+  return (
+    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 py-8 text-gray-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-sm">
+        <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div>
+            <h4 className="text-lg font-semibold text-white">FoodNet</h4>
+            <p className="mt-2">Connecting farmers, buyers and logistics across the region.</p>
+          </div>
+          <div className="flex gap-6">
+            <a className="hover:underline" href="/terms">Terms</a>
+            <a className="hover:underline" href="/privacy">Privacy</a>
+          </div>
+        </div>
+        <div className="mt-6 border-t border-gray-700 pt-4 text-xs text-gray-400">
+          © {new Date().getFullYear()} FoodNet. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
+}

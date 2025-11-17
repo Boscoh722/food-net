@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://boscoh:Boscoh@foodnet.2padhe1.mongodb.net/foodnet_db?appName=foodNet';
+const MONGO_URI =
+  process.env.NODE_ENV === "production"
+    ? process.env.MONGO_URI_PROD
+    : process.env.MONGO_URI_LOCAL;
+
 
 const connectDB = async () => {
     try {
