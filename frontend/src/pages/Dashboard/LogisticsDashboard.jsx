@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Truck, MapPin, CheckCircle, Clock, Package, AlertTriangle, RefreshCw
+  Truck, MapPin, CheckCircle, Clock, Package, AlertTriangle, RefreshCw, Users, DollarSign
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -51,18 +51,26 @@ const DeliveryItem = ({ order, onClick }) => {
       className={`p-6 border-l-4 ${getStatusColor(order.status)} shadow-sm hover:shadow-md transition-all duration-200 rounded-xl flex justify-between items-center bg-white cursor-pointer border border-gray-200 hover:border-blue-300`}
     >
       <div className="flex-1">
-        <p className="font-bold text-gray-900 flex items-center gap-2">
+        <div className="flex items-center gap-3 mb-2">
           <Package className="w-5 h-5 text-green-600" /> 
-          Order: <span className="text-green-600">{order.orderNumber}</span>
-        </p>
-        <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-xl p-2 border border-gray-200">
-          To: {order.shippingAddress}
-        </p>
-        {order.trackingNumber && (
-          <p className="text-sm text-gray-500 mt-2 bg-gray-50 rounded-xl p-2 border border-gray-200">
-            Tracking: <span className="text-primary-600 font-medium">{order.trackingNumber}</span>
+          <p className="font-bold text-gray-900">
+            Order: <span className="text-green-600">{order.orderNumber}</span>
           </p>
-        )}
+        </div>
+        
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-2 border border-gray-200">
+            <strong>Customer:</strong> {order.user?.name || 'N/A'}
+          </p>
+          <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-2 border border-gray-200">
+            <strong>To:</strong> {order.shippingAddress || 'Address not specified'}
+          </p>
+          {order.trackingNumber && (
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-xl p-2 border border-gray-200">
+              <strong>Tracking:</strong> <span className="text-primary-600 font-medium">{order.trackingNumber}</span>
+            </p>
+          )}
+        </div>
       </div>
       <div className="text-right ml-4">
         <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full border ${getStatusBadgeColor(order.status)}`}>
@@ -70,6 +78,9 @@ const DeliveryItem = ({ order, onClick }) => {
         </span>
         <p className="text-lg font-bold text-gray-900 mt-3 bg-gray-50 rounded-xl p-2 border border-gray-200">
           KSh {order.total?.toLocaleString()}
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          {new Date(order.createdAt).toLocaleDateString()}
         </p>
       </div>
     </div>
@@ -85,6 +96,7 @@ export default function LogisticsDashboard() {
     shipped: 0,
     delivered: 0,
     pending: 0,
+    totalRevenue: 0
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,27 +112,38 @@ export default function LogisticsDashboard() {
       setError('');
 
       const ordersRes = await api.get('/orders/logistics/my-orders');
-      let allOrders = ordersRes.data?.orders || [];
+      const allOrders = ordersRes.data.data || ordersRes.data.orders || [];
       
       setOrders(allOrders);
 
+      // Calculate statistics
       const shipped = allOrders.filter(o => o.status === 'shipped').length;
       const delivered = allOrders.filter(o => o.status === 'delivered').length;
       const pending = allOrders.filter(o => ['pending', 'confirmed'].includes(o.status)).length;
+      const totalRevenue = allOrders
+        .filter(o => o.status === 'delivered')
+        .reduce((sum, o) => sum + (o.total || 0), 0);
 
       setStats({
         totalAssigned: allOrders.length,
         shipped,
         delivered,
         pending,
+        totalRevenue
       });
 
     } catch (err) {
+      console.error('Dashboard load error:', err);
       setError(err.response?.data?.message || 'Failed to load logistics data');
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter orders for active deliveries (not delivered or cancelled)
+  const activeDeliveries = orders.filter(order => 
+    !['delivered', 'cancelled'].includes(order.status)
+  );
 
   if (loading) {
     return (
@@ -143,12 +166,20 @@ export default function LogisticsDashboard() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={loadDashboard}
-            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
-          >
-            Try Again
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={loadDashboard}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              Go Home
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -157,8 +188,9 @@ export default function LogisticsDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 flex-1">
             <div className="flex items-center space-x-3">
               <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                 <Truck className="w-6 h-6 text-white" />
@@ -168,6 +200,9 @@ export default function LogisticsDashboard() {
                   Logistics Dashboard
                 </h1>
                 <p className="text-gray-600">Welcome back, {user?.name || 'Logistics Partner'}!</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Service Area: {user?.location || 'Not specified'} • Reach: {user?.reach || 'Not specified'}
+                </p>
               </div>
             </div>
           </div>
@@ -191,18 +226,20 @@ export default function LogisticsDashboard() {
           </div>
         </div>
 
+        {/* Statistics Cards */}
         <div className="mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Delivery Overview</h2>
-            <p className="text-gray-600 mt-2">Track your delivery performance and assignments</p>
+            <h2 className="text-2xl font-bold text-gray-900">Delivery Performance</h2>
+            <p className="text-gray-600 mt-2">Track your delivery assignments and performance metrics</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <LogisticsStatCard 
               title="Total Assigned" 
               value={stats.totalAssigned} 
               icon={Package} 
               valueColor="text-primary-600" 
-              description="Orders assigned to you"
+              description="All orders assigned to you"
               onClick={() => navigate('/logistics/orders')}
             />
             <LogisticsStatCard 
@@ -210,7 +247,7 @@ export default function LogisticsDashboard() {
               value={stats.pending} 
               icon={Clock} 
               valueColor="text-yellow-600" 
-              description="Awaiting pickup"
+              description="Awaiting pickup/confirmation"
               onClick={() => navigate('/logistics/orders?status=pending')}
             />
             <LogisticsStatCard 
@@ -218,7 +255,7 @@ export default function LogisticsDashboard() {
               value={stats.shipped} 
               icon={Truck} 
               valueColor="text-purple-600" 
-              description="Currently shipping"
+              description="Currently in delivery"
               onClick={() => navigate('/logistics/orders?status=shipped')}
             />
             <LogisticsStatCard 
@@ -226,89 +263,131 @@ export default function LogisticsDashboard() {
               value={stats.delivered} 
               icon={CheckCircle} 
               valueColor="text-green-600" 
-              description="Successfully delivered"
+              description="Successfully completed"
               onClick={() => navigate('/logistics/orders?status=delivered')}
+            />
+            <LogisticsStatCard 
+              title="Total Revenue" 
+              value={`KSh ${stats.totalRevenue.toLocaleString()}`} 
+              icon={DollarSign} 
+              valueColor="text-green-600" 
+              description="From completed deliveries"
             />
           </div>
         </div>
 
+        {/* Active Deliveries */}
         <div className="mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
                 <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
-                  <Clock className="w-6 h-6 text-white" />
+                  <Truck className="w-6 h-6 text-white" />
                 </div>
-                Active Deliveries
+                Active Deliveries ({activeDeliveries.length})
               </h2>
               {orders.length > 0 && (
                 <button
                   onClick={() => navigate('/logistics/orders')}
                   className="px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:bg-blue-700 font-semibold rounded-xl transition-colors"
                 >
-                  View All Deliveries
+                  View All Orders ({orders.length})
                 </button>
               )}
             </div>
           </div>
           
-          {orders.length === 0 ? (
+          {activeDeliveries.length === 0 ? (
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
               <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Package className="w-12 h-12 text-gray-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No Deliveries Assigned</h3>
-              <p className="text-gray-600 mb-6">Deliveries will appear here once assigned to you</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Deliveries</h3>
+              <p className="text-gray-600 mb-6">
+                {orders.length === 0 
+                  ? "You don't have any delivery assignments yet." 
+                  : "All your assigned orders have been completed or cancelled."
+                }
+              </p>
               <button
                 onClick={loadDashboard}
                 className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
               >
-                Check for Assignments
+                Check for New Assignments
               </button>
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.slice(0, 10).map((order) => (
+              {activeDeliveries.slice(0, 5).map((order) => (
                 <DeliveryItem 
                   key={order._id} 
                   order={order}
                   onClick={() => navigate(`/logistics/orders/${order._id}`)}
                 />
               ))}
-            </div>
-          )}
-
-          {orders.length > 10 && (
-            <div className="text-center mt-8">
-              <button
-                onClick={() => navigate('/logistics/orders')}
-                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
-              >
-                View All Deliveries ({orders.length})
-              </button>
+              
+              {activeDeliveries.length > 5 && (
+                <div className="text-center pt-4">
+                  <button
+                    onClick={() => navigate('/logistics/orders')}
+                    className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
+                  >
+                    View All {activeDeliveries.length} Active Deliveries
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
-              <MapPin className="w-6 h-6 text-white" />
+        {/* Performance Metrics */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              Customer Service
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Total Customers Served</span>
+                <span className="font-semibold text-gray-900">
+                  {new Set(orders.map(o => o.user?._id)).size}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Delivery Success Rate</span>
+                <span className="font-semibold text-green-600">
+                  {stats.totalAssigned > 0 
+                    ? `${Math.round((stats.delivered / stats.totalAssigned) * 100)}%` 
+                    : '0%'
+                  }
+                </span>
+              </div>
             </div>
-            Your Service Area
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <p className="text-sm text-gray-500 mb-2 font-medium">Location</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {user?.location || 'Not specified'}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <p className="text-sm text-gray-500 mb-2 font-medium">Service Reach</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {user?.reach || 'Not specified'}
-              </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+              Service Area
+            </h3>
+            <div className="space-y-3">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <p className="text-sm text-gray-500 mb-2 font-medium">Your Location</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {user?.location || 'Not specified'}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <p className="text-sm text-gray-500 mb-2 font-medium">Service Coverage</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {user?.reach || 'Not specified'}
+                </p>
+              </div>
             </div>
           </div>
         </div>

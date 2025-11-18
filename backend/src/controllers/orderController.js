@@ -1,7 +1,6 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 
-// CREATE ORDER (buyer)
 export const createOrder = async (req, res) => {
   try {
     const { product: productId, seller: sellerId } = req.body;
@@ -26,7 +25,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// GET ALL MY ORDERS (buyer list)
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find({ buyer: req.user.id })
@@ -39,12 +37,11 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// NEW: GET SINGLE ORDER BY ID (buyer detail page)
 export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findOne({
       _id: req.params.id,
-      buyer: req.user.id,  // Only owner can view
+      buyer: req.user.id,
     })
       .populate({
         path: 'product',
@@ -74,11 +71,9 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-// --- NEW: LOGISTICS GET ASSIGNED ORDERS ---
 export const getMyAssignedOrders = async (req, res) => {
   try {
-    // req.user.id is set by the protect middleware from the JWT token
-    const logisticsUserId = req.user.id; 
+    const logisticsUserId = req.user.id;
 
     const orders = await Order.find({ 
       logistics: logisticsUserId 
@@ -101,10 +96,83 @@ export const getMyAssignedOrders = async (req, res) => {
     });
   }
 };
-// --- END NEW LOGISTICS FUNCTION ---
 
-// UPDATE STATUS (seller or logistics)
+export const getLogisticsOrders = async (req, res) => {
+  try {
+    const logisticsId = req.user.id;
+    
+    const orders = await Order.find({ 
+      logisticsProvider: logisticsId 
+    })
+    .populate('user', 'name email phone')
+    .populate('items.product', 'name category unit images')
+    .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: orders,
+      count: orders.length
+    });
+  } catch (err) {
+    console.error('Get logistics orders error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch logistics orders'
+    });
+  }
+};
+
 export const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, trackingNumber } = req.body;
+    const logisticsId = req.user.id;
+
+    const order = await Order.findById(id);
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    if (order.logisticsProvider.toString() !== logisticsId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this order'
+      });
+    }
+
+    order.status = status;
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    
+    order.statusHistory.push({
+      status: status,
+      updatedBy: logisticsId,
+      timestamp: new Date()
+    });
+
+    await order.save();
+    
+    await order.populate('user', 'name email phone');
+    await order.populate('items.product', 'name category unit images');
+
+    res.json({
+      success: true,
+      message: 'Order status updated successfully',
+      data: order
+    });
+  } catch (err) {
+    console.error('Update order status error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update order status'
+    });
+  }
+};
+
+export const updateOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) {
@@ -126,12 +194,11 @@ export const updateOrderStatus = async (req, res) => {
 
     res.json({ success: true, order });
   } catch (err) {
-    console.error('updateOrderStatus error:', err);
+    console.error('updateOrder error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// ADMIN: GET ALL ORDERS
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -143,7 +210,6 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
-// ADMIN: DELETE ORDER
 export const deleteOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);

@@ -1,50 +1,33 @@
 import express from 'express';
-import { 
-  createOrder, 
-  getOrders, 
-  updateOrderStatus, 
-  getAllOrders, 
-  deleteOrder,
+import {
+  createOrder,
+  getOrders,
   getOrderById,
-  getMyAssignedOrders 
+  getMyAssignedOrders,
+  getLogisticsOrders,
+  updateOrderStatus,
+  updateOrder,
+  getAllOrders,
+  deleteOrder
 } from '../controllers/orderController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(protect);
+// Buyer routes
+router.post('/', protect, restrictTo('buyer'), createOrder);
+router.get('/', protect, getOrders);
+router.get('/:id', protect, getOrderById);
 
-// BUYER ROUTES
-router.post('/', restrictTo('buyer'), createOrder);
+// Logistics routes
+router.get('/logistics/my-orders', protect, restrictTo('logistics'), getLogisticsOrders);
+router.patch('/:id/status', protect, restrictTo('logistics'), updateOrderStatus);
 
-// 🔥 IMPORTANT: This handles GET /orders/my
-router.get('/my', restrictTo('buyer'), getOrders);
+// Seller routes
+router.patch('/:id', protect, restrictTo('seller', 'logistics'), updateOrder);
 
-// Buyer list all orders
-router.get('/', restrictTo('buyer'), getOrders);
-
-// --- SPECIFIC NAMED ROUTES (must be before :id) ---
-
-// LOGISTICS: get assigned orders
-router.get(
-  '/logistics/my-orders', 
-  restrictTo('logistics'), 
-  getMyAssignedOrders
-);
-
-// ADMIN: get all orders
-router.get('/all', restrictTo('admin'), getAllOrders);
-
-// --- GENERIC ID ROUTES (must come last) ---
-
-// Buyer view order details
-router.get('/:id', restrictTo('buyer'), getOrderById);
-
-// Seller/logistics update status
-router.patch('/:id', restrictTo('seller', 'logistics'), updateOrderStatus);
-
-// Admin delete order
-router.delete('/:id', restrictTo('admin'), deleteOrder);
+// Admin routes
+router.get('/admin/all', protect, restrictTo('admin'), getAllOrders);
+router.delete('/:id', protect, restrictTo('admin'), deleteOrder);
 
 export default router;
