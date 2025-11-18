@@ -124,3 +124,24 @@ export const rejectSeller = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+export const getLogisticsProviders = async (req, res) => {
+  try {
+    const logisticsProviders = await User.find({ 
+      role: 'logistics',
+      approved: true 
+    }).select('name email phone location reach vehicleType capacity isAvailable');
+    
+    res.json({
+      success: true,
+      data: logisticsProviders
+    });
+  } catch (err) {
+    console.error('Get logistics providers error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch logistics providers'
+    });
+  }
+};

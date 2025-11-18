@@ -1,446 +1,472 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../lib/api';
-import ProductCard from '../components/ProductCard';
-import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import {
-  PlusCircle, Upload, X, MapPin, Package, CheckCircle2, AlertCircle, Leaf, Search
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  ArrowLeft, MapPin, Package, Truck, DollarSign, 
+  CheckCircle, Clock, AlertTriangle, ShoppingCart,
+  User, Star, Shield, TruckIcon, Loader
 } from 'lucide-react';
-import L from 'leaflet';
+import api from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
-
-const KENYA_CENTER = [-1.2921, 36.8219];
-const DEFAULT_ZOOM = 6;
-const units = ['kg', 'g', 'L', 'mL', 'bunch', 'piece', 'dozen', 'pack', 'box'];
-
-function LocationMarker({ position, setPosition }) {
-  const map = useMapEvents({
-    click(e) {
-      const { lat, lng } = e.latlng;
-      if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
-        setPosition([lat, lng]);
-        map.flyTo([lat, lng], 14);
-      }
-    },
-  });
-
-  if (!position || !Array.isArray(position) || position.length !== 2 || position.some(c => typeof c !== 'number' || isNaN(c))) {
-    return null;
-  }
-
-  return (
-    <Marker position={position}>
-      <Popup>
-        <div className="text-center font-bold text-green-700">
-          Your Farm<br /><small>Click to move</small>
-        </div>
-      </Popup>
-    </Marker>
-  );
-}
-
-export default function Products() {
+export default function ProductDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const isSeller = user?.role === 'seller';
-  const [products, setProducts] = useState([]);
+  
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [categoryLoading, setCategoryLoading] = useState(true);
-  const fileInputRef = useRef(null);
-
-  const [form, setForm] = useState({
-    name: '', description: '', category: '', price: '', unit: 'kg',
-    quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
-    harvestDate: '', images: []
-  });
-
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [selectedLogistics, setSelectedLogistics] = useState('');
+  const [logisticsProviders, setLogisticsProviders] = useState([]);
+  const [loadingLogistics, setLoadingLogistics] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
   useEffect(() => {
-    loadProducts();
-    const fetchCategories = async () => {
-      setCategoryLoading(true);
-      try {
-        const { data } = await api.get('/categories');
-        setCategories(data.data);
-      } catch (err) {
-        console.error('Failed to fetch categories:', err);
-      } finally {
-        setCategoryLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+    loadProductDetails();
+    
+    if (location.state?.showOrderForm) {
+      setShowOrderForm(true);
+    }
+  }, [id, location]);
 
-  const loadProducts = async () => {
+  useEffect(() => {
+    if (showOrderForm) {
+      loadLogisticsProviders();
+    }
+  }, [showOrderForm]);
+
+  const loadProductDetails = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/products?approved=true');
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (res.data?.products && Array.isArray(res.data.products)) {
-        data = res.data.products;
-      } else if (res.data?.data && Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
-      setProducts(data);
+      const { data } = await api.get(`/products/${id}`);
+      setProduct(data.data);
     } catch (err) {
-      console.error('Failed to load products:', err);
-      setProducts([]);
+      setError(err.response?.data?.message || 'Failed to load product details');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    setUploading(true);
-    const uploaded = [];
-
+  const loadLogisticsProviders = async () => {
     try {
-      for (const file of files) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'Unsigned');
-        const res = await fetch('https://api.cloudinary.com/v1_1/dlkakdkm8/image/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.secure_url) {
-          uploaded.push({
-            url: data.secure_url,
-            publicId: data.public_id,
-            isPrimary: form.images.length === 0
-          });
-        }
+      setLoadingLogistics(true);
+      const { data } = await api.get('/users/logistics');
+      setLogisticsProviders(data.data || []);
+      
+      // Auto-select first provider if available
+      if (data.data && data.data.length > 0) {
+        setSelectedLogistics(data.data[0]._id);
       }
-      setForm(prev => ({ ...prev, images: [...prev.images, ...uploaded] }));
     } catch (err) {
-      alert('Upload failed');
+      console.error('Failed to load logistics providers:', err);
+      setError('Failed to load logistics providers. Please try again.');
     } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setLoadingLogistics(false);
     }
   };
 
-  const removeImage = (i) => {
-    setForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, idx) => idx !== i)
-    }));
-  };
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
 
-  const validateForm = () => {
-    const err = {};
-    if (!form.name.trim()) err.name = 'Required';
-    if (!form.description.trim() || form.description.length < 20) err.description = 'Min 20 chars';
-    if (!form.price || form.price <= 0) err.price = 'Valid price';
-    if (!form.quantityInStock || form.quantityInStock < 0) err.quantityInStock = 'Valid stock';
-    if (!form.location.trim()) err.location = 'Required';
-    if (form.images.length === 0) err.images = 'Upload 1+ photo';
-    if (!form.unit || !units.includes(form.unit)) err.unit = 'Unit required';
-    if (!form.category) err.category = 'Category required';
+    if (!selectedLogistics) {
+      alert('Please select a logistics provider');
+      return;
+    }
 
-    const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-    if (!validCoords) err.coordinates = 'Pin farm on map';
-    setErrors(err);
-    return Object.keys(err).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    setSubmitting(true);
     try {
-      const validCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+      setPlacingOrder(true);
       
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        category: form.category,
-        price: parseFloat(form.price),
-        unit: form.unit,
-        quantityInStock: parseInt(form.quantityInStock, 10),
-        isNegotiable: form.isNegotiable,
-        location: form.location.trim(),
-        coordinates: validCoords ? { type: 'Point', coordinates: form.coordinates } : undefined,
-        harvestDate: form.harvestDate || undefined,
-        images: form.images
+      const selectedProvider = logisticsProviders.find(p => p._id === selectedLogistics);
+      
+      const orderData = {
+        items: [{
+          product: product._id,
+          quantity: orderQuantity,
+          price: product.price
+        }],
+        total: product.price * orderQuantity,
+        shippingAddress: user.shippingAddress || user.location,
+        logisticsProvider: selectedLogistics,
+        logisticsProviderName: selectedProvider?.name,
+        paymentMethod: 'mpesa'
       };
+
+      const { data } = await api.post('/orders', orderData);
       
-      await api.post('/products/my-products', payload);
-      alert('Submitted! Awaiting approval.');
-      setShowForm(false);
-      setForm({
-        name: '', description: '', category: '', price: '', unit: 'kg',
-        quantityInStock: '', isNegotiable: false, location: '', coordinates: null,
-        harvestDate: '', images: []
-      });
-      setErrors({});
-      loadProducts();
+      alert('Order placed successfully!');
+      navigate('/orders');
+      
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to submit product';
-      alert(errorMsg);
+      setError(err.response?.data?.message || 'Failed to place order');
     } finally {
-      setSubmitting(false);
+      setPlacingOrder(false);
     }
   };
 
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const renderMap = () => {
-    if (!showForm) return null;
-
-    const isValidCoords = Array.isArray(form.coordinates) && form.coordinates.length === 2 && form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
-    const mapCenter = isValidCoords ? form.coordinates : KENYA_CENTER;
-    const mapZoom = isValidCoords ? 14 : DEFAULT_ZOOM;
-    const mapKey = mapCenter.join(',') + '-' + mapZoom;
-
-    if (!Array.isArray(mapCenter) || mapCenter.length !== 2 || mapCenter.some(c => typeof c !== 'number' || isNaN(c))) {
-      return null;
+  const handleOrderNow = () => {
+    if (!user) {
+      navigate('/login', { state: { from: location } });
+      return;
     }
+    setShowOrderForm(true);
+  };
 
+  const getProviderBadge = (provider) => {
+    if (!provider.isAvailable) {
+      return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Unavailable</span>;
+    }
+    return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Available</span>;
+  };
+
+  if (loading) {
     return (
-      <div className="h-80 rounded-xl overflow-hidden border-2 border-gray-600">
-        <MapContainer
-          center={mapCenter}
-          zoom={mapZoom}
-          style={{ height: '100%', width: '100%' }}
-          key={mapKey}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <LocationMarker
-            position={isValidCoords ? form.coordinates : null}
-            setPosition={pos => {
-              if (Array.isArray(pos) && pos.length === 2 && pos.every(c => typeof c === 'number' && !isNaN(c))) {
-                setForm(prev => ({ ...prev, coordinates: pos }));
-              }
-            }}
-          />
-        </MapContainer>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-xl font-bold text-gray-900">Loading product details...</p>
+        </div>
       </div>
     );
-  };
+  }
+
+  if (error && !showOrderForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-xl shadow-lg max-w-md">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-xl text-gray-600">Product not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalPrice = product.price * orderQuantity;
+  const availableStock = product.quantityInStock || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-3 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-blue-300 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <h1 className="text-3xl font-bold text-gray-900">Product Details</h1>
+        </div>
 
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
-            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-              <div className="bg-green-900 p-2 rounded-xl border border-green-700">
-                <Leaf className="w-8 h-8 text-green-400" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Product Information */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
+                  <p className="text-gray-600 capitalize mt-1">{product.category}</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  product.approved 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {product.approved ? 'Verified' : 'Pending Approval'}
+                </span>
               </div>
-              Fresh Marketplace
-            </h1>
-            <p className="text-gray-300 mt-2 text-lg">Discover fresh farm products</p>
+
+              <div className="space-y-4">
+                <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                  <p className="text-3xl font-bold text-green-800">KSh {product.price?.toLocaleString()}</p>
+                  <p className="text-green-600">per {product.unit}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-700 font-medium">Available Stock</p>
+                    <p className="text-xl font-bold text-blue-800">{availableStock} {product.unit}</p>
+                  </div>
+                  <div className={`rounded-xl p-4 border ${
+                    product.isNegotiable 
+                      ? 'bg-yellow-50 border-yellow-200' 
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <p className="text-sm font-medium">Price Type</p>
+                    <p className="text-xl font-bold">
+                      {product.isNegotiable ? 'Negotiable' : 'Fixed Price'}
+                    </p>
+                  </div>
+                </div>
+
+                {product.harvestDate && (
+                  <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                    <p className="text-sm text-orange-700 font-medium">Harvest Date</p>
+                    <p className="text-orange-800">
+                      {new Date(product.harvestDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <p className="text-gray-700">{product.description}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Seller Information */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                Seller Information
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{product.seller?.name}</p>
+                    <p className="text-sm text-gray-600">Verified Seller</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{product.location}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          {isSeller && (
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 border border-green-500"
-            >
-              {showForm ? 'Cancel' : (
-                <>
-                  <PlusCircle className="w-5 h-5" />
-                  List Product
-                </>
-              )}
-            </button>
-          )}
-        </div>
 
-        <div className="relative max-w-xl mx-auto mb-8">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition"
-          />
-        </div>
-
-        {isSeller && showForm && (
-          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 mb-10">
-            <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-              <Package className="w-6 h-6 text-green-400" />
-              List Your Produce
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
-                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400" placeholder="Fresh Sukuma Wiki" />
-                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
-                  <select 
-                    value={form.category} 
-                    onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white"
-                  >
-                    <option value="" disabled>
-                      {categoryLoading ? 'Loading...' : 'Select a category'}
-                    </option>
-                    {categories.map(c => (
-                      <option key={c._id} value={c._id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.category && <p className="text-red-400 text-sm">{errors.category}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
-                  rows="4" className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 resize-none"
-                  placeholder="Describe your produce..." />
-                {errors.description && <p className="text-red-400 text-sm">{errors.description}</p>}
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Price (KSh)</label>
-                  <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="500" />
-                  {errors.price && <p className="text-red-400 text-sm">{errors.price}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Unit</label>
-                  <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white">
-                    {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
-                  </select>
-                  {errors.unit && <p className="text-red-400 text-sm">{errors.unit}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Stock</label>
-                  <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="50" />
-                  {errors.quantityInStock && <p className="text-red-400 text-sm">{errors.quantityInStock}</p>}
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
-                    className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-gray-300">Negotiable</span>
-                </label>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Harvest Date</label>
-                  <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-1">
-                  <MapPin className="w-5 h-5" />Farm Location
-                </label>
-                <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white mb-4" placeholder="Kitengela" />
-                {errors.location && <p className="text-red-400 text-sm mb-3">{errors.location}</p>}
-                {errors.coordinates && <p className="text-red-400 text-sm mb-3">{errors.coordinates}</p>}
-
-                {renderMap()}
-
-                <div className="mt-3 flex items-center gap-2 text-sm">
-                  {form.coordinates ? (
-                    <><CheckCircle2 className="w-5 h-5 text-green-400" /> Location set</>
-                  ) : (
-                    <><AlertCircle className="w-5 h-5 text-yellow-400" /> Click map to pin</>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Photos</label>
-                <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center bg-gray-700">
-                  <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
-                  <label htmlFor="img" className="cursor-pointer">
-                    <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="font-medium text-gray-300">Upload</p>
-                  </label>
-                  {uploading && <p className="text-green-400 font-medium">Uploading...</p>}
-                </div>
-                <div className="grid grid-cols-4 gap-4 mt-6">
-                  {form.images.map((img, i) => (
-                    <div key={i} className="relative group">
-                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl border-2 border-gray-600" />
-                      {img.isPrimary && <span className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
-                      <button type="button" onClick={() => removeImage(i)}
-                        className="absolute top-2 right-2 bg-red-600 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <X className="w-4 h-4" />
+          {/* Order Section */}
+          <div className="space-y-6">
+            {showOrderForm ? (
+              /* Order Form */
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Place Your Order</h3>
+                
+                <div className="space-y-6">
+                  {/* Quantity Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quantity ({product.unit})
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setOrderQuantity(Math.max(1, orderQuantity - 1))}
+                        disabled={orderQuantity <= 1}
+                        className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50 hover:bg-gray-200 transition-colors"
+                      >
+                        -
                       </button>
+                      <span className="text-lg font-semibold w-12 text-center">{orderQuantity}</span>
+                      <button
+                        onClick={() => setOrderQuantity(Math.min(availableStock, orderQuantity + 1))}
+                        disabled={orderQuantity >= availableStock}
+                        className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center disabled:opacity-50 hover:bg-gray-200 transition-colors"
+                      >
+                        +
+                      </button>
+                      <span className="text-sm text-gray-500 ml-auto">
+                        Max: {availableStock}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Logistics Provider */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Logistics Provider
+                    </label>
+                    {loadingLogistics ? (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Loading providers...
+                      </div>
+                    ) : logisticsProviders.length > 0 ? (
+                      <div className="space-y-3">
+                        <select
+                          value={selectedLogistics}
+                          onChange={(e) => setSelectedLogistics(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Choose a logistics provider</option>
+                          {logisticsProviders.map((provider) => (
+                            <option 
+                              key={provider._id} 
+                              value={provider._id}
+                              disabled={!provider.isAvailable}
+                            >
+                              {provider.name} - {provider.location} 
+                              {provider.vehicleType ? ` (${provider.vehicleType})` : ''}
+                              {!provider.isAvailable ? ' - Currently Unavailable' : ''}
+                            </option>
+                          ))}
+                        </select>
+                        
+                        {/* Provider Details */}
+                        {selectedLogistics && (
+                          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                            <h4 className="font-semibold text-blue-900 mb-2">Selected Provider</h4>
+                            {logisticsProviders.map(provider => 
+                              provider._id === selectedLogistics && (
+                                <div key={provider._id} className="text-sm text-blue-800">
+                                  <p><strong>Name:</strong> {provider.name}</p>
+                                  <p><strong>Location:</strong> {provider.location}</p>
+                                  <p><strong>Reach:</strong> {provider.reach || 'Nationwide'}</p>
+                                  {provider.vehicleType && (
+                                    <p><strong>Vehicle:</strong> {provider.vehicleType}</p>
+                                  )}
+                                  {provider.capacity && (
+                                    <p><strong>Capacity:</strong> {provider.capacity}</p>
+                                  )}
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                        <p className="text-yellow-800 text-sm">
+                          No logistics providers available at the moment. Please try again later.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Order Summary */}
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-3">Order Summary</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Price per {product.unit}</span>
+                        <span>KSh {product.price?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Quantity</span>
+                        <span>{orderQuantity} {product.unit}</span>
+                      </div>
+                      <div className="border-t pt-2 flex justify-between font-semibold">
+                        <span>Total Amount</span>
+                        <span className="text-green-600">KSh {totalPrice.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowOrderForm(false)}
+                      className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handlePlaceOrder}
+                      disabled={placingOrder || !selectedLogistics || orderQuantity > availableStock || orderQuantity < 1}
+                      className="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2"
+                    >
+                      {placingOrder ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4" />
+                          Place Order
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Quick Order Card */
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Ready to Order?</h3>
+                <div className="space-y-4">
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <p className="text-lg font-semibold text-green-800">
+                      KSh {product.price?.toLocaleString()} / {product.unit}
+                    </p>
+                    <p className="text-green-600 text-sm">Current price</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span>Verified seller</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <TruckIcon className="w-4 h-4 text-blue-500" />
+                    <span>Multiple logistics providers available</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Shield className="w-4 h-4 text-purple-500" />
+                    <span>Secure payment</span>
+                  </div>
+
+                  <button
+                    onClick={handleOrderNow}
+                    className="w-full px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Order Now
+                  </button>
+
+                  <button
+                    onClick={() => navigate('/products')}
+                    className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Product Images */}
+            {product.images && product.images.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {product.images.map((image, index) => (
+                    <div key={index} className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                      <img
+                        src={image.url}
+                        alt={`${product.name} ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   ))}
                 </div>
-                {errors.images && <p className="text-red-400 text-sm mt-2">{errors.images}</p>}
               </div>
-
-              <div className="flex justify-end gap-4">
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-medium hover:bg-gray-600 hover:border-gray-500 transition-all duration-300">Cancel</button>
-                <button type="submit" disabled={submitting}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl border border-green-500 disabled:opacity-50 flex items-center gap-3">
-                  {submitting ? 'Submitting...' : <><CheckCircle2 className="w-5 h-5" /> Submit</>}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
-        )}
-
-        {loading ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-xl font-bold text-white">Loading products...</p>
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 text-center">
-            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-              <Package className="w-10 h-10 text-gray-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
-            <p className="text-gray-300">Try adjusting your search</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((p, i) => (
-              <div key={p._id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                <ProductCard product={p} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {isSeller && !showForm && (
-          <button onClick={() => setShowForm(true)}
-            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 lg:hidden border border-green-500">
-            <PlusCircle className="w-6 h-6" />
-          </button>
-        )}
+        </div>
       </div>
     </div>
   );

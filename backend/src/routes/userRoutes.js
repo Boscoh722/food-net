@@ -10,6 +10,7 @@ import {
   userIdValidation,
 } from '../controllers/userController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import { getLogisticsProviders } from '../controllers/userController.js';
 
 const router = express.Router();
 
@@ -44,6 +45,7 @@ router.get(
 
 // GET / APPROVE / REJECT / DELETE BY ID
 router.get('/:id', userIdValidation, getUserById);
+router.get('/logistics', getLogisticsProviders);
 router.patch('/:id/approve-seller', userIdValidation, approveSeller);
 router.patch('/:id/reject-seller', userIdValidation, rejectSeller);
 router.delete('/:id', userIdValidation, deleteUser);

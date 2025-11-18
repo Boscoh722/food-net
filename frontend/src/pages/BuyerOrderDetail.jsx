@@ -14,6 +14,7 @@ import {
   Tag,
   ShoppingBag,
   Home,
+  ShoppingCart
 } from 'lucide-react';
 import api from '../lib/api';
 import { format } from 'date-fns';
@@ -55,9 +56,9 @@ const BuyerOrderDetail = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        // This hits your backend route: GET /api/orders/:id
         const res = await api.get(`/orders/${id}`);
-        setOrder(res.data.data.doc); // Adjust based on your API response structure (e.g., res.data.data.doc)
+        const orderData = res.data.data || res.data;
+        setOrder(orderData);
         setError(null);
       } catch (err) {
         if (err.response && err.response.status === 404) {
@@ -84,28 +85,45 @@ const BuyerOrderDetail = () => {
 
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-auto max-w-4xl mt-10">
-        <strong className="font-bold">Error:</strong>
-        <span className="block sm:inline"> {error}</span>
+      <div className="max-w-4xl mx-auto mt-10 p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+        <button
+          onClick={() => navigate('/dashboard/buyer')}
+          className="mt-4 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
       </div>
     );
   }
 
   if (!order) {
-    return <div className="text-center py-20 text-gray-500">No order data available.</div>;
+    return (
+      <div className="text-center py-20 text-gray-500">
+        <p>No order data available.</p>
+        <button
+          onClick={() => navigate('/dashboard/buyer')}
+          className="mt-4 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
   }
 
   const deliveryAddress = order.shippingAddress || {};
-  const orderTotal = (
-    order.totalPrice - (order.deliveryFee || 0) + (order.discount || 0)
-  ).toFixed(2); // Calculate Subtotal
+  const orderItems = order.items || order.orderItems || [];
+  const orderTotal = order.total || order.totalPrice || 0;
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8 border-b pb-4">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <ListOrdered className="w-8 h-8 text-green-600" />
-          Order Details #{order.orderId || order._id.slice(-6).toUpperCase()}
+          Order Details #{order.orderNumber || order._id.slice(-6).toUpperCase()}
         </h1>
         <button
           onClick={() => navigate('/dashboard/buyer')}
@@ -117,9 +135,7 @@ const BuyerOrderDetail = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN: Order Summary & Products */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Order Header Card */}
           <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-4">
               <StatusBadge status={order.status} />
@@ -143,38 +159,43 @@ const BuyerOrderDetail = () => {
               <div>
                 <p className="text-sm font-medium text-gray-500">Total</p>
                 <p className="font-semibold text-green-600">
-                  <DollarSign className="w-4 h-4 inline" />
-                  {order.totalPrice.toFixed(2)}
+                  KSh {orderTotal.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Estimated ETA</p>
+                <p className="text-sm font-medium text-gray-500">Items</p>
                 <p className="font-semibold text-gray-800">
-                  {order.eta ? `${order.eta} days` : 'N/A'}
+                  {orderItems.length}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Product List */}
           <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-green-600" />
-              Products ({order.orderItems.length})
+              Products ({orderItems.length})
             </h2>
             <div className="space-y-4">
-              {order.orderItems.map((item) => (
+              {orderItems.map((item, index) => (
                 <div
-                  key={item.product._id || item.product}
+                  key={item._id || index}
                   className="flex items-center border-b pb-4 last:border-b-0 last:pb-0"
                 >
                   <div className="w-16 h-16 bg-gray-100 rounded-xl mr-4 flex-shrink-0 overflow-hidden">
-                    {/* Placeholder for Product Image */}
-                    <Package className="w-10 h-10 text-gray-400 m-3" />
+                    {item.product?.images?.[0]?.url ? (
+                      <img
+                        src={item.product.images[0].url}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package className="w-10 h-10 text-gray-400 m-3" />
+                    )}
                   </div>
                   <div className="flex-grow">
                     <p className="font-medium text-gray-800">
-                      {item.product.name || 'Product Name (N/A)'}
+                      {item.product?.name || 'Product Name'}
                     </p>
                     <p className="text-sm text-gray-500">
                       Quantity: {item.quantity}
@@ -182,10 +203,10 @@ const BuyerOrderDetail = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-800">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      KSh {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-400">
-                      @ ${(item.price || 0).toFixed(2)}
+                      @ KSh {(item.price || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -194,58 +215,85 @@ const BuyerOrderDetail = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Total & Shipping Info */}
         <div className="lg:col-span-1 space-y-8">
-          {/* Shipping Address */}
           <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-green-600" />
               Shipping Address
             </h2>
-            <p className="font-medium text-gray-800">
-              {deliveryAddress.fullName || order.user.name}
-            </p>
-            <p className="text-gray-600">
-              {deliveryAddress.street}, {deliveryAddress.city}
-            </p>
-            <p className="text-gray-600">
-              {deliveryAddress.state}, {deliveryAddress.zipCode}
-            </p>
-            <p className="text-gray-600">{deliveryAddress.country}</p>
+            {deliveryAddress.fullName && (
+              <p className="font-medium text-gray-800">{deliveryAddress.fullName}</p>
+            )}
+            {deliveryAddress.street && (
+              <p className="text-gray-600">{deliveryAddress.street}</p>
+            )}
+            {deliveryAddress.city && (
+              <p className="text-gray-600">{deliveryAddress.city}</p>
+            )}
+            {deliveryAddress.state && (
+              <p className="text-gray-600">{deliveryAddress.state}</p>
+            )}
+            {deliveryAddress.zipCode && (
+              <p className="text-gray-600">{deliveryAddress.zipCode}</p>
+            )}
+            {deliveryAddress.country && (
+              <p className="text-gray-600">{deliveryAddress.country}</p>
+            )}
+            {!deliveryAddress.fullName && (
+              <p className="text-gray-500 italic">No shipping address provided</p>
+            )}
           </div>
 
-          {/* Payment Summary */}
           <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-green-600" />
-              Payment Summary
+              Order Summary
             </h2>
             <div className="space-y-3">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>${orderTotal}</span>
+                <span>KSh {orderTotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Fee</span>
-                <span>
-                  ${(order.deliveryFee || 0).toFixed(2)}
-                </span>
+                <span>KSh {(order.deliveryFee || 0).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-green-600 font-medium">
-                <span className="flex items-center gap-1">
-                  <Tag className="w-4 h-4" />
-                  Discount
-                </span>
-                <span>
-                  -${(order.discount || 0).toFixed(2)}
-                </span>
-              </div>
+              {order.discount > 0 && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-4 h-4" />
+                    Discount
+                  </span>
+                  <span>-KSh {(order.discount || 0).toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-4 border-t border-gray-200 font-bold text-lg">
                 <span>Total Amount</span>
                 <span className="text-green-600">
-                  ${order.totalPrice.toFixed(2)}
+                  KSh {orderTotal.toLocaleString()}
                 </span>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-green-600" />
+              Quick Actions
+            </h2>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate('/products')}
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
+              >
+                Continue Shopping
+              </button>
+              <button
+                onClick={() => navigate('/dashboard/buyer')}
+                className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+              >
+                Back to Dashboard
+              </button>
             </div>
           </div>
         </div>
