@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token) {
       api.defaults.headers.Authorization = `Bearer ${token}`;
-      // Verify token and get user
       api.get('/auth/me').then(res => {
         setUser(res.data);
       }).catch(() => {

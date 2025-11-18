@@ -81,14 +81,14 @@ export default function AdminProducts() {
             <div className="flex items-center gap-4">
               <button
                 onClick={handleBackToAdmin}
-                className="p-3 bg-card border border-border text-card-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2"
+                className="p-3 bg-card border border-border text-card-foreground rounded-xl hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               
               <div className="bg-card p-6 rounded-xl border border-border">
                 <h1 className="text-3xl font-bold text-card-foreground flex items-center gap-3">
-                  <div className="bg-primary p-2 rounded-lg">
+                  <div className="bg-primary p-2 rounded-xl">
                     <Package className="w-6 h-6 text-primary-foreground" />
                   </div>
                   Product Management
@@ -101,7 +101,7 @@ export default function AdminProducts() {
               <button
                 onClick={load}
                 disabled={loading}
-                className="px-6 py-3 bg-card border border-border text-card-foreground rounded-lg font-medium hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+                className="px-6 py-3 bg-card border border-border text-card-foreground rounded-xl font-medium hover:bg-accent hover:text-accent-foreground transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -111,7 +111,7 @@ export default function AdminProducts() {
         </div>
 
         {error && (
-          <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6 flex items-center gap-3">
+          <div className="bg-destructive/10 border border-destructive rounded-xl p-4 mb-6 flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-destructive" />
             <p className="text-destructive">{error}</p>
           </div>
@@ -159,7 +159,7 @@ export default function AdminProducts() {
                       <tr key={product._id} className="hover:bg-muted/50 transition-colors duration-200">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-muted rounded-lg border border-border overflow-hidden flex items-center justify-center">
+                            <div className="w-12 h-12 bg-muted rounded-xl border border-border overflow-hidden flex items-center justify-center">
                               {product.images?.[0]?.url ? (
                                 <img
                                   src={product.images[0].url}
@@ -183,7 +183,7 @@ export default function AdminProducts() {
 
                         <td className="px-6 py-4">
                           <div className="space-y-2">
-                            <div className="bg-muted rounded-lg p-2 border border-border">
+                            <div className="bg-muted rounded-xl p-2 border border-border">
                               <p className="text-primary font-semibold text-lg">
                                 {formatPrice(product.price)}
                               </p>
@@ -244,7 +244,7 @@ export default function AdminProducts() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => navigate(`/admin/products/${product._id}`)}
-                              className="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
+                              className="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl transition-colors duration-200 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -253,7 +253,7 @@ export default function AdminProducts() {
                               <button
                                 onClick={() => handleApprove(product._id)}
                                 disabled={actionLoading === product._id}
-                                className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 disabled:opacity-50"
+                                className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-xl transition-colors duration-200 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 disabled:opacity-50"
                               >
                                 <CheckCircle2 className="w-4 h-4" />
                               </button>
@@ -262,7 +262,7 @@ export default function AdminProducts() {
                             <button
                               onClick={() => handleDelete(product._id)}
                               disabled={actionLoading === product._id}
-                              className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 disabled:opacity-50"
+                              className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-colors duration-200 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 disabled:opacity-50"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

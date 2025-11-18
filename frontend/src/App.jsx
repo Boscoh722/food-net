@@ -18,6 +18,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AdminAnalytics from './pages/AdminAnalytics.jsx';
 
 // Dashboards
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
@@ -73,6 +74,7 @@ function App() {
             <Route path="/products/category/:category" element={<CategoryProducts />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/AdminAnalytics" element={<AdminAnalytics />} />
 
 
             {/* --- LOGISTICS WORKFLOW ROUTES --- */}

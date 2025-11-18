@@ -67,21 +67,21 @@ export default function AdminOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/dashboard/admin')}
-              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </button>
 
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-3 rounded-lg">
+                <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                   <ShoppingCart className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -97,7 +97,7 @@ export default function AdminOrders() {
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
             Refresh
@@ -105,19 +105,19 @@ export default function AdminOrders() {
         </div>
 
         {error && (
-          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-xl text-red-700">
             <AlertTriangle className="w-4 h-4" />
             <p>{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading orders...</p>
           </div>
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="bg-gray-100 p-4 rounded-full mb-4">
               <Package className="w-8 h-8 text-gray-600" />
             </div>
@@ -126,7 +126,7 @@ export default function AdminOrders() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
@@ -153,8 +153,8 @@ export default function AdminOrders() {
                       <tr key={order._id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-3">
-                            <div className="bg-blue-100 p-2 rounded-lg">
-                              <ShoppingCart className="w-4 h-4 text-blue-600" />
+                            <div className="bg-blue-100 p-2 rounded-xl">
+                              <ShoppingCart className="w-4 h-4 text-primary-600" />
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
@@ -175,7 +175,7 @@ export default function AdminOrders() {
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
                             <p className="text-lg font-bold text-green-600">
                               {formatPrice(calculateTotal(order))}
                             </p>
@@ -190,7 +190,7 @@ export default function AdminOrders() {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => navigate(`/admin/orders/${order._id}`)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-primary-600 hover:bg-blue-50 rounded-xl transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -198,7 +198,7 @@ export default function AdminOrders() {
                             <button
                               onClick={() => handleDelete(order._id)}
                               disabled={actionLoading === order._id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-xl disabled:opacity-50 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -211,7 +211,7 @@ export default function AdminOrders() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-sm text-gray-600">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-sm text-gray-600">
               Showing <span className="font-semibold text-gray-900">{orders.length}</span> orders • 
               Total Revenue: <span className="font-semibold text-green-600">
                 {formatPrice(orders.reduce((sum, order) => sum + calculateTotal(order), 0))}

@@ -112,7 +112,7 @@ export default function Home() {
   }, [filteredProducts]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <section className="bg-gradient-to-br from-primary-600 to-accent-600 text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -212,7 +212,7 @@ export default function Home() {
                       </div>
                       <Link
                         to={`/product/${product._id}`}
-                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-300 block text-center"
+                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-300 block text-center"
                       >
                         View Details
                       </Link>

@@ -10,7 +10,7 @@ const PHYSICAL_ADDRESS = "Private Box, Nairobi-Kenya";
 export default function Privacy() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
         <h1 className="text-3xl md:text-4xl font-bold text-primary dark:text-primary mb-4">
           Privacy Policy for {APP_NAME}
         </h1>
@@ -219,7 +219,7 @@ export default function Privacy() {
           </p>
 
           {/* --- Contact Info --- */}
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl mb-6">
             <p className="mb-2">
               <strong>Data Controller:</strong> {COMPANY_NAME}
             </p>

@@ -56,7 +56,7 @@ function SellerOrderList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent"></div>
       </div>
     );
@@ -64,7 +64,7 @@ function SellerOrderList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 flex items-center justify-center p-8">
         <div className="bg-gray-800 p-8 rounded-2xl border-2 border-gray-700 text-center text-red-400 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5"/> {error}
         </div>
@@ -73,7 +73,7 @@ function SellerOrderList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 py-12">
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -82,7 +82,7 @@ function SellerOrderList() {
           </h1>
           <button
               onClick={loadOrders}
-              className="px-4 py-2 bg-gray-700 text-gray-200 font-medium rounded-lg shadow-md hover:bg-gray-600 transition flex items-center gap-2 border-2 border-gray-600"
+              className="px-4 py-2 bg-gray-700 text-gray-200 font-medium rounded-xl shadow-md hover:bg-gray-600 transition flex items-center gap-2 border-2 border-gray-600"
           >
               <RefreshCw className="w-5 h-5" />
               Reload List

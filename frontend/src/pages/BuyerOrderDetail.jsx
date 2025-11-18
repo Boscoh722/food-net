@@ -168,7 +168,7 @@ const BuyerOrderDetail = () => {
                   key={item.product._id || item.product}
                   className="flex items-center border-b pb-4 last:border-b-0 last:pb-0"
                 >
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg mr-4 flex-shrink-0 overflow-hidden">
+                  <div className="w-16 h-16 bg-gray-100 rounded-xl mr-4 flex-shrink-0 overflow-hidden">
                     {/* Placeholder for Product Image */}
                     <Package className="w-10 h-10 text-gray-400 m-3" />
                   </div>

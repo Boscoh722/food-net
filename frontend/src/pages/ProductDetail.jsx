@@ -237,13 +237,13 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
           <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
             <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-              <div className="bg-green-900 p-2 rounded-lg border border-green-700">
+              <div className="bg-green-900 p-2 rounded-xl border border-green-700">
                 <Leaf className="w-8 h-8 text-green-400" />
               </div>
               Fresh Marketplace

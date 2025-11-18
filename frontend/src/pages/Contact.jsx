@@ -53,10 +53,10 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200 text-center mb-12">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Get in touch with our team. We're here to help farmers, buyers, and logistics partners 
@@ -67,13 +67,13 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
               
               <div className="space-y-6">
                 {contactInfo.map((item, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="bg-green-100 p-3 rounded-lg">
+                    <div className="bg-green-100 p-3 rounded-xl">
                       <item.icon className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
@@ -86,7 +86,7 @@ export default function Contact() {
               </div>
 
               {/* Contact Person */}
-              <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-2">Primary Contact Person</h3>
                 <p className="text-gray-900 font-medium">Boscoh Otieno</p>
                 <p className="text-gray-600 text-sm">Head of Customer Relations</p>
@@ -94,7 +94,7 @@ export default function Contact() {
             </div>
 
             {/* Support Info */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <h3 className="text-xl font-bold text-gray-900 mb-4">How Can We Help You?</h3>
               <div className="space-y-3 text-gray-600">
                 <p><strong>For Farmers:</strong> Get assistance with product listing, pricing, and market access</p>
@@ -106,7 +106,7 @@ export default function Contact() {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,7 +118,7 @@ export default function Contact() {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                     placeholder="Your full name"
                     required
                   />
@@ -130,7 +130,7 @@ export default function Contact() {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                     placeholder="your@email.com"
                     required
                   />
@@ -144,7 +144,7 @@ export default function Contact() {
                   name="subject"
                   value={form.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   placeholder="What is this regarding?"
                   required
                 />
@@ -157,7 +157,7 @@ export default function Contact() {
                   value={form.message}
                   onChange={handleChange}
                   rows="6"
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 resize-none"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 resize-none"
                   placeholder="Tell us how we can help you..."
                   required
                 />
@@ -166,7 +166,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? (
                   <span>Sending...</span>
@@ -182,7 +182,7 @@ export default function Contact() {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-12 bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+        <div className="mt-12 bg-white rounded-xl shadow-sm p-8 border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Choose Food-Net?</h2>
           <div className="grid md:grid-cols-3 gap-6 text-center">
             <div>

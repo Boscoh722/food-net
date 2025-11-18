@@ -22,7 +22,7 @@ const categoryInfo = {
   grains: { icon: '🌾', title: 'Grains & Cereals', color: 'text-yellow-500' },
   dairy: { icon: '🥛', title: 'Dairy Products', color: 'text-blue-500' },
   meats: { icon: '🥩', title: 'Meats', color: 'text-red-600' },
-  fish: { icon: '🐟', title: 'Fish', color: 'text-blue-600' },
+  fish: { icon: '🐟', title: 'Fish', color: 'text-primary-600' },
   spices: { icon: '🌶️', title: 'Spices', color: 'text-orange-500' },
   tubers: { icon: '🥔', title: 'Tubers', color: 'text-amber-500' }
 };
@@ -79,7 +79,7 @@ export default function CategoryProducts() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
           <Link to="/" className="text-green-600 hover:text-green-700 inline-flex items-center mb-4">
@@ -99,7 +99,7 @@ export default function CategoryProducts() {
               placeholder="Search by name, description or location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function CategoryProducts() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
               {filteredProducts.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
+                <div className="text-center py-12 bg-white rounded-xl shadow">
                   <p className="text-gray-500">No products found in this category.</p>
                 </div>
               ) : (
@@ -122,7 +122,7 @@ export default function CategoryProducts() {
                   <Link
                     key={product._id}
                     to={`/products/${product._id}`}
-                    className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
+                    className="block bg-white rounded-xl shadow hover:shadow-md transition-shadow p-4"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-2">
@@ -151,8 +151,8 @@ export default function CategoryProducts() {
               )}
             </div>
 
-            <div className="h-[600px] bg-white rounded-lg shadow p-4">
-              <MapContainer center={defaultCenter} zoom={6} className="h-full w-full rounded-lg">
+            <div className="h-[600px] bg-white rounded-xl shadow p-4">
+              <MapContainer center={defaultCenter} zoom={6} className="h-full w-full rounded-xl">
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 {filteredProducts.map(product => (
                   product.coordinates && product.coordinates.lat != null && product.coordinates.lng != null && (

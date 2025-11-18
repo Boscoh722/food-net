@@ -50,7 +50,7 @@ const LogisticsOrderDetail = () => {
   
   const getStatusColor = (status) => {
     switch (status) {
-      case 'shipped': return 'text-blue-600 bg-blue-100 border-blue-200';
+      case 'shipped': return 'text-primary-600 bg-blue-100 border-blue-200';
       case 'delivered': return 'text-green-600 bg-green-100 border-green-200';
       case 'confirmed':
       case 'pending': return 'text-yellow-600 bg-yellow-100 border-yellow-200';
@@ -61,7 +61,7 @@ const LogisticsOrderDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading order details...</p>
@@ -72,7 +72,7 @@ const LogisticsOrderDetail = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
           <p className="text-red-600 text-lg">{error}</p>
@@ -83,7 +83,7 @@ const LogisticsOrderDetail = () => {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Order not found.</p>
@@ -96,21 +96,21 @@ const LogisticsOrderDetail = () => {
   const isFinalStatus = ['delivered', 'cancelled', 'refunded'].includes(currentStatus);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-4xl mx-auto">
         <button 
           onClick={() => navigate('/logistics/orders')} 
-          className="flex items-center text-blue-600 hover:text-blue-700 mb-6"
+          className="flex items-center text-primary-600 hover:text-primary-700 mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Assigned Orders
         </button>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-                <Truck className="w-6 h-6 text-blue-600" />
+                <Truck className="w-6 h-6 text-primary-600" />
                 Delivery #{order.orderNumber}
               </h1>
               <span className={`mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(currentStatus)}`}>
@@ -126,14 +126,14 @@ const LogisticsOrderDetail = () => {
             </div>
           </div>
 
-          <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">Update Delivery Status:</h2>
             <div className="flex flex-wrap gap-3">
               {!isFinalStatus && currentStatus !== 'shipped' && (
                 <button 
                   onClick={() => handleStatusUpdate('shipped')} 
                   disabled={isUpdating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   {isUpdating ? <Loader className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
                   <span>Mark as In Transit</span>
@@ -143,7 +143,7 @@ const LogisticsOrderDetail = () => {
                 <button 
                   onClick={() => handleStatusUpdate('delivered')} 
                   disabled={isUpdating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {isUpdating ? <Loader className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                   <span>Mark as Delivered</span>

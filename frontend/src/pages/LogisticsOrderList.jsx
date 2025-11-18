@@ -127,7 +127,7 @@ const LogisticsOrderList = () => {
                 <button
                     key={s.label}
                     onClick={() => handleFilterChange(s.status)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                    className={`px-4 py-2 text-sm font-medium rounded-xl transition ${
                         filterStatus === s.status || (!filterStatus && s.status === '')
                             ? 'bg-green-600 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -141,7 +141,7 @@ const LogisticsOrderList = () => {
             <input 
                 type="text" 
                 placeholder="Search by Order # or Address..." 
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl w-full"
             />
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>

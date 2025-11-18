@@ -75,7 +75,7 @@ export default function OrderDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Loading order details...</p>
@@ -86,7 +86,7 @@ export default function OrderDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-10 h-10 text-red-600" />
@@ -95,7 +95,7 @@ export default function OrderDetail() {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
           >
             Go Back
           </button>
@@ -106,7 +106,7 @@ export default function OrderDetail() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="w-10 h-10 text-gray-600" />
@@ -131,16 +131,16 @@ export default function OrderDetail() {
     : 'N/A';
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-6xl mx-auto">
         <button 
           onClick={() => navigate(-1)} 
-          className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-6"
+          className="flex items-center text-primary-600 hover:text-primary-700 font-medium mb-6"
         >
           <ChevronLeft className="w-4 h-4 mr-1" /> Back to Orders
         </button>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2 md:mb-0">
               Order #{order.orderNumber}
@@ -168,7 +168,7 @@ export default function OrderDetail() {
           </div>
 
           <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items ({order.items?.length || 0})</h2>
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -209,7 +209,7 @@ export default function OrderDetail() {
               <button
                 onClick={handleCancel}
                 disabled={isCancelling}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 <XCircle className="w-4 h-4 mr-2" />
                 {isCancelling ? 'Cancelling...' : 'Cancel Order'}
@@ -223,8 +223,8 @@ export default function OrderDetail() {
 }
 
 const DetailCard = ({ icon: Icon, title, value }) => (
-  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center">
-    <Icon className="w-5 h-5 text-blue-600 mr-3" />
+  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center">
+    <Icon className="w-5 h-5 text-primary-600 mr-3" />
     <div>
       <p className="text-xs font-medium text-gray-500 uppercase">{title}</p>
       <p className="font-semibold text-gray-900">{value}</p>
@@ -233,8 +233,8 @@ const DetailCard = ({ icon: Icon, title, value }) => (
 );
 
 const UserCard = ({ role, user }) => (
-  <div className="bg-white p-4 rounded-lg border border-gray-200">
-    <p className="text-sm font-medium text-blue-600 uppercase mb-2">{role}</p>
+  <div className="bg-white p-4 rounded-xl border border-gray-200">
+    <p className="text-sm font-medium text-primary-600 uppercase mb-2">{role}</p>
     {user ? (
       <>
         <p className="font-semibold text-gray-900">{user.name}</p>

@@ -87,7 +87,7 @@
 @layer components {
   /* ===== LAYOUT COMPONENTS ===== */
   .page-container {
-    @apply min-h-screen bg-gray-50;
+    @apply min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50;
   }
 
   .section-container {
@@ -148,7 +148,7 @@
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm rounded-lg;
+    @apply px-4 py-2 text-sm rounded-xl;
   }
 
   .btn-icon {

@@ -9,14 +9,14 @@ import api from '../../lib/api';
 const LogisticsStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', description, onClick }) => (
   <div 
     onClick={onClick}
-    className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-all duration-200 text-center cursor-pointer hover:shadow-md hover:border-blue-300"
+    className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 text-center cursor-pointer hover:shadow-md hover:border-blue-300"
   >
     <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
       <Icon className={`w-8 h-8 ${valueColor}`} />
     </div>
     <h3 className="font-semibold text-gray-700 text-lg">{title}</h3>
     {description && <p className="text-sm text-gray-500 mt-2">{description}</p>}
-    <div className={`mt-4 text-2xl font-bold ${valueColor} bg-gray-50 rounded-lg py-2 px-3 border border-gray-200`}>
+    <div className={`mt-4 text-2xl font-bold ${valueColor} bg-gray-50 rounded-xl py-2 px-3 border border-gray-200`}>
       {value}
     </div>
   </div>
@@ -48,19 +48,19 @@ const DeliveryItem = ({ order, onClick }) => {
   return (
     <div 
       onClick={onClick}
-      className={`p-6 border-l-4 ${getStatusColor(order.status)} shadow-sm hover:shadow-md transition-all duration-200 rounded-lg flex justify-between items-center bg-white cursor-pointer border border-gray-200 hover:border-blue-300`}
+      className={`p-6 border-l-4 ${getStatusColor(order.status)} shadow-sm hover:shadow-md transition-all duration-200 rounded-xl flex justify-between items-center bg-white cursor-pointer border border-gray-200 hover:border-blue-300`}
     >
       <div className="flex-1">
         <p className="font-bold text-gray-900 flex items-center gap-2">
           <Package className="w-5 h-5 text-green-600" /> 
           Order: <span className="text-green-600">{order.orderNumber}</span>
         </p>
-        <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
+        <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-xl p-2 border border-gray-200">
           To: {order.shippingAddress}
         </p>
         {order.trackingNumber && (
-          <p className="text-sm text-gray-500 mt-2 bg-gray-50 rounded-lg p-2 border border-gray-200">
-            Tracking: <span className="text-blue-600 font-medium">{order.trackingNumber}</span>
+          <p className="text-sm text-gray-500 mt-2 bg-gray-50 rounded-xl p-2 border border-gray-200">
+            Tracking: <span className="text-primary-600 font-medium">{order.trackingNumber}</span>
           </p>
         )}
       </div>
@@ -68,7 +68,7 @@ const DeliveryItem = ({ order, onClick }) => {
         <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full border ${getStatusBadgeColor(order.status)}`}>
           {order.status.toUpperCase()}
         </span>
-        <p className="text-lg font-bold text-gray-900 mt-3 bg-gray-50 rounded-lg p-2 border border-gray-200">
+        <p className="text-lg font-bold text-gray-900 mt-3 bg-gray-50 rounded-xl p-2 border border-gray-200">
           KSh {order.total?.toLocaleString()}
         </p>
       </div>
@@ -124,7 +124,7 @@ export default function LogisticsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Loading logistics dashboard...</p>
@@ -136,7 +136,7 @@ export default function LogisticsDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-10 h-10 text-red-600" />
@@ -145,7 +145,7 @@ export default function LogisticsDashboard() {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={loadDashboard}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
           >
             Try Again
           </button>
@@ -155,12 +155,12 @@ export default function LogisticsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -176,14 +176,14 @@ export default function LogisticsDashboard() {
             <button
               onClick={loadDashboard}
               disabled={loading}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
               Refresh
             </button>
             <button
               onClick={() => navigate('/logistics/map')}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
             >
               <MapPin className="w-4 h-4 mr-2" />
               Map View
@@ -192,7 +192,7 @@ export default function LogisticsDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Delivery Overview</h2>
             <p className="text-gray-600 mt-2">Track your delivery performance and assignments</p>
           </div>
@@ -201,7 +201,7 @@ export default function LogisticsDashboard() {
               title="Total Assigned" 
               value={stats.totalAssigned} 
               icon={Package} 
-              valueColor="text-blue-600" 
+              valueColor="text-primary-600" 
               description="Orders assigned to you"
               onClick={() => navigate('/logistics/orders')}
             />
@@ -233,10 +233,10 @@ export default function LogisticsDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
                   <Clock className="w-6 h-6 text-white" />
                 </div>
                 Active Deliveries
@@ -244,7 +244,7 @@ export default function LogisticsDashboard() {
               {orders.length > 0 && (
                 <button
                   onClick={() => navigate('/logistics/orders')}
-                  className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 font-semibold rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:bg-blue-700 font-semibold rounded-xl transition-colors"
                 >
                   View All Deliveries
                 </button>
@@ -253,7 +253,7 @@ export default function LogisticsDashboard() {
           </div>
           
           {orders.length === 0 ? (
-            <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
               <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Package className="w-12 h-12 text-gray-600" />
               </div>
@@ -261,7 +261,7 @@ export default function LogisticsDashboard() {
               <p className="text-gray-600 mb-6">Deliveries will appear here once assigned to you</p>
               <button
                 onClick={loadDashboard}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
               >
                 Check for Assignments
               </button>
@@ -282,7 +282,7 @@ export default function LogisticsDashboard() {
             <div className="text-center mt-8">
               <button
                 onClick={() => navigate('/logistics/orders')}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
               >
                 View All Deliveries ({orders.length})
               </button>
@@ -290,21 +290,21 @@ export default function LogisticsDashboard() {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
+            <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
               <MapPin className="w-6 h-6 text-white" />
             </div>
             Your Service Area
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-2 font-medium">Location</p>
               <p className="text-lg font-semibold text-gray-900">
                 {user?.location || 'Not specified'}
               </p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-2 font-medium">Service Reach</p>
               <p className="text-lg font-semibold text-gray-900">
                 {user?.reach || 'Not specified'}

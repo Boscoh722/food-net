@@ -42,10 +42,10 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200 text-center mb-12">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">About Food-Net</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Leading the agricultural revolution through technology, connecting farmers directly with consumers, 
@@ -55,7 +55,7 @@ export default function About() {
 
         {/* Mission & Vision */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <Target className="w-12 h-12 text-green-600 mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-gray-600">
@@ -65,7 +65,7 @@ export default function About() {
             </p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <Leaf className="w-12 h-12 text-green-600 mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h2>
             <p className="text-gray-600">
@@ -77,7 +77,7 @@ export default function About() {
         </div>
 
         {/* Stats Section */}
-        <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200 mb-12">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 mb-12">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Our Impact</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, index) => (
@@ -94,7 +94,7 @@ export default function About() {
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">What We Do</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+              <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
                 <feature.icon className="w-12 h-12 text-green-600 mb-4" />
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
@@ -104,7 +104,7 @@ export default function About() {
         </div>
 
         {/* Story Section */}
-        <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
           <div className="space-y-4 text-gray-600">
             <p>

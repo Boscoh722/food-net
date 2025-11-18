@@ -44,10 +44,10 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="bg-blue-600 text-white p-8 text-center">
-          <div className="w-16 h-16 bg-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-white p-8 text-center">
+          <div className="w-16 h-16 bg-blue-700 rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">🌱</span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Food-Net</h1>
@@ -56,7 +56,7 @@ export default function Register() {
 
         <div className="p-8">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
               {error}
             </div>
@@ -72,7 +72,7 @@ export default function Register() {
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                     placeholder="Enter your name"
                     required
                   />
@@ -86,7 +86,7 @@ export default function Register() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                     placeholder="Enter your email"
                     required
                   />
@@ -102,7 +102,7 @@ export default function Register() {
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                   placeholder="Enter your password"
                   required
                   minLength={6}
@@ -118,7 +118,7 @@ export default function Register() {
                     key={role.value}
                     type="button"
                     onClick={() => setForm({ ...form, role: role.value })}
-                    className={`p-3 rounded-lg border transition-colors text-center ${
+                    className={`p-3 rounded-xl border transition-colors text-center ${
                       form.role === role.value
                         ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-300 hover:border-blue-300'
@@ -142,7 +142,7 @@ export default function Register() {
                       type="tel"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                       placeholder="Enter your phone"
                       required
                     />
@@ -158,7 +158,7 @@ export default function Register() {
                         type="text"
                         value={form.idNumber}
                         onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                         placeholder="Enter ID number"
                         required
                       />
@@ -178,7 +178,7 @@ export default function Register() {
                       type="text"
                       value={form.location}
                       onChange={(e) => setForm({ ...form, location: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                       placeholder="Enter location"
                       required
                     />
@@ -192,7 +192,7 @@ export default function Register() {
                       type="text"
                       value={form.reach}
                       onChange={(e) => setForm({ ...form, reach: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                       placeholder="e.g., Nationwide"
                       required
                     />
@@ -204,7 +204,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {loading ? 'Creating account...' : 'Register'}
             </button>
@@ -212,7 +212,7 @@ export default function Register() {
 
           <div className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 font-medium hover:text-blue-700">
+            <Link to="/login" className="text-primary-600 font-medium hover:text-primary-700">
               Sign in
             </Link>
           </div>

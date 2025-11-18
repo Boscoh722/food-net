@@ -48,7 +48,7 @@ export default function Complaints() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto px-6 py-10">
         
         {/* Header with Back Button */}

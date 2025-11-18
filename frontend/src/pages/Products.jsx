@@ -227,7 +227,7 @@ export default function Products() {
     }
 
     return (
-      <div className="h-80 rounded-lg overflow-hidden border border-gray-300">
+      <div className="h-80 rounded-xl overflow-hidden border border-gray-300">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -249,12 +249,12 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="bg-green-600 p-3 rounded-lg">
+              <div className="bg-green-600 p-3 rounded-xl">
                 <Leaf className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -268,7 +268,7 @@ export default function Products() {
           {isSeller && (
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               {showForm ? 'Cancel' : 'List Product'}
@@ -283,12 +283,12 @@ export default function Products() {
             placeholder="Search products..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
           />
         </div>
 
         {isSeller && showForm && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
               <Package className="w-6 h-6 text-green-600" />
               List Your Produce
@@ -302,7 +302,7 @@ export default function Products() {
                     type="text" 
                     value={form.name} 
                     onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500" 
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500" 
                     placeholder="Fresh Sukuma Wiki" 
                   />
                   {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
@@ -312,7 +312,7 @@ export default function Products() {
                   <select 
                     value={form.category} 
                     onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   >
                     <option value="" disabled>
                       {categoryLoading ? 'Loading...' : 'Select a category'}
@@ -333,7 +333,7 @@ export default function Products() {
                   value={form.description} 
                   onChange={e => setForm({...form, description: e.target.value})}
                   rows="4" 
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
                   placeholder="Describe your produce..." 
                 />
                 {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
@@ -346,7 +346,7 @@ export default function Products() {
                     type="number" 
                     value={form.price} 
                     onChange={e => setForm({...form, price: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
                     placeholder="500" 
                   />
                   {errors.price && <p className="text-red-600 text-sm mt-1">{errors.price}</p>}
@@ -356,7 +356,7 @@ export default function Products() {
                   <select 
                     value={form.unit} 
                     onChange={e => setForm({...form, unit: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   >
                     {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                   </select>
@@ -368,7 +368,7 @@ export default function Products() {
                     type="number" 
                     value={form.quantityInStock} 
                     onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
                     placeholder="50" 
                   />
                   {errors.quantityInStock && <p className="text-red-600 text-sm mt-1">{errors.quantityInStock}</p>}
@@ -391,7 +391,7 @@ export default function Products() {
                     type="date" 
                     value={form.harvestDate} 
                     onChange={e => setForm({...form, harvestDate: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
                   />
                 </div>
               </div>
@@ -405,7 +405,7 @@ export default function Products() {
                   type="text" 
                   value={form.location} 
                   onChange={e => setForm({...form, location: e.target.value})}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 mb-4" 
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 mb-4" 
                   placeholder="Kitengela" 
                 />
                 {errors.location && <p className="text-red-600 text-sm mb-3">{errors.location}</p>}
@@ -430,7 +430,7 @@ export default function Products() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Photos</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
                   <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
                   <label htmlFor="img" className="cursor-pointer">
                     <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
@@ -441,7 +441,7 @@ export default function Products() {
                 <div className="grid grid-cols-4 gap-4 mt-6">
                   {form.images.map((img, i) => (
                     <div key={i} className="relative group">
-                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-lg border border-gray-300" />
+                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl border border-gray-300" />
                       {img.isPrimary && <span className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
                       <button 
                         type="button" 
@@ -460,14 +460,14 @@ export default function Products() {
                 <button 
                   type="button" 
                   onClick={() => setShowForm(false)}
-                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={submitting}
-                  className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {submitting ? (
                     <span>Submitting...</span>
@@ -484,12 +484,12 @@ export default function Products() {
         )}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading products...</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="bg-gray-100 p-4 rounded-full mb-4">
               <Package className="w-8 h-8 text-gray-600" />
             </div>

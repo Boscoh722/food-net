@@ -12,7 +12,7 @@ const SellerStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600
   return (
     <div 
       onClick={onClick}
-      className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-all duration-200 cursor-pointer hover:shadow-md hover:border-blue-300"
+      className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 cursor-pointer hover:shadow-md hover:border-blue-300"
     >
       <div className="text-center">
         <Icon className={`w-12 h-12 ${valueColor} mx-auto mb-4`} />
@@ -115,7 +115,7 @@ function SellerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-gray-900">Loading dashboard...</p>
@@ -126,14 +126,14 @@ function SellerDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
           <p className="text-gray-600 mb-8">{error}</p>
           <button
             onClick={loadDashboard}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
           >
             Try Again
           </button>
@@ -143,12 +143,12 @@ function SellerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                 <Leaf className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -163,7 +163,7 @@ function SellerDashboard() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate('/seller/product/new')}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               Add Product
@@ -171,7 +171,7 @@ function SellerDashboard() {
 
             <button
               onClick={loadDashboard}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
               Refresh
@@ -180,13 +180,13 @@ function SellerDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Product Overview</h2>
             <p className="text-gray-600 mt-2">Manage your product catalog and approvals</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            <SellerStatCard title="Total Products" value={stats.totalProducts} icon={Package} valueColor="text-blue-600" description="All products" onClick={() => navigate('/seller/products')} />
+            <SellerStatCard title="Total Products" value={stats.totalProducts} icon={Package} valueColor="text-primary-600" description="All products" onClick={() => navigate('/seller/products')} />
             <SellerStatCard title="Approved" value={stats.approvedProducts} icon={CheckCircle2} valueColor="text-green-600" description="Ready for sale" onClick={() => navigate('/seller/products?approved=true')} />
             <SellerStatCard title="Pending" value={stats.pendingApproval} icon={Clock} valueColor="text-yellow-600" description="Awaiting review" onClick={() => navigate('/seller/products?approved=false')} />
             <SellerStatCard title="Revenue" value={formatPrice(stats.revenue)} icon={DollarSign} valueColor="text-green-600" description="Total earnings" />
@@ -194,15 +194,15 @@ function SellerDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Order Overview</h2>
             <p className="text-gray-600 mt-2">Track order fulfillment</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            <SellerStatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingBag} valueColor="text-blue-600" onClick={() => navigate('/seller/orders')} />
+            <SellerStatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingBag} valueColor="text-primary-600" onClick={() => navigate('/seller/orders')} />
             <SellerStatCard title="Pending" value={stats.pendingOrders} icon={Clock} valueColor="text-yellow-600" onClick={() => navigate('/seller/orders?status=pending')} />
-            <SellerStatCard title="Confirmed" value={stats.confirmedOrders} icon={CheckCircle2} valueColor="text-blue-600" onClick={() => navigate('/seller/orders?status=confirmed')} />
+            <SellerStatCard title="Confirmed" value={stats.confirmedOrders} icon={CheckCircle2} valueColor="text-primary-600" onClick={() => navigate('/seller/orders?status=confirmed')} />
             <SellerStatCard title="Shipped" value={stats.shippedOrders} icon={Truck} valueColor="text-purple-600" onClick={() => navigate('/seller/orders?status=shipped')} />
             <SellerStatCard title="Delivered" value={stats.deliveredOrders} icon={CheckCircle2} valueColor="text-green-600" onClick={() => navigate('/seller/orders?status=delivered')} />
           </div>
@@ -211,16 +211,16 @@ function SellerDashboard() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Recent Products</h2>
-            <button onClick={() => navigate('/seller/products')} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button onClick={() => navigate('/seller/products')} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               View All →
             </button>
           </div>
 
           {products.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
               <Package className="w-16 h-16 text-gray-500 mx-auto mb-4" />
               <p className="text-xl text-gray-700">No products yet – add your first one!</p>
-              <button onClick={() => navigate('/seller/product/new')} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button onClick={() => navigate('/seller/product/new')} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
                 Add Product
               </button>
             </div>
@@ -233,7 +233,7 @@ function SellerDashboard() {
                   <div
                     key={product._id}
                     onClick={() => navigate(`/seller/products/${product._id}`)}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 transition duration-200 cursor-pointer overflow-hidden hover:shadow-md"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 transition duration-200 cursor-pointer overflow-hidden hover:shadow-md"
                   >
                     <div className="h-48 bg-gray-100 relative">
                       {productImage ? (
@@ -263,18 +263,18 @@ function SellerDashboard() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Recent Orders</h2>
-            <button onClick={() => navigate('/seller/orders')} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button onClick={() => navigate('/seller/orders')} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               View All →
             </button>
           </div>
 
           {recentOrders.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
               <ShoppingBag className="w-16 h-16 text-gray-500 mx-auto mb-4" />
               <p className="text-xl text-gray-700">No orders yet</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">

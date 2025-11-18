@@ -25,7 +25,7 @@ export default function Terms() {
           </p>
 
           {/* Introduction */}
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 dark:border-emerald-400 p-5 rounded-lg mb-8">
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 dark:border-emerald-400 p-5 rounded-xl mb-8">
             <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
               These Terms of Use (“Terms”) form a legally binding agreement between{" "}
               <strong>{COMPANY_NAME}</strong> (“we,” “our,” or “us”) and you. By
@@ -79,7 +79,7 @@ export default function Terms() {
               <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
                 4. Prohibited Conduct
               </h2>
-              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 p-4 rounded-md">
+              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 p-4 rounded-xl">
                 <p className="mb-2 font-semibold">You must not:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>Violate any Kenyan law or regulation.</li>

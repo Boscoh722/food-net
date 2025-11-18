@@ -55,7 +55,7 @@ function SellerProductList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading products...</p>
@@ -66,7 +66,7 @@ function SellerProductList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-8">
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-4" />
           <p className="text-red-600 text-lg">{error}</p>
@@ -76,12 +76,12 @@ function SellerProductList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                 <Package className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -96,14 +96,14 @@ function SellerProductList() {
           <div className="flex items-center space-x-3">
             <button
               onClick={loadProducts}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </button>
             <button
               onClick={() => navigate('/products/new')}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               Add Product
@@ -111,7 +111,7 @@ function SellerProductList() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {products.length === 0 ? (
             <div className="text-center py-12">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -123,7 +123,7 @@ function SellerProductList() {
                 <div 
                   key={product._id} 
                   onClick={() => navigate(`/seller/products/${product._id}`)}
-                  className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-all cursor-pointer hover:border-blue-300 flex items-center justify-between"
+                  className="bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer hover:border-blue-300 flex items-center justify-between"
                 >
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h3>

@@ -173,8 +173,8 @@ export default function AdminUsersDashboard() {
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center max-w-md">
           <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-10 h-10 text-red-600" />
           </div>
@@ -186,21 +186,21 @@ export default function AdminUsersDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/dashboard/admin')}
-              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </button>
 
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-3 rounded-lg">
+                <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -216,14 +216,14 @@ export default function AdminUsersDashboard() {
           <button
             onClick={loadUsers}
             disabled={loading}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
             Refresh
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 mb-6">
           <div className="flex items-center space-x-2 mb-4">
             <Filter className="w-4 h-4 text-gray-500" />
             <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -238,7 +238,7 @@ export default function AdminUsersDashboard() {
                   placeholder="Search by name or email..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function AdminUsersDashboard() {
             <select
               value={filters.role}
               onChange={(e) => handleFilterChange('role', e.target.value)}
-              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
             >
               <option value="">All Roles</option>
               <option value="buyer">Buyer</option>
@@ -258,7 +258,7 @@ export default function AdminUsersDashboard() {
             <select
               value={filters.approved}
               onChange={(e) => handleFilterChange('approved', e.target.value)}
-              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
             >
               <option value="">All Status</option>
               <option value="true">Approved</option>
@@ -269,7 +269,7 @@ export default function AdminUsersDashboard() {
           {(filters.role || filters.approved || filters.search) && (
             <button
               onClick={handleClearFilters}
-              className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              className="mt-4 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
             >
               Clear all filters
             </button>
@@ -277,19 +277,19 @@ export default function AdminUsersDashboard() {
         </div>
 
         {error && (
-          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-xl text-red-700">
             <AlertTriangle className="w-4 h-4" />
             <p>{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading users...</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="bg-gray-100 p-4 rounded-full mb-4">
               <Users className="w-8 h-8 text-gray-600" />
             </div>
@@ -298,7 +298,7 @@ export default function AdminUsersDashboard() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
@@ -370,7 +370,7 @@ export default function AdminUsersDashboard() {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleViewUser(u._id)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-primary-600 hover:bg-blue-50 rounded-xl transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -379,7 +379,7 @@ export default function AdminUsersDashboard() {
                               <button
                                 onClick={() => handleApproveSeller(u._id)}
                                 disabled={actionLoading === u._id}
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50 transition-colors"
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-xl disabled:opacity-50 transition-colors"
                               >
                                 <UserCheck className="w-4 h-4" />
                               </button>
@@ -389,7 +389,7 @@ export default function AdminUsersDashboard() {
                               <button
                                 onClick={() => handleRejectSeller(u._id)}
                                 disabled={actionLoading === u._id}
-                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg disabled:opacity-50 transition-colors"
+                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-xl disabled:opacity-50 transition-colors"
                               >
                                 <UserX className="w-4 h-4" />
                               </button>
@@ -398,7 +398,7 @@ export default function AdminUsersDashboard() {
                             <button
                               onClick={() => handleDeleteUser(u._id)}
                               disabled={actionLoading === u._id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-xl disabled:opacity-50 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -412,7 +412,7 @@ export default function AdminUsersDashboard() {
             </div>
 
             {pagination.pages > 1 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4 flex items-center justify-between">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Showing <span className="font-semibold text-gray-900">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
                   <span className="font-semibold text-gray-900">
@@ -425,7 +425,7 @@ export default function AdminUsersDashboard() {
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-xl disabled:opacity-50 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -437,7 +437,7 @@ export default function AdminUsersDashboard() {
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.pages}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-xl disabled:opacity-50 transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -449,7 +449,7 @@ export default function AdminUsersDashboard() {
 
         {showModal && selectedUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
@@ -466,36 +466,36 @@ export default function AdminUsersDashboard() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <Users className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Users className="w-5 h-5 text-primary-600" />
                       <span className="text-gray-600">Name:</span>
                       <span className="font-semibold text-gray-900">{selectedUser.name || 'N/A'}</span>
                     </div>
 
-                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <Mail className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Mail className="w-5 h-5 text-primary-600" />
                       <span className="text-gray-600">Email:</span>
                       <span className="font-semibold text-gray-900">{selectedUser.email}</span>
                     </div>
 
                     {selectedUser.phone && (
-                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <Phone className="w-5 h-5 text-blue-600" />
+                      <div className="flex items-center space-x-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                        <Phone className="w-5 h-5 text-primary-600" />
                         <span className="text-gray-600">Phone:</span>
                         <span className="font-semibold text-gray-900">{selectedUser.phone}</span>
                       </div>
                     )}
 
                     {selectedUser.location && (
-                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <MapPin className="w-5 h-5 text-blue-600" />
+                      <div className="flex items-center space-x-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                        <MapPin className="w-5 h-5 text-primary-600" />
                         <span className="text-gray-600">Location:</span>
                         <span className="font-semibold text-gray-900">{selectedUser.location}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <Calendar className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Calendar className="w-5 h-5 text-primary-600" />
                       <span className="text-gray-600">Joined:</span>
                       <span className="font-semibold text-gray-900">{formatDate(selectedUser.createdAt)}</span>
                     </div>
@@ -522,7 +522,7 @@ export default function AdminUsersDashboard() {
                 {selectedUser.role === 'seller' && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
-                    <div className="space-y-2 text-sm bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="space-y-2 text-sm bg-gray-50 rounded-xl p-4 border border-gray-200">
                       {selectedUser.storeName && (
                         <p className="text-gray-600">
                           <span className="text-gray-500">Store Name:</span>{' '}

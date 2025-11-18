@@ -4,7 +4,7 @@ import { Home, ShoppingBag, AlertTriangle } from 'lucide-react';
 
 function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700">
         <div className="mb-8">
           <div className="bg-yellow-900 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-700">

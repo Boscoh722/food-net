@@ -7,13 +7,13 @@ import api from '../../lib/api';
 const BuyerStatCard = ({ title, value, icon: Icon, valueColor = 'text-green-600', onClick }) => (
   <div
     onClick={onClick}
-    className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-all duration-300 text-center cursor-pointer hover:shadow-md hover:border-blue-300"
+    className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-300 text-center cursor-pointer hover:shadow-md hover:border-blue-300"
   >
     <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
       <Icon className={`w-8 h-8 ${valueColor}`} />
     </div>
     <h3 className="font-semibold text-gray-700 text-lg mb-2">{title}</h3>
-    <div className={`mt-2 text-2xl font-bold ${valueColor} bg-gray-50 rounded-lg py-2 px-3 border border-gray-200`}>
+    <div className={`mt-2 text-2xl font-bold ${valueColor} bg-gray-50 rounded-xl py-2 px-3 border border-gray-200`}>
       {value}
     </div>
   </div>
@@ -35,12 +35,12 @@ const OrderItem = ({ order, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-all duration-300 cursor-pointer hover:shadow-md hover:border-blue-300"
+      className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-300 cursor-pointer hover:shadow-md hover:border-blue-300"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="font-bold text-gray-900 text-lg">Order #{order.orderNumber}</p>
-          <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded-lg py-1 px-2 inline-block border border-gray-200">
+          <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded-xl py-1 px-2 inline-block border border-gray-200">
             {new Date(order.createdAt).toLocaleDateString('en-US', { 
               year: 'numeric', 
               month: 'long', 
@@ -55,20 +55,20 @@ const OrderItem = ({ order, onClick }) => {
       
       <div className="border-t border-gray-200 pt-4">
         <div className="flex justify-between items-center gap-3">
-          <div className="bg-green-50 rounded-lg p-3 flex-1 border border-green-200">
+          <div className="bg-green-50 rounded-xl p-3 flex-1 border border-green-200">
             <p className="text-sm text-green-700 font-medium">Total Amount</p>
             <p className="text-xl font-bold text-green-800">KSh {order.total?.toLocaleString()}</p>
           </div>
-          <div className="bg-blue-50 rounded-lg p-3 flex-1 border border-blue-200">
+          <div className="bg-blue-50 rounded-xl p-3 flex-1 border border-blue-200">
             <p className="text-sm text-blue-700 font-medium">Items</p>
             <p className="text-lg font-semibold text-blue-800">{order.items?.length || 0}</p>
           </div>
         </div>
         
         {order.trackingNumber && (
-          <div className="mt-3 flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <MapPin className="w-4 h-4 text-blue-600" />
-            <span className="font-medium">Tracking: <span className="text-blue-600">{order.trackingNumber}</span></span>
+          <div className="mt-3 flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-xl p-3 border border-gray-200">
+            <MapPin className="w-4 h-4 text-primary-600" />
+            <span className="font-medium">Tracking: <span className="text-primary-600">{order.trackingNumber}</span></span>
           </div>
         )}
       </div>
@@ -128,8 +128,8 @@ export default function BuyerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white p-8 rounded-xl shadow-sm border border-gray-200">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
           <p className="text-xl font-bold text-gray-900">Loading your dashboard...</p>
           <p className="text-gray-600 mt-2">Getting your latest shopping data</p>
@@ -140,17 +140,17 @@ export default function BuyerDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center bg-white p-8 rounded-lg shadow-sm border border-gray-200 max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white p-8 rounded-xl shadow-sm border border-gray-200 max-w-md">
           <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-10 h-10 text-red-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-6 bg-gray-50 rounded-lg p-3 border border-gray-200">{error}</p>
+          <p className="text-gray-600 mb-6 bg-gray-50 rounded-xl p-3 border border-gray-200">{error}</p>
           <div className="flex gap-3">
             <button
               onClick={loadDashboard}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
             >
               Try Again
             </button>
@@ -161,12 +161,12 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -182,14 +182,14 @@ export default function BuyerDashboard() {
             <button
               onClick={loadDashboard}
               disabled={loading}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
               Refresh
             </button>
             <button
               onClick={() => navigate('/products')}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Browse Products
@@ -198,7 +198,7 @@ export default function BuyerDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Your Shopping Overview</h2>
             <p className="text-gray-600 mt-2">Track your orders and spending</p>
           </div>
@@ -209,7 +209,7 @@ export default function BuyerDashboard() {
                 title="Total Orders" 
                 value={stats.totalOrders} 
                 icon={Package} 
-                valueColor="text-blue-600" 
+                valueColor="text-primary-600" 
                 onClick={() => navigate('/orders')}
               />
               <BuyerStatCard 
@@ -241,7 +241,7 @@ export default function BuyerDashboard() {
               />
             </div>
           ) : (
-            <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
               <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingCart className="w-12 h-12 text-gray-600" />
               </div>
@@ -249,7 +249,7 @@ export default function BuyerDashboard() {
               <p className="text-gray-600 mb-6">Start shopping to see your order history and statistics!</p>
               <button
                 onClick={() => navigate('/products')}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="px-8 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold"
               >
                 Browse Products
               </button>
@@ -258,10 +258,10 @@ export default function BuyerDashboard() {
         </div>
 
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-2 rounded-xl">
                   <Truck className="w-6 h-6 text-white" />
                 </div>
                 Recent Orders
@@ -269,7 +269,7 @@ export default function BuyerDashboard() {
               {recentOrders.length > 0 && (
                 <button
                   onClick={() => navigate('/orders')}
-                  className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 font-semibold rounded-lg transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:bg-blue-700 font-semibold rounded-xl transition-colors"
                 >
                   View All Orders →
                 </button>
@@ -288,7 +288,7 @@ export default function BuyerDashboard() {
               ))}
             </div>
           ) : (
-            <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
               <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Package className="w-12 h-12 text-gray-600" />
               </div>
