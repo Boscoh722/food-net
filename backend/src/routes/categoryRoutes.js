@@ -1,4 +1,3 @@
-// backend/src/routes/categoryRoutes.js
 import express from 'express';
 import { 
   getCategories,

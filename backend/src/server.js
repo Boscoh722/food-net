@@ -67,6 +67,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import sellerRoutes from './routes/sellerRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -75,6 +76,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';

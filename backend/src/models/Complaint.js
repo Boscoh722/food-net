@@ -1,4 +1,3 @@
-// models/Complaint.js
 import mongoose from 'mongoose';
 
 const ComplaintSchema = new mongoose.Schema(

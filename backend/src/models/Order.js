@@ -1,4 +1,3 @@
-// models/Order.js
 import mongoose from 'mongoose';
 import Counter from './Counter.js'; 
 
@@ -23,6 +22,9 @@ const OrderSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'],
       default: 'pending',
     },
+    totalPrice: { type: Number, required: true, min: 0 },
+    quaantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true, min: 0 },
     shippingAddress: { type: String, required: true, trim: true },
     paymentMethod: { type: String, enum: ['mpesa', 'card', 'cash', 'wallet'], required: true },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },

@@ -9,7 +9,7 @@ const router = express.Router();
 
 // RATE LIMIT
 const sellerLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 15 * 60 * 1000, 
   max: 100,
   message: { message: 'Too many requests. Try again later.' },
   standardHeaders: true,
@@ -62,7 +62,7 @@ router.get(
     }
   }
 );
-// NEW: GET SINGLE PRODUCT BY ID (for seller)
+//GET SINGLE PRODUCT BY ID (for seller)
 router.get('/products/:id', async (req, res) => {
     try {
         const product = await Product.findOne({
@@ -85,9 +85,7 @@ router.get('/products/:id', async (req, res) => {
             product,
         });
     } catch (err) {
-        // CATCHING THE CASTERROR HERE IS CRITICAL
         if (err.name === 'CastError') {
-             // This prevents the 500 server crash and returns a proper 400 response
              return res.status(400).json({ success: false, message: 'Invalid product ID format.' });
         }
         console.error('Get seller product:', err);

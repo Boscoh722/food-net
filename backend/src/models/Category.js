@@ -19,8 +19,8 @@ const CategorySchema = new mongoose.Schema(
     },
     icon: {
       type: String,
-      default: '📦', // Changed default to an emoji to match seeder style
-      // The 'validate' block has been removed so emojis can be saved.
+      default: '📦', 
+      
     },
   },
   {
@@ -30,7 +30,7 @@ const CategorySchema = new mongoose.Schema(
   }
 );
 
-// --- Middleware and Virtuals (Remain Unchanged) ---
+// --- Middleware and Virtuals 
 
 CategorySchema.index({ name: 'text' });
 

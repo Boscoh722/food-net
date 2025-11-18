@@ -1,7 +1,6 @@
-// utils/uploadImage.js
 import cloudinary from '../config/cloudinary.js';
 import Image from '../models/Image.js';
-import fs from 'fs/promises'; // For cleanup
+import fs from 'fs/promises'; 
 
 export const uploadToCloudinary = async (file, userId, resourceType, resourceId) => {
   try {
@@ -27,11 +26,9 @@ export const uploadToCloudinary = async (file, userId, resourceType, resourceId)
     });
 
     await image.save();
-
-    // Cleanup temp file
     await fs.unlink(file.path);
 
-    return image; // Includes virtual thumbnail
+    return image; 
   } catch (err) {
     if (file?.path) await fs.unlink(file.path).catch(() => {});
     throw err;

@@ -1,4 +1,3 @@
-// models/Review.js
 import mongoose from 'mongoose';
 import { queueRatingUpdate } from '../utils/updateProductRating.js';
 

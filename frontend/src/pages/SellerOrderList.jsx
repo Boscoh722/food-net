@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, AlertTriangle, RefreshCw, Filter } from 'lucide-react';
+import { ShoppingBag, AlertTriangle, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
 
 function SellerOrderList() {
@@ -20,13 +20,13 @@ function SellerOrderList() {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: 'bg-yellow-900 text-yellow-300 border-yellow-700',
-      confirmed: 'bg-blue-900 text-blue-300 border-blue-700',
-      shipped: 'bg-purple-900 text-purple-300 border-purple-700',
-      delivered: 'bg-green-900 text-green-300 border-green-700',
-      cancelled: 'bg-red-900 text-red-300 border-red-700'
+      pending: 'text-yellow-300 bg-yellow-900 border-yellow-700',
+      confirmed: 'text-blue-300 bg-blue-900 border-blue-700',
+      shipped: 'text-purple-300 bg-purple-900 border-purple-700',
+      delivered: 'text-green-300 bg-green-900 border-green-700',
+      cancelled: 'text-red-300 bg-red-900 border-red-700'
     };
-    return colors[status] || 'bg-gray-700 text-gray-300 border-gray-600';
+    return colors[status] || 'text-gray-300 bg-gray-700 border-gray-600';
   };
 
   const loadOrders = async () => {
@@ -43,7 +43,6 @@ function SellerOrderList() {
       setOrders(ordersRes.data?.orders || []);
 
     } catch (err) {
-      console.error('Failed to load seller orders:', err);
       setError(err.response?.data?.message || 'Failed to load order data');
     } finally {
       setLoading(false);
@@ -56,7 +55,7 @@ function SellerOrderList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent"></div>
       </div>
     );
@@ -64,8 +63,8 @@ function SellerOrderList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 flex items-center justify-center p-8">
-        <div className="bg-gray-800 p-8 rounded-2xl border-2 border-gray-700 text-center text-red-400 flex items-center gap-2">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-8">
+        <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 text-center text-red-400 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5"/> {error}
         </div>
       </div>
@@ -73,7 +72,7 @@ function SellerOrderList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 to-gray-800 py-12">
+    <div className="min-h-screen bg-gray-900 py-12">
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-700">
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -81,31 +80,31 @@ function SellerOrderList() {
             {getFilterTitle()} ({orders.length})
           </h1>
           <button
-              onClick={loadOrders}
-              className="px-4 py-2 bg-gray-700 text-gray-200 font-medium rounded-xl shadow-md hover:bg-gray-600 transition flex items-center gap-2 border-2 border-gray-600"
+            onClick={loadOrders}
+            className="px-4 py-2 bg-gray-700 text-gray-200 font-medium rounded-lg hover:bg-gray-600 transition flex items-center gap-2 border border-gray-600"
           >
-              <RefreshCw className="w-5 h-5" />
-              Reload List
+            <RefreshCw className="w-5 h-5" />
+            Reload List
           </button>
         </div>
 
         <div className="flex gap-3 mb-6">
           {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map(status => (
-              <button
-                  key={status}
-                  onClick={() => navigate(status === 'all' ? '/seller/orders' : `/seller/orders?status=${status}`)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition border-2 ${
-                      (statusFilter === status || (status === 'all' && !statusFilter))
-                          ? 'bg-green-600 text-white shadow-md border-green-500'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600'
-                  }`}
-              >
-                  {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
+            <button
+              key={status}
+              onClick={() => navigate(status === 'all' ? '/seller/orders' : `/seller/orders?status=${status}`)}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition border ${
+                (statusFilter === status || (status === 'all' && !statusFilter))
+                  ? 'bg-green-600 text-white border-green-500'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600'
+              }`}
+            >
+              {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
           ))}
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 overflow-hidden">
+        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-gray-700">
@@ -119,7 +118,7 @@ function SellerOrderList() {
               <tbody className="divide-y divide-gray-700">
                 {orders.length === 0 ? (
                   <tr>
-                      <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">No orders found.</td>
+                    <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">No orders found.</td>
                   </tr>
                 ) : (
                   orders.map(order => (
@@ -132,7 +131,7 @@ function SellerOrderList() {
                         {order.orderNumber || order._id.slice(-6).toUpperCase()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border-2 ${getStatusColor(order.status)}`}>
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(order.status)}`}>
                           {order.status}
                         </span>
                       </td>

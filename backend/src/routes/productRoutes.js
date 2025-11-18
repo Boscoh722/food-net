@@ -27,7 +27,7 @@ router.get('/all/products', protect, restrictTo('admin'), getAllProducts);
 router.patch('/:id/approve', protect, restrictTo('admin'), approveProduct);
 router.delete('/:id', protect, restrictTo('admin'), deleteProduct);
 
-// This must be LAST to avoid conflicts
+// Product details
 router.get('/:id', getProductDetails);
 
 export default router;

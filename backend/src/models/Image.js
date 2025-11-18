@@ -1,4 +1,3 @@
-// models/Image.js
 import mongoose from 'mongoose';
 
 const ImageSchema = new mongoose.Schema(
@@ -37,7 +36,7 @@ ImageSchema.methods.deleteFromCloud = async function () {
   }
 };
 
-// FIXED: Use deleteOne with { document: true }
+//  Use deleteOne with { document: true }
 ImageSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
   try {
     await this.deleteFromCloud();

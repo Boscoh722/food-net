@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { type } from 'os';
 
 const UserSchema = new mongoose.Schema(
   {
@@ -20,6 +21,7 @@ const UserSchema = new mongoose.Schema(
     passwordResetExpires: { type: Date, select: false },
     lastLogin: { type: Date },
     isActive: { type: Boolean, default: true },
+    lastActive:{type:Date, default:Date.now},
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -32,7 +34,7 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
-// FIXED: Use transform instead of method
+
 UserSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret.password;
@@ -56,7 +58,6 @@ UserSchema.methods.createEmailVerificationToken = function () {
   const hashed = crypto.createHash('sha256').update(rawToken).digest('hex');
 
   this.emailVerificationToken = hashed;
-  // 24 hours expiry
   this.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   return rawToken;
@@ -68,7 +69,6 @@ UserSchema.methods.createPasswordResetToken = function () {
   const hashed = crypto.createHash('sha256').update(rawToken).digest('hex');
 
   this.passwordResetToken = hashed;
-  // 1 hour expiry
   this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
 
   return rawToken;

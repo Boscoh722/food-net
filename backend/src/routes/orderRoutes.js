@@ -4,7 +4,6 @@ import {
   getOrders,
   getOrderById,
   getMyAssignedOrders,
-  getLogisticsOrders,
   updateOrderStatus,
   updateOrder,
   getAllOrders,
@@ -14,19 +13,15 @@ import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Buyer routes
 router.post('/', protect, restrictTo('buyer'), createOrder);
-router.get('/', protect, getOrders);
-router.get('/:id', protect, getOrderById);
+router.get('/', protect, restrictTo('buyer', 'seller', 'logistics', 'admin'), getOrders);
+router.get('/:id', protect, restrictTo('buyer', 'seller', 'logistics', 'admin'), getOrderById);
 
-// Logistics routes
-router.get('/logistics/my-orders', protect, restrictTo('logistics'), getLogisticsOrders);
+router.get('/logistics/my-orders', protect, restrictTo('logistics'), getMyAssignedOrders);
 router.patch('/:id/status', protect, restrictTo('logistics'), updateOrderStatus);
 
-// Seller routes
 router.patch('/:id', protect, restrictTo('seller', 'logistics'), updateOrder);
 
-// Admin routes
 router.get('/admin/all', protect, restrictTo('admin'), getAllOrders);
 router.delete('/:id', protect, restrictTo('admin'), deleteOrder);
 

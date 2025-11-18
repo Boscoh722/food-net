@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import { 
-  ArrowLeft, ShoppingCart, RefreshCw, Trash2, 
-  AlertTriangle, Eye, CheckCircle2, XCircle, Package 
-} from 'lucide-react';
+import { ArrowLeft, ShoppingCart, RefreshCw, Trash2, AlertTriangle, Eye, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 
@@ -17,7 +14,7 @@ export default function AdminOrders() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get('/orders/all');
+      const { data } = await api.get('/orders/admin/all');
       setOrders(data);
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
@@ -60,9 +57,7 @@ export default function AdminOrders() {
 
   const calculateTotal = (order) => {
     if (order.totalPrice) return order.totalPrice;
-    if (order.items && Array.isArray(order.items)) {
-      return order.items.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
-    }
+    if (order.product?.price) return order.product.price;
     return 0;
   };
 
@@ -81,7 +76,7 @@ export default function AdminOrders() {
 
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-3 rounded-xl">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-xl">
                   <ShoppingCart className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -97,7 +92,7 @@ export default function AdminOrders() {
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
             Refresh
@@ -138,6 +133,9 @@ export default function AdminOrders() {
                         Buyer
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Seller
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Total
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -154,24 +152,32 @@ export default function AdminOrders() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-3">
                             <div className="bg-blue-100 p-2 rounded-xl">
-                              <ShoppingCart className="w-4 h-4 text-primary-600" />
+                              <ShoppingCart className="w-4 h-4 text-blue-600" />
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
                                 Order #{order._id?.slice(-8).toUpperCase()}
                               </p>
                               <p className="text-sm text-gray-500">
-                                {order.items?.length || 0} items
+                                {order.product?.name || 'Product'}
                               </p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-medium text-gray-900">
-                            {order.user?.name || order.user || 'Unknown Buyer'}
+                            {order.buyer?.name || order.buyer || 'Unknown Buyer'}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {order.user?.email || 'No email'}
+                            {order.buyer?.email || 'No email'}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="font-medium text-gray-900">
+                            {order.seller?.storeName || order.seller?.name || 'Unknown Seller'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {order.seller?.email || 'No email'}
                           </p>
                         </td>
                         <td className="px-6 py-4">
@@ -190,7 +196,7 @@ export default function AdminOrders() {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => navigate(`/admin/orders/${order._id}`)}
-                              className="p-2 text-primary-600 hover:bg-blue-50 rounded-xl transition-colors"
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
