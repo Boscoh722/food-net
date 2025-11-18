@@ -1,26 +1,21 @@
+// backend/src/routes/categoryRoutes.js
 import express from 'express';
-import { cacheControl } from '../middleware/cacheMiddleware.js';
-import Category from '../models/Category.js';  
+import { 
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory 
+} from '../controllers/categoryController.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET /api/categories
-router.get('/', cacheControl, async (req, res) => {
-  try {
-    const categories = await Category.find({})
-      .select('name slug icon')
-      .sort('name')
-      .lean();
+// Public routes
+router.get('/', getCategories);
 
-    res.json({ success: true, count: categories.length, data: categories });
-  } catch (err) {
-    console.error('Error fetching categories:', err);
-    res.status(500).json({ message: 'Server error fetching categories' });
-  }
-});
-
-router.all(/.*/, (req, res) => {
-  res.status(404).json({ message: `Cannot find ${req.originalUrl} on this server!` });
-});
+// Admin only routes
+router.post('/', protect, restrictTo('admin'), createCategory);
+router.put('/:id', protect, restrictTo('admin'), updateCategory);
+router.delete('/:id', protect, restrictTo('admin'), deleteCategory);
 
 export default router;

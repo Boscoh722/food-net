@@ -1,4 +1,3 @@
-// server.js
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
@@ -7,19 +6,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 
-// ──────────────────────────────────────────────────────────────
-// Load environment variables
-// ──────────────────────────────────────────────────────────────
 dotenv.config();
 
-// ──────────────────────────────────────────────────────────────
-// Initialize Express
-// ──────────────────────────────────────────────────────────────
 const app = express();
 
-// ──────────────────────────────────────────────────────────────
-// Security & Middleware
-// ──────────────────────────────────────────────────────────────
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -34,17 +24,16 @@ app.use(
   })
 );
 
-
 app.use(
   cors({
     origin: function (origin, callback) {
       const allowedOrigins = [
-        'http://localhost:5173', // Vite default
-        'http://localhost:3000', // Create React App default
-        'https://food-nett.vercel.app'
+        'http://localhost:5173',
+        'http://localhost:3000', 
+        'https://food-nett.vercel.app',
+        'https://food-net.onrender.com',
       ];
       
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -61,9 +50,6 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ──────────────────────────────────────────────────────────────
-// Global rate limiter
-// ──────────────────────────────────────────────────────────────
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -74,9 +60,6 @@ const apiLimiter = rateLimit({
 
 app.use('/api/', apiLimiter);
 
-// ──────────────────────────────────────────────────────────────
-// Import Routes
-// ──────────────────────────────────────────────────────────────
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -85,20 +68,14 @@ import complaintRoutes from './routes/complaintRoutes.js';
 import sellerRoutes from './routes/sellerRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 
-// ──────────────────────────────────────────────────────────────
-// Mount Routes
-// ──────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/complaints', complaintRoutes);
-app.use('/api/seller', sellerRoutes); 
+app.use('/api/seller', sellerRoutes);
 app.use('/api/categories', categoryRoutes);
 
-// ──────────────────────────────────────────────────────────────
-// Health Check
-// ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.status(200).json({
@@ -111,9 +88,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ──────────────────────────────────────────────────────────────
-// GLOBAL 404 HANDLER – MUST BE AFTER ALL ROUTES
-// ──────────────────────────────────────────────────────────────
 app.all(/.*/, (req, res) => {
   res.status(404).json({
     success: false,
@@ -124,26 +98,20 @@ app.all(/.*/, (req, res) => {
   });
 });
 
-// ──────────────────────────────────────────────────────────────
-// Global Error Handler – MUST BE LAST
-// ──────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err);
 
-  // Mongoose validation
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map(e => e.message);
     return res.status(400).json({ success: false, message: 'Validation Error', errors });
   }
 
-  // Duplicate key
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
     const value = err.keyValue[field];
     return res.status(400).json({ success: false, message: `${field} '${value}' already exists` });
   }
 
-  // JWT errors
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({ success: false, message: 'Invalid token' });
   }
@@ -151,7 +119,6 @@ app.use((err, req, res, next) => {
     return res.status(401).json({ success: false, message: 'Token expired' });
   }
 
-  // Default
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error',
@@ -159,9 +126,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ──────────────────────────────────────────────────────────────
-// MongoDB Connection – Clean & Modern
-// ──────────────────────────────────────────────────────────────
 const connectDB = async () => {
   try {
     const MONGO_URI =
@@ -183,12 +147,8 @@ const connectDB = async () => {
   }
 };
 
-
 connectDB();
 
-// ──────────────────────────────────────────────────────────────
-// Start Server with Graceful Shutdown
-// ──────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
@@ -196,7 +156,6 @@ const server = app.listen(PORT, () => {
   console.log(`API Base: http://localhost:${PORT}/api`);
 });
 
-// Graceful shutdown
 const shutdown = (signal) => {
   console.log(`\n${signal} received. Shutting down gracefully...`);
   server.close(() => {

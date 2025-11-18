@@ -8,29 +8,24 @@ const ProductSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: [true, 'Product name is required'],
+    required: true,
     trim: true
   },
   description: {
     type: String,
-    required: [true, 'Description is required'],
+    required: true,
     minlength: 10
   },
   category: {
     type: String,
-    // FIX 1: EXPANDED ENUM TO MATCH FRONTEND LIST
-    enum: [
-      'fruits', 'vegetables', 'grains', 'dairy', 'meats', 'other',
-      'fish', 'spices', 'tubers', 'nuts', 'herbs' 
-    ], 
-    required: true
+    required: true,
+    enum: ['fruits', 'vegetables', 'grains', 'dairy', 'meats', 'fish', 'spices', 'tubers', 'nuts', 'herbs', 'other']
   },
   price: {
     type: Number,
     required: true,
     min: 0
   },
-  // FIX 2: ADDED MISSING FIELDS
   unit: {
     type: String,
     required: true,
@@ -47,18 +42,13 @@ const ProductSchema = new mongoose.Schema({
   },
   harvestDate: {
     type: Date,
-    required: false // Optional, as per frontend
+    required: false
   },
-  // FIX 3: CHANGED IMAGES TO STORE URLS DIRECTLY
-  // To match the frontend payload, store the URL/publicId instead of ObjectId ref.
-  // NOTE: If you MUST use a separate Image model, your backend controller must create
-  // the Image document and retrieve its ObjectId before saving the product.
   images: [{ 
     url: String, 
     publicId: String, 
     isPrimary: Boolean 
   }],
-
   location: { 
     type: String,
     required: true
@@ -70,7 +60,7 @@ const ProductSchema = new mongoose.Schema({
       required: true
     },
     coordinates: {
-      type: [Number], // [lng, lat]
+      type: [Number],
       required: true,
       validate: {
         validator: function(arr) {
@@ -87,5 +77,7 @@ const ProductSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 ProductSchema.index({ coordinates: '2dsphere' });
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ approved: 1 });
 
 export default mongoose.model('Product', ProductSchema);

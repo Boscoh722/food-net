@@ -1,18 +1,11 @@
-// controllers/authController.js
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import crypto from 'crypto';
 
-// ──────────────────────────────────────────────────────────────
-// IN-MEMORY CACHE (Replace with Redis in production)
-// ──────────────────────────────────────────────────────────────
-const userCache = new Map(); // { userId: { data, timestamp } }
-const CACHE_TTL = 30_000; // 30 seconds
+const userCache = new Map();
+const CACHE_TTL = 30000;
 
-// ──────────────────────────────────────────────────────────────
-// VALIDATIONS
-// ──────────────────────────────────────────────────────────────
 export const registerValidations = [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name 2-50 chars'),
   body('email').isEmail().withMessage('Valid email required'),
@@ -29,9 +22,6 @@ export const loginValidations = [
   body('password').notEmpty().withMessage('Password required'),
 ];
 
-// ──────────────────────────────────────────────────────────────
-// REGISTER
-// ──────────────────────────────────────────────────────────────
 export const register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -54,7 +44,6 @@ export const register = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Cache user immediately
     userCache.set(user._id.toString(), {
       data: user.toJSON(),
       timestamp: Date.now(),
@@ -71,9 +60,6 @@ export const register = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// VERIFY EMAIL
-// ──────────────────────────────────────────────────────────────
 export const verifyEmail = async (req, res) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -89,7 +75,6 @@ export const verifyEmail = async (req, res) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    // Update cache
     userCache.set(user._id.toString(), {
       data: user.toJSON(),
       timestamp: Date.now(),
@@ -102,9 +87,6 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// LOGIN
-// ──────────────────────────────────────────────────────────────
 export const login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -115,7 +97,6 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Optional: record login
     user.lastLogin = new Date();
     await user.save();
 
@@ -125,7 +106,6 @@ export const login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Cache fresh user data
     userCache.set(user._id.toString(), {
       data: user.toJSON(),
       timestamp: Date.now(),
@@ -142,9 +122,6 @@ export const login = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// FORGOT & RESET PASSWORD
-// ──────────────────────────────────────────────────────────────
 export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -176,7 +153,6 @@ export const resetPassword = async (req, res) => {
     user.passwordResetExpires = undefined;
     await user.save();
 
-    // Invalidate cache
     userCache.delete(user._id.toString());
 
     res.json({ success: true, message: 'Password reset successful' });
@@ -186,16 +162,11 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// GET ME – LIGHTNING FAST WITH CACHE
-// ──────────────────────────────────────────────────────────────
 export const getMe = async (req, res) => {
   const userId = req.user.id;
   const cached = userCache.get(userId);
 
-  // CACHE HIT → 2–5ms, no DB
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    res.set('X-Cache', 'HIT');
     return res.json({ success: true, user: cached.data, cached: true });
   }
 
@@ -209,9 +180,7 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update cache
     userCache.set(userId, { data: user, timestamp: Date.now() });
-    res.set('X-Cache', 'MISS → CACHED');
 
     res.json({ success: true, user, cached: false });
   } catch (err) {
@@ -220,26 +189,20 @@ export const getMe = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// LOGOUT – Secure + Cache Clear
-// ──────────────────────────────────────────────────────────────
 export const logout = async (req, res) => {
   try {
-    // Clear JWT cookie if using httpOnly
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     });
 
-    // Optional: record logout
     const user = await User.findById(req.user.id);
     if (user) {
       user.lastLogout = new Date();
       await user.save();
     }
 
-    // Invalidate cache
     userCache.delete(req.user.id);
 
     res.json({ success: true, message: 'Logged out successfully' });
@@ -249,9 +212,6 @@ export const logout = async (req, res) => {
   }
 };
 
-// ──────────────────────────────────────────────────────────────
-// EXPORT CACHE INVALIDATOR (for other controllers)
-// ──────────────────────────────────────────────────────────────
 export const invalidateUserCache = (userId) => {
   userCache.delete(userId.toString());
 };

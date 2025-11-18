@@ -17,8 +17,8 @@ export default function AdminProducts() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get('/products/all');
-      setProducts(data);
+      const { data } = await api.get('/products/all/products');
+      setProducts(data.data || data);
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
     } finally {
@@ -31,7 +31,7 @@ export default function AdminProducts() {
   const handleApprove = async (id) => {
     try {
       setActionLoading(id);
-      await api.patch(`/products/approve/${id}`);
+      await api.patch(`/products/${id}/approve`);
       setProducts(prev =>
         prev.map(p => p._id === id ? { ...p, approved: true } : p)
       );
@@ -163,7 +163,7 @@ export default function AdminProducts() {
                               {product.images?.[0]?.url ? (
                                 <img
                                   src={product.images[0].url}
-                                  alt={product.name || product.title}
+                                  alt={product.name}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -172,10 +172,10 @@ export default function AdminProducts() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="font-semibold text-card-foreground truncate">
-                                {product.name || product.title || 'Untitled Product'}
+                                {product.name}
                               </p>
                               <p className="text-sm text-muted-foreground capitalize">
-                                {product.category || 'Uncategorized'}
+                                {product.category}
                               </p>
                             </div>
                           </div>
@@ -188,7 +188,7 @@ export default function AdminProducts() {
                                 {formatPrice(product.price)}
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                per {product.unit || 'unit'}
+                                per {product.unit}
                               </p>
                             </div>
                             <div className="flex items-center gap-4 text-sm">
@@ -200,7 +200,7 @@ export default function AdminProducts() {
                                 {product.isNegotiable ? 'Negotiable' : 'Fixed Price'}
                               </span>
                               <span className="text-muted-foreground">
-                                Stock: <span className="font-medium text-card-foreground">{product.quantityInStock || 0}</span>
+                                Stock: <span className="font-medium text-card-foreground">{product.quantityInStock}</span>
                               </span>
                             </div>
                             {product.harvestDate && (
@@ -216,17 +216,15 @@ export default function AdminProducts() {
                             <div className="flex items-center gap-2 text-sm">
                               <User className="w-4 h-4 text-blue-500" />
                               <span className="text-card-foreground font-medium">
-                                {product.seller?.name || product.seller || 'Unknown Seller'}
+                                {product.seller?.name}
                               </span>
                             </div>
-                            {product.location && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="w-4 h-4 text-green-500" />
-                                <span className="text-muted-foreground truncate">
-                                  {product.location}
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-green-500" />
+                              <span className="text-muted-foreground truncate">
+                                {product.location}
+                              </span>
+                            </div>
                           </div>
                         </td>
 
@@ -243,7 +241,7 @@ export default function AdminProducts() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => navigate(`/admin/products/${product._id}`)}
+                              onClick={() => navigate(`/product/${product._id}`)}
                               className="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl transition-colors duration-200 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
                             >
                               <Eye className="w-4 h-4" />
