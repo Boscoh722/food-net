@@ -36,18 +36,19 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="bg-blue-600 text-white p-8 text-center">
-          <div className="w-16 h-16 bg-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-gray-200/60 overflow-hidden">
+        {/* Header with gradient and rounded corners */}
+        <div className="bg-gradient-to-r from-primary-600 to-accent-600 text-white p-8 text-center">
+          <div className="w-16 h-16 bg-primary-700/80 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
             <span className="text-white font-bold text-2xl">🌱</span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Food-Net</h1>
-          <p className="text-blue-100">Sign in to your account</p>
+          <p className="text-primary-100">Sign in to your account</p>
         </div>
 
         <div className="p-8">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
               {error}
             </div>
@@ -63,7 +64,7 @@ function Login() {
                   name="email"
                   value={form.email}
                   onChange={handleFormChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200"
                   placeholder="Enter your email"
                   required
                 />
@@ -79,7 +80,7 @@ function Login() {
                   name="password"
                   value={form.password}
                   onChange={handleFormChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500 transition-all duration-200"
                   placeholder="Enter your password"
                   required
                 />
@@ -89,7 +90,7 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -97,7 +98,7 @@ function Login() {
 
           <div className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-medium hover:text-blue-700">
+            <Link to="/register" className="text-primary-600 font-medium hover:text-primary-700 transition-colors duration-200">
               Register
             </Link>
           </div>

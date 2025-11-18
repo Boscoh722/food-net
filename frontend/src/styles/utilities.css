@@ -1,0 +1,72 @@
+/* Dashboard specific styles */
+.dashboard-layout {
+  @apply min-h-screen bg-gray-50;
+}
+
+.dashboard-sidebar {
+  @apply fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg border-r border-gray-200/60 transform transition-transform duration-300;
+}
+
+.dashboard-main {
+  @apply ml-0 lg:ml-64 transition-all duration-300;
+}
+
+.dashboard-header {
+  @apply bg-white shadow-sm border-b border-gray-200/60 sticky top-0 z-30;
+}
+
+/* Auth page styles */
+.auth-container {
+  @apply min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8;
+}
+
+.auth-card {
+  @apply card-premium max-w-md w-full p-8 space-y-8;
+}
+
+.auth-header {
+  @apply text-center;
+}
+
+.auth-title {
+  @apply text-3xl font-bold text-gray-900 mb-2;
+}
+
+.auth-subtitle {
+  @apply text-gray-600;
+}
+
+/* Product grid styles */
+.products-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+.product-card {
+  @apply card-hover p-6 text-center;
+}
+
+.product-image {
+  @apply w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-4xl;
+}
+
+/* Order status styles */
+.status-badge {
+  @apply badge px-4 py-2 font-semibold;
+}
+
+.status-pending { @apply badge-warning; }
+.status-confirmed { @apply badge-accent; }
+.status-shipped { @apply badge-primary; }
+-status-delivered { @apply badge-success; }
+.status-cancelled { @apply badge-error; }
+
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .responsive-text {
+    font-size: clamp(0.875rem, 4vw, 1rem);
+  }
+  
+  .responsive-heading {
+    font-size: clamp(1.5rem, 8vw, 2.5rem);
+  }
+}

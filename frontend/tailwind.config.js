@@ -1,4 +1,3 @@
-// tailwind.config.js
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 
@@ -109,6 +108,8 @@ export default {
         'slide-in': 'slideIn 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
         'bounce-subtle': 'bounceSubtle 2s infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float': 'float 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -127,14 +128,24 @@ export default {
           '0%, 100%': { transform: 'translateY(-2%)' },
           '50%': { transform: 'translateY(0)' },
         },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
       boxShadow: {
         'soft': '0 4px 25px -3px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.05)',
         'medium': '0 10px 40px -8px rgba(0, 0, 0, 0.15), 0 8px 24px -6px rgba(0, 0, 0, 0.08)',
         'large': '0 20px 60px -12px rgba(0, 0, 0, 0.25), 0 12px 36px -8px rgba(0, 0, 0, 0.15)',
+        'glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
+        'glow-accent': '0 0 20px -5px rgba(249, 115, 22, 0.4)',
+        'glow-success': '0 0 20px -5px rgba(34, 197, 94, 0.4)',
       },
       borderRadius: {
         '4xl': '2rem',
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },
