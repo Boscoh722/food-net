@@ -57,12 +57,12 @@ export default function AdminComplaints() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      open: 'badge-warning',
-      in_progress: 'badge-accent',
-      resolved: 'badge-success',
-      closed: 'badge-primary'
+      open: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      in_progress: 'bg-blue-100 text-blue-800 border-blue-200',
+      resolved: 'bg-green-100 text-green-800 border-green-200',
+      closed: 'bg-gray-100 text-gray-800 border-gray-200'
     };
-    return styles[status] || 'badge-primary';
+    return styles[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const formatDate = (d) => {
@@ -80,133 +80,138 @@ export default function AdminComplaints() {
     !msg ? 'No message' : msg.length > len ? msg.substring(0, len) + '...' : msg;
 
   return (
-    <div className="admin-complaints-page">
-      <div className="page-container">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="page-header">
-          <div className="header-left">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/dashboard/admin')}
-              className="btn-secondary"
+              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <ArrowLeft className="icon-sm" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
             </button>
 
-            <div className="page-title-card">
-              <h1 className="page-title">
-                <div className="icon-container">
-                  <MessageSquare className="icon-lg text-white" />
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-3 rounded-lg">
+                  <MessageSquare className="w-6 h-6 text-white" />
                 </div>
-                Complaints & Support
-              </h1>
-              <p className="page-subtitle">
-                Manage customer complaints and support tickets
-              </p>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Complaints & Support
+                  </h1>
+                  <p className="text-gray-600">
+                    Manage customer complaints and support tickets
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
           <button
             onClick={load}
             disabled={loading}
-            className="btn-primary"
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            <RefreshCw className={`icon-sm ${loading && 'spinning'}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
             Refresh
           </button>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="alert-error">
-            <AlertTriangle className="icon-sm" />
+          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <AlertTriangle className="w-4 h-4" />
             <p>{error}</p>
           </div>
         )}
 
         {/* Loading */}
         {loading ? (
-          <div className="loading-card">
-            <div className="spinner-large"></div>
-            <p>Loading complaints...</p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600">Loading complaints...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <MessageSquare className="icon-xl text-primary" />
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-blue-100 p-4 rounded-full mb-4">
+              <MessageSquare className="w-8 h-8 text-blue-600" />
             </div>
-            <h3>No Complaints Found</h3>
-            <p>Everything looks good!</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Complaints Found</h3>
+            <p className="text-gray-600">Everything looks good!</p>
           </div>
         ) : (
           <>
             {/* Table */}
-            <div className="table-card">
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       {['User & Complaint', 'Message', 'Date', 'Status', 'Actions'].map(h => (
-                        <th key={h}>
+                        <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
 
-                  <tbody>
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {items.map(c => (
-                      <tr key={c._id}>
-                        <td>
-                          <div className="user-info">
-                            <div className="user-avatar">
-                              <MessageSquare className="icon-sm text-primary" />
+                      <tr key={c._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-blue-100 p-2 rounded-lg">
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
                             </div>
                             <div>
-                              <p className="user-name">
+                              <p className="font-medium text-gray-900">
                                 {c.user?.name || 'Unknown User'}
                               </p>
-                              <p className="user-email">
+                              <p className="text-sm text-gray-500">
                                 {c.user?.email || 'No email'}
                               </p>
                             </div>
                           </div>
                         </td>
 
-                        <td>
-                          <p className="complaint-subject">
+                        <td className="px-6 py-4">
+                          <p className="font-medium text-gray-900">
                             {c.subject || 'No Subject'}
                           </p>
-                          <p className="complaint-message">
+                          <p className="text-sm text-gray-600 mt-1">
                             {truncate(c.message)}
                           </p>
                         </td>
 
-                        <td className="date-cell">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(c.createdAt)}
                         </td>
 
-                        <td>
-                          <span className={`badge ${getStatusBadge(c.status)}`}>
-                            {c.status?.toUpperCase()}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getStatusBadge(c.status)}`}>
+                            {c.status?.replace('_', ' ').toUpperCase()}
                           </span>
                         </td>
 
-                        <td>
-                          <div className="action-buttons">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={() => navigate(`/admin/complaints/${c._id}`)}
-                              className="btn-icon"
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             >
-                              <Eye className="icon-sm text-primary" />
+                              <Eye className="w-4 h-4" />
                             </button>
 
                             {(c.status !== 'resolved' && c.status !== 'closed') && (
                               <button
                                 onClick={() => handleStatus(c._id, 'resolved')}
                                 disabled={actionLoading === c._id}
-                                className="btn-icon success"
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50 transition-colors"
                               >
-                                <CheckCircle2 className="icon-sm" />
+                                <CheckCircle2 className="w-4 h-4" />
                               </button>
                             )}
 
@@ -214,18 +219,18 @@ export default function AdminComplaints() {
                               <button
                                 onClick={() => handleStatus(c._id, 'open')}
                                 disabled={actionLoading === c._id}
-                                className="btn-icon warning"
+                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg disabled:opacity-50 transition-colors"
                               >
-                                <Archive className="icon-sm" />
+                                <Archive className="w-4 h-4" />
                               </button>
                             )}
 
                             <button
                               onClick={() => handleDelete(c._id)}
                               disabled={actionLoading === c._id}
-                              className="btn-icon danger"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
                             >
-                              <Trash2 className="icon-sm" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -237,12 +242,12 @@ export default function AdminComplaints() {
             </div>
 
             {/* Summary */}
-            <div className="summary-card">
-              Showing <span className="count">{items.length}</span> complaints • 
-              Open: <span className="count warning">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{items.length}</span> complaints • 
+              Open: <span className="font-semibold text-yellow-600">
                 {items.filter(c => c.status === 'open').length}
               </span> • 
-              Resolved: <span className="count success">
+              Resolved: <span className="font-semibold text-green-600">
                 {items.filter(c => c.status === 'resolved').length}
               </span>
             </div>

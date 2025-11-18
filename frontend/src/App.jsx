@@ -16,6 +16,8 @@ import Orders from './pages/Orders';
 import Complaints from './pages/Complaints';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 // Dashboards
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
@@ -69,6 +71,8 @@ function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/products/category/:category" element={<CategoryProducts />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
 
 
             {/* --- LOGISTICS WORKFLOW ROUTES --- */}

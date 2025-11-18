@@ -9,19 +9,19 @@ import {
 const getStatusConfig = (status) => {
   switch (status?.toLowerCase()) {
     case 'pending':
-      return { color: 'bg-yellow-900 text-yellow-200 border border-yellow-700', icon: AlertCircle, label: 'Pending' };
+      return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle, label: 'Pending' };
     case 'confirmed':
-      return { color: 'bg-blue-900 text-blue-200 border border-blue-700', icon: CheckCircle2, label: 'Confirmed' };
+      return { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2, label: 'Confirmed' };
     case 'shipped':
-      return { color: 'bg-purple-900 text-purple-200 border border-purple-700', icon: Truck, label: 'Shipped' };
+      return { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Truck, label: 'Shipped' };
     case 'delivered':
-      return { color: 'bg-green-900 text-green-200 border border-green-700', icon: CheckCircle2, label: 'Delivered' };
+      return { color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2, label: 'Delivered' };
     case 'cancelled':
-      return { color: 'bg-red-900 text-red-200 border border-red-700', icon: XCircle, label: 'Cancelled' };
+      return { color: 'bg-red-100 text-red-800 border-red-200', icon: XCircle, label: 'Cancelled' };
     case 'refunded':
-      return { color: 'bg-gray-700 text-gray-200 border border-gray-600', icon: DollarSign, label: 'Refunded' };
+      return { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: DollarSign, label: 'Refunded' };
     default:
-      return { color: 'bg-gray-700 text-gray-200 border border-gray-600', icon: AlertCircle, label: 'Unknown' };
+      return { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: AlertCircle, label: 'Unknown' };
   }
 };
 
@@ -75,10 +75,10 @@ export default function OrderDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-xl font-bold text-white">Loading order details...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading order details...</p>
         </div>
       </div>
     );
@@ -86,16 +86,16 @@ export default function OrderDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 max-w-md">
-          <div className="bg-red-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-700">
-            <AlertCircle className="w-10 h-10 text-red-400" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center max-w-md">
+          <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-10 h-10 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Error</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold border border-blue-500"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
           >
             Go Back
           </button>
@@ -106,13 +106,13 @@ export default function OrderDetail() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700">
-          <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-            <Package className="w-10 h-10 text-gray-400" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Package className="w-10 h-10 text-gray-600" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Order Not Found</h2>
-          <p className="text-gray-300">The requested order could not be found.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Order Not Found</h2>
+          <p className="text-gray-600">The requested order could not be found.</p>
         </div>
       </div>
     );
@@ -131,28 +131,27 @@ export default function OrderDetail() {
     : 'N/A';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
         <button 
           onClick={() => navigate(-1)} 
-          className="flex items-center text-blue-400 hover:text-blue-300 font-medium mb-6 transition-colors"
+          className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-6"
         >
-          <ChevronLeft className="w-5 h-5 mr-1" /> Back to Orders
+          <ChevronLeft className="w-4 h-4 mr-1" /> Back to Orders
         </button>
 
-        <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-6 md:p-10">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-700 pb-6 mb-6">
-            <h1 className="text-3xl font-bold text-white mb-2 md:mb-0">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 md:mb-0">
               Order #{order.orderNumber}
             </h1>
-            <div className={`px-4 py-2 text-sm font-bold rounded-full border ${statusConfig.color} flex items-center gap-2`}>
-              <statusConfig.icon className="w-4 h-4" />
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusConfig.color}`}>
+              <statusConfig.icon className="w-4 h-4 mr-2" />
               {statusConfig.label}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <DetailCard icon={Calendar} title="Order Date" value={formattedDate} />
             <DetailCard icon={DollarSign} title="Total Cost" value={`KSh ${Number(order.total || 0).toLocaleString()}`} />
             <DetailCard icon={Truck} title="Tracking Number" value={order.trackingNumber || 'N/A'} />
@@ -161,39 +160,41 @@ export default function OrderDetail() {
             <DetailCard icon={TrendingUp} title="Payment Status" value={order.paymentStatus?.toUpperCase() || 'PENDING'} />
           </div>
 
-          <h2 className="text-2xl font-bold text-white border-l-4 border-blue-500 pl-3 mb-4">Involved Parties</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Involved Parties</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <UserCard role="Buyer" user={order.buyer} />
             <UserCard role="Seller" user={order.seller} />
             <UserCard role="Logistics" user={order.logistics} />
           </div>
 
-          <h2 className="text-2xl font-bold text-white border-l-4 border-green-500 pl-3 mb-4">Order Items ({order.items?.length || 0})</h2>
-          <div className="bg-gray-700 rounded-2xl border-2 border-gray-600 overflow-hidden">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items ({order.items?.length || 0})</h2>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-600">
-                  <tr className="text-left text-sm font-semibold uppercase tracking-wider text-gray-300">
-                    <th className="px-6 py-4">Product</th>
-                    <th className="px-6 py-4">Unit Price</th>
-                    <th className="px-6 py-4">Quantity</th>
-                    <th className="px-6 py-4 text-right">Subtotal</th>
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-600">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {order.items?.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-650 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-white flex items-center">
-                        <img
-                          src={item.productImage || item.product?.images?.[0]?.url}
-                          alt={item.productName}
-                          className="w-10 h-10 object-cover rounded-md mr-3 border border-gray-600"
-                        />
-                        {item.productName}
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <img
+                            src={item.productImage || item.product?.images?.[0]?.url}
+                            alt={item.productName}
+                            className="w-10 h-10 object-cover rounded mr-3 border border-gray-200"
+                          />
+                          <span className="font-medium text-gray-900">{item.productName}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">KSh {item.unitPrice?.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">{item.quantity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-green-400">
+                      <td className="px-4 py-4 whitespace-nowrap text-gray-900">KSh {item.unitPrice?.toLocaleString()}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-gray-900">{item.quantity}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-right font-medium text-green-600">
                         KSh {item.subtotal?.toLocaleString()}
                       </td>
                     </tr>
@@ -204,13 +205,14 @@ export default function OrderDetail() {
           </div>
 
           {canCancel && (
-            <div className="mt-10 pt-6 border-t border-gray-700 flex justify-end">
+            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
               <button
                 onClick={handleCancel}
                 disabled={isCancelling}
-                className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl border border-red-500 disabled:opacity-50 flex items-center gap-2"
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                {isCancelling ? 'Cancelling...' : <><XCircle className="w-5 h-5" /> Cancel Order</>}
+                <XCircle className="w-4 h-4 mr-2" />
+                {isCancelling ? 'Cancelling...' : 'Cancel Order'}
               </button>
             </div>
           )}
@@ -221,26 +223,26 @@ export default function OrderDetail() {
 }
 
 const DetailCard = ({ icon: Icon, title, value }) => (
-  <div className="bg-gray-700 p-4 rounded-xl border-2 border-gray-600 flex items-center hover:border-blue-500 transition-colors">
-    <Icon className="w-6 h-6 text-blue-400 mr-4" />
+  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center">
+    <Icon className="w-5 h-5 text-blue-600 mr-3" />
     <div>
-      <p className="text-xs font-semibold uppercase text-gray-400">{title}</p>
-      <p className="font-bold text-white text-lg">{value}</p>
+      <p className="text-xs font-medium text-gray-500 uppercase">{title}</p>
+      <p className="font-semibold text-gray-900">{value}</p>
     </div>
   </div>
 );
 
 const UserCard = ({ role, user }) => (
-  <div className="bg-gray-700 p-5 rounded-xl border-2 border-gray-600 hover:border-green-500 transition-colors">
-    <p className="text-sm font-semibold uppercase text-green-400 mb-2">{role}</p>
+  <div className="bg-white p-4 rounded-lg border border-gray-200">
+    <p className="text-sm font-medium text-blue-600 uppercase mb-2">{role}</p>
     {user ? (
       <>
-        <p className="text-xl font-bold text-white">{user.name}</p>
-        <p className="text-sm text-gray-300">{user.email}</p>
-        <p className="text-sm text-gray-400 mt-1">Phone: {user.phone || 'N/A'}</p>
+        <p className="font-semibold text-gray-900">{user.name}</p>
+        <p className="text-sm text-gray-600">{user.email}</p>
+        <p className="text-sm text-gray-600 mt-1">Phone: {user.phone || 'N/A'}</p>
       </>
     ) : (
-      <p className="text-gray-400 italic">Not assigned</p>
+      <p className="text-gray-500 italic">Not assigned</p>
     )}
   </div>
 );

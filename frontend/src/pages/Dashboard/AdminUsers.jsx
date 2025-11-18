@@ -65,15 +65,10 @@ export default function AdminUsersDashboard() {
       }));
 
     } catch (err) {
-      console.error('Failed to load users:', err);
       setError(err.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBackToAdmin = () => {
-    navigate('/dashboard/admin');
   };
 
   const handleApproveSeller = async (userId) => {
@@ -89,7 +84,6 @@ export default function AdminUsersDashboard() {
 
       alert('Seller approved successfully!');
     } catch (err) {
-      console.error('Failed to approve seller:', err);
       alert(err.response?.data?.message || 'Failed to approve seller');
     } finally {
       setActionLoading(null);
@@ -109,7 +103,6 @@ export default function AdminUsersDashboard() {
 
       alert('Seller rejected successfully!');
     } catch (err) {
-      console.error('Failed to reject seller:', err);
       alert(err.response?.data?.message || 'Failed to reject seller');
     } finally {
       setActionLoading(null);
@@ -127,7 +120,6 @@ export default function AdminUsersDashboard() {
 
       alert('User deleted successfully!');
     } catch (err) {
-      console.error('Failed to delete user:', err);
       alert(err.response?.data?.message || 'Failed to delete user');
     } finally {
       setActionLoading(null);
@@ -140,7 +132,6 @@ export default function AdminUsersDashboard() {
       setSelectedUser(response.data?.user || response.data);
       setShowModal(true);
     } catch (err) {
-      console.error('Failed to load user details:', err);
       alert(err.response?.data?.message || 'Failed to load user details');
     }
   };
@@ -172,242 +163,225 @@ export default function AdminUsersDashboard() {
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: 'badge-primary',
-      seller: 'badge-success', 
-      buyer: 'badge-accent',
-      logistics: 'badge-warning'
+      admin: 'bg-purple-100 text-purple-800 border-purple-200',
+      seller: 'bg-green-100 text-green-800 border-green-200',
+      buyer: 'bg-blue-100 text-blue-800 border-blue-200',
+      logistics: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
-    return badges[role] || 'bg-gray-700 text-gray-200 border border-gray-600';
+    return badges[role] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-premium flex items-center justify-center p-4">
-        <div className="card text-center max-w-md">
-          <div className="bg-gradient-to-r from-error-100 to-error-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-error-300/50">
-            <AlertTriangle className="w-10 h-10 text-error-800" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center max-w-md">
+          <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-10 h-10 text-red-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-700">You need admin privileges to access this page.</p>
+          <p className="text-gray-600">You need admin privileges to access this page.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-premium pb-20">
-      <div className="container-custom py-20">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/dashboard/admin')}
+              className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </button>
 
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleBackToAdmin}
-                className="btn btn-ghost p-3 text-gray-300 hover:text-white"
-                title="Back to Admin Dashboard"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-
-              <div className="card-premium p-6">
-                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-                  <div className="bg-gradient-primary p-3 rounded-xl border border-primary-500">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  User Management
-                </h1>
-                <p className="text-gray-300 mt-2 text-lg">Manage all platform users</p>
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-3 rounded-lg">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    User Management
+                  </h1>
+                  <p className="text-gray-600">Manage all platform users</p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={loadUsers}
-                disabled={loading}
-                className="btn btn-secondary flex items-center gap-2"
-              >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
             </div>
           </div>
 
-          <div className="card-premium p-6 space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter className="w-5 h-5 text-gray-300" />
-              <h2 className="text-lg font-semibold text-white">Filters</h2>
-            </div>
+          <button
+            onClick={loadUsers}
+            disabled={loading}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading && 'animate-spin'}`} />
+            Refresh
+          </button>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by name or email..."
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
-                    className="input w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-gray-400"
-                  />
-                </div>
-              </div>
-
-              <div className="relative">
-                <select
-                  value={filters.role}
-                  onChange={(e) => handleFilterChange('role', e.target.value)}
-                  className="input w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white appearance-none pr-10"
-                >
-                  <option value="">All Roles</option>
-                  <option value="buyer">Buyer</option>
-                  <option value="seller">Seller</option>
-                  <option value="logistics">Logistics</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="relative">
-                <select
-                  value={filters.approved}
-                  onChange={(e) => handleFilterChange('approved', e.target.value)}
-                  className="input w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white appearance-none pr-10"
-                >
-                  <option value="">All Status</option>
-                  <option value="true">Approved</option>
-                  <option value="false">Pending</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {(filters.role || filters.approved || filters.search) && (
-              <button
-                onClick={handleClearFilters}
-                className="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors"
-              >
-                Clear all filters
-              </button>
-            )}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            <select
+              value={filters.role}
+              onChange={(e) => handleFilterChange('role', e.target.value)}
+              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            >
+              <option value="">All Roles</option>
+              <option value="buyer">Buyer</option>
+              <option value="seller">Seller</option>
+              <option value="logistics">Logistics</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            <select
+              value={filters.approved}
+              onChange={(e) => handleFilterChange('approved', e.target.value)}
+              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            >
+              <option value="">All Status</option>
+              <option value="true">Approved</option>
+              <option value="false">Pending</option>
+            </select>
+          </div>
+
+          {(filters.role || filters.approved || filters.search) && (
+            <button
+              onClick={handleClearFilters}
+              className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
 
         {error && (
-          <div className="alert alert-error mb-6 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5" />
-            <p className="text-error-200 font-medium">{error}</p>
+          <div className="flex items-center space-x-2 p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <AlertTriangle className="w-4 h-4" />
+            <p>{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="card-premium p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading users...</p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600">Loading users...</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="card-premium p-12 text-center">
-            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-              <Users className="w-10 h-10 text-gray-400" />
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-gray-100 p-4 rounded-full mb-4">
+              <Users className="w-8 h-8 text-gray-600" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No Users Found</h3>
-            <p className="text-gray-300">Try adjusting your filters</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Users Found</h3>
+            <p className="text-gray-600">Try adjusting your filters</p>
           </div>
         ) : (
           <>
-            <div className="card-premium overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-700 border-b border-gray-600">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         User
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Role
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Joined
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
 
-                  <tbody className="divide-y divide-gray-700">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-gray-750 transition-all duration-300">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-primary-100 to-primary-200 rounded-full flex items-center justify-center border border-primary-300/50">
-                              <span className="text-primary-800 font-bold">
+                      <tr key={u._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center">
+                              <span className="text-blue-800 font-bold">
                                 {u.name?.charAt(0).toUpperCase() || 'U'}
                               </span>
                             </div>
                             <div>
-                              <p className="font-semibold text-white">{u.name || 'Unknown'}</p>
-                              <p className="text-sm text-gray-400">{u.email}</p>
+                              <p className="font-medium text-gray-900">{u.name || 'Unknown'}</p>
+                              <p className="text-sm text-gray-500">{u.email}</p>
                             </div>
                           </div>
                         </td>
 
-                        <td className="px-6 py-4">
-                          <span className={`badge ${getRoleBadge(u.role)}`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getRoleBadge(u.role)}`}>
                             {u.role?.toUpperCase()}
                           </span>
                         </td>
 
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           {u.role === 'seller' ? (
                             u.approved ? (
-                              <span className="flex items-center gap-1 text-green-400 text-sm font-medium">
+                              <span className="flex items-center space-x-1 text-green-600 text-sm font-medium">
                                 <CheckCircle2 className="w-4 h-4" />
                                 Approved
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1 text-yellow-400 text-sm font-medium">
+                              <span className="flex items-center space-x-1 text-yellow-600 text-sm font-medium">
                                 <XCircle className="w-4 h-4" />
                                 Pending
                               </span>
                             )
                           ) : (
-                            <span className="text-gray-400 text-sm">-</span>
+                            <span className="text-gray-500 text-sm">-</span>
                           )}
                         </td>
 
-                        <td className="px-6 py-4 text-sm text-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(u.createdAt)}
                         </td>
 
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleViewUser(u._id)}
-                              className="p-2 text-blue-400 hover:bg-blue-900 rounded-lg transition-all duration-300 border border-blue-800 hover:border-blue-600"
-                              title="View Details"
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             >
-                              <Eye className="w-5 h-5" />
+                              <Eye className="w-4 h-4" />
                             </button>
 
                             {u.role === 'seller' && !u.approved && (
                               <button
                                 onClick={() => handleApproveSeller(u._id)}
                                 disabled={actionLoading === u._id}
-                                className="p-2 text-green-400 hover:bg-green-900 rounded-lg transition-all duration-300 border border-green-800 hover:border-green-600 disabled:opacity-50"
-                                title="Approve Seller"
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50 transition-colors"
                               >
-                                <UserCheck className="w-5 h-5" />
+                                <UserCheck className="w-4 h-4" />
                               </button>
                             )}
 
@@ -415,20 +389,18 @@ export default function AdminUsersDashboard() {
                               <button
                                 onClick={() => handleRejectSeller(u._id)}
                                 disabled={actionLoading === u._id}
-                                className="p-2 text-yellow-400 hover:bg-yellow-900 rounded-lg transition-all duration-300 border border-yellow-800 hover:border-yellow-600 disabled:opacity-50"
-                                title="Revoke Approval"
+                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg disabled:opacity-50 transition-colors"
                               >
-                                <UserX className="w-5 h-5" />
+                                <UserX className="w-4 h-4" />
                               </button>
                             )}
 
                             <button
                               onClick={() => handleDeleteUser(u._id)}
                               disabled={actionLoading === u._id}
-                              className="p-2 text-red-400 hover:bg-red-900 rounded-lg transition-all duration-300 border border-red-800 hover:border-red-600 disabled:opacity-50"
-                              title="Delete User"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -440,138 +412,138 @@ export default function AdminUsersDashboard() {
             </div>
 
             {pagination.pages > 1 && (
-              <div className="mt-6 card-premium px-6 py-4 flex items-center justify-between">
-                <div className="text-sm text-gray-300">
-                  Showing <span className="font-semibold text-white">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
-                  <span className="font-semibold text-white">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing <span className="font-semibold text-gray-900">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
+                  <span className="font-semibold text-gray-900">
                     {Math.min(pagination.page * pagination.limit, pagination.total)}
                   </span> of{' '}
-                  <span className="font-semibold text-white">{pagination.total}</span> users
+                  <span className="font-semibold text-gray-900">{pagination.total}</span> users
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="btn btn-ghost p-2 text-gray-300 hover:text-white disabled:opacity-50"
+                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <span className="text-sm font-medium text-gray-300">
-                    Page <span className="text-white">{pagination.page}</span> of <span className="text-white">{pagination.pages}</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    Page <span className="text-gray-900">{pagination.page}</span> of <span className="text-gray-900">{pagination.pages}</span>
                   </span>
 
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.pages}
-                    className="btn btn-ghost p-2 text-gray-300 hover:text-white disabled:opacity-50"
+                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             )}
           </>
         )}
-      </div>
 
-      {showModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="card-premium max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-600">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">User Details</h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="btn btn-ghost p-2 text-gray-400 hover:text-white"
-                >
-                  <XCircle className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 bg-gray-700 rounded-xl p-3 border border-gray-600">
-                    <Users className="w-5 h-5 text-blue-400" />
-                    <span className="text-gray-300">Name:</span>
-                    <span className="font-semibold text-white">{selectedUser.name || 'N/A'}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-gray-700 rounded-xl p-3 border border-gray-600">
-                    <Mail className="w-5 h-5 text-blue-400" />
-                    <span className="text-gray-300">Email:</span>
-                    <span className="font-semibold text-white">{selectedUser.email}</span>
-                  </div>
-
-                  {selectedUser.phone && (
-                    <div className="flex items-center gap-3 bg-gray-700 rounded-xl p-3 border border-gray-600">
-                      <Phone className="w-5 h-5 text-blue-400" />
-                      <span className="text-gray-300">Phone:</span>
-                      <span className="font-semibold text-white">{selectedUser.phone}</span>
-                    </div>
-                  )}
-
-                  {selectedUser.location && (
-                    <div className="flex items-center gap-3 bg-gray-700 rounded-xl p-3 border border-gray-600">
-                      <MapPin className="w-5 h-5 text-blue-400" />
-                      <span className="text-gray-300">Location:</span>
-                      <span className="font-semibold text-white">{selectedUser.location}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 bg-gray-700 rounded-xl p-3 border border-gray-600">
-                    <Calendar className="w-5 h-5 text-blue-400" />
-                    <span className="text-gray-300">Joined:</span>
-                    <span className="font-semibold text-white">{formatDate(selectedUser.createdAt)}</span>
-                  </div>
+        {showModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <XCircle className="w-6 h-6" />
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Role & Status</h3>
-                <div className="flex items-center gap-4">
-                  <span className={`badge ${getRoleBadge(selectedUser.role)}`}>
-                    {selectedUser.role?.toUpperCase()}
-                  </span>
-
-                  {selectedUser.role === 'seller' && (
-                    <span className={`badge ${
-                      selectedUser.approved ? 'badge-success' : 'badge-warning'
-                    }`}>
-                      {selectedUser.approved ? 'Approved' : 'Pending Approval'}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {selectedUser.role === 'seller' && (
+              <div className="p-6 space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Seller Information</h3>
-                  <div className="space-y-2 text-sm bg-gray-700 rounded-xl p-4 border border-gray-600">
-                    {selectedUser.storeName && (
-                      <p className="text-gray-300">
-                        <span className="text-gray-400">Store Name:</span>{' '}
-                        <span className="font-semibold text-white">{selectedUser.storeName}</span>
-                      </p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <Users className="w-5 h-5 text-blue-600" />
+                      <span className="text-gray-600">Name:</span>
+                      <span className="font-semibold text-gray-900">{selectedUser.name || 'N/A'}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-semibold text-gray-900">{selectedUser.email}</span>
+                    </div>
+
+                    {selectedUser.phone && (
+                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <Phone className="w-5 h-5 text-blue-600" />
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-semibold text-gray-900">{selectedUser.phone}</span>
+                      </div>
                     )}
 
-                    {selectedUser.businessRegistration && (
-                      <p className="text-gray-300">
-                        <span className="text-gray-400">Business Registration:</span>{' '}
-                        <span className="font-semibold text-white">{selectedUser.businessRegistration}</span>
-                      </p>
+                    {selectedUser.location && (
+                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-semibold text-gray-900">{selectedUser.location}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                      <span className="text-gray-600">Joined:</span>
+                      <span className="font-semibold text-gray-900">{formatDate(selectedUser.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Role & Status</h3>
+                  <div className="flex items-center space-x-4">
+                    <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${getRoleBadge(selectedUser.role)}`}>
+                      {selectedUser.role?.toUpperCase()}
+                    </span>
+
+                    {selectedUser.role === 'seller' && (
+                      <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${
+                        selectedUser.approved ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      }`}>
+                        {selectedUser.approved ? 'Approved' : 'Pending Approval'}
+                      </span>
                     )}
                   </div>
                 </div>
-              )}
+
+                {selectedUser.role === 'seller' && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
+                    <div className="space-y-2 text-sm bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      {selectedUser.storeName && (
+                        <p className="text-gray-600">
+                          <span className="text-gray-500">Store Name:</span>{' '}
+                          <span className="font-semibold text-gray-900">{selectedUser.storeName}</span>
+                        </p>
+                      )}
+
+                      {selectedUser.businessRegistration && (
+                        <p className="text-gray-600">
+                          <span className="text-gray-500">Business Registration:</span>{' '}
+                          <span className="font-semibold text-gray-900">{selectedUser.businessRegistration}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

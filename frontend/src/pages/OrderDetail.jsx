@@ -1,4 +1,3 @@
-// src/pages/OrderDetail.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
@@ -7,7 +6,6 @@ import {
   Package, Truck, Calendar, DollarSign, MapPin, User, AlertCircle, CheckCircle2, ChevronLeft, XCircle, Tag, TrendingUp
 } from 'lucide-react';
 
-// Utility function to determine status styling
 const getStatusConfig = (status) => {
   switch (status?.toLowerCase()) {
     case 'pending':
@@ -36,16 +34,13 @@ export default function OrderDetail() {
   const [error, setError] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // Function to load the specific order
   const loadOrder = async () => {
     setLoading(true);
     try {
-      // NOTE: Assuming backend has a protected GET /orders/:id route accessible by all roles involved
       const { data } = await api.get(`/orders/${id}`);
       const fetchedOrder = data?.order || data?.data || data;
       setOrder(fetchedOrder || null);
     } catch (err) {
-      console.error(err);
       setError(err?.response?.data?.message || 'Failed to load order details. You may not have permission.');
     } finally {
       setLoading(false);
@@ -58,17 +53,14 @@ export default function OrderDetail() {
     }
   }, [id, user]);
 
-  // Function to cancel the order (Buyer only)
   const handleCancel = async () => {
     if (!user || user.role !== 'buyer') return;
     if (!window.confirm('Are you sure you want to cancel this order? This action may not be reversible.')) return;
 
     setIsCancelling(true);
     try {
-      // Correct Buyer Cancel Route: PATCH /orders/my/:id/cancel
       await api.patch(`/orders/my/${id}/cancel`);
       
-      // Update local state immediately
       setOrder(prev => (prev ? {
         ...prev,
         status: 'cancelled',
@@ -83,9 +75,38 @@ export default function OrderDetail() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-lg">Loading order details...</div>;
-  if (error) return <div className="p-8 text-center text-red-600 font-bold">{error}</div>;
-  if (!order) return <div className="p-8 text-center text-gray-600">Order not found.</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading order details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          <p className="text-red-600 font-bold text-lg">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Order not found.</p>
+        </div>
+      </div>
+    );
+  }
 
   const statusConfig = getStatusConfig(order.status);
   const canCancel = user?.role === 'buyer' && ['pending', 'confirmed'].includes(order.status);
@@ -100,114 +121,115 @@ export default function OrderDetail() {
     : 'N/A';
 
   return (
-    <div className="container mx-auto p-4 sm:p-8 font-inter">
-      <button onClick={() => navigate(-1)} className="flex items-center text-amber-600 hover:text-amber-700 font-medium mb-6">
-        <ChevronLeft className="w-5 h-5 mr-1" /> Back to Orders
-      </button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-6"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" /> 
+          Back to Orders
+        </button>
 
-      <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 border border-gray-100">
-        
-        {/* Header and Status */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-6 mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2 md:mb-0">
-            Order #{order.orderNumber}
-          </h1>
-          <div className={`px-4 py-2 text-sm font-bold rounded-full border ${statusConfig.color} flex items-center gap-2`}>
-            <statusConfig.icon className="w-4 h-4" />
-            {statusConfig.label}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 md:mb-0">
+              Order #{order.orderNumber}
+            </h1>
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusConfig.color}`}>
+              <statusConfig.icon className="w-4 h-4 mr-2" />
+              {statusConfig.label}
+            </div>
           </div>
-        </div>
 
-        {/* Key Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <DetailCard icon={Calendar} title="Order Date" value={formattedDate} />
-          <DetailCard icon={DollarSign} title="Total Cost" value={`KSh ${Number(order.total || 0).toFixed(2)}`} />
-          <DetailCard icon={Truck} title="Tracking Number" value={order.trackingNumber || 'N/A'} />
-          <DetailCard icon={MapPin} title="Shipping Address" value={order.shippingAddress} />
-          <DetailCard icon={Tag} title="Payment Method" value={order.paymentMethod?.toUpperCase() || 'N/A'} />
-          <DetailCard icon={TrendingUp} title="Payment Status" value={order.paymentStatus?.toUpperCase() || 'PENDING'} />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <DetailCard icon={Calendar} title="Order Date" value={formattedDate} />
+            <DetailCard icon={DollarSign} title="Total Cost" value={`KSh ${Number(order.total || 0).toFixed(2)}`} />
+            <DetailCard icon={Truck} title="Tracking Number" value={order.trackingNumber || 'N/A'} />
+            <DetailCard icon={MapPin} title="Shipping Address" value={order.shippingAddress} />
+            <DetailCard icon={Tag} title="Payment Method" value={order.paymentMethod?.toUpperCase() || 'N/A'} />
+            <DetailCard icon={TrendingUp} title="Payment Status" value={order.paymentStatus?.toUpperCase() || 'PENDING'} />
+          </div>
 
-        {/* Parties Involved */}
-        <h2 className="text-2xl font-bold text-gray-800 border-l-4 border-emerald-500 pl-3 mb-4">Involved Parties</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <UserCard role="Buyer" user={order.buyer} />
-          <UserCard role="Seller" user={order.seller} />
-          <UserCard role="Logistics" user={order.logistics} />
-        </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Involved Parties</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <UserCard role="Buyer" user={order.buyer} />
+            <UserCard role="Seller" user={order.seller} />
+            <UserCard role="Logistics" user={order.logistics} />
+          </div>
 
-        {/* Order Items */}
-        <h2 className="text-2xl font-bold text-gray-800 border-l-4 border-amber-500 pl-3 mb-4">Order Items ({order.items?.length || 0})</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50">
-                <th className="px-6 py-3">Product</th>
-                <th className="px-6 py-3">Unit Price</th>
-                <th className="px-6 py-3">Quantity</th>
-                <th className="px-6 py-3 text-right">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {order.items?.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 flex items-center">
-                    <img
-                      src={item.productImage || item.product?.images?.[0]?.url || 'https://via.placeholder.com/100'} 
-                      alt={item.productName}
-                      className="w-10 h-10 object-cover rounded-md mr-3"
-                    />
-                    {item.productName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">KSh {item.unitPrice.toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.quantity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right font-bold">KSh {item.subtotal.toFixed(2)}</td>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items ({order.items?.length || 0})</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Buyer Action: Cancel Button */}
-        {canCancel && (
-          <div className="mt-10 pt-6 border-t border-gray-200 flex justify-end">
-            <button
-              onClick={handleCancel}
-              disabled={isCancelling}
-              className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
-            >
-              {isCancelling ? 'Cancelling...' : <><XCircle className="w-5 h-5" /> Cancel Order</>}
-            </button>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {order.items?.map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <img
+                          src={item.productImage || item.product?.images?.[0]?.url || 'https://via.placeholder.com/100'} 
+                          alt={item.productName}
+                          className="w-10 h-10 object-cover rounded mr-3"
+                        />
+                        <span className="font-medium text-gray-900">{item.productName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-gray-900">KSh {item.unitPrice.toFixed(2)}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-gray-900">{item.quantity}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-right font-medium text-gray-900">KSh {item.subtotal.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
 
+          {canCancel && (
+            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={handleCancel}
+                disabled={isCancelling}
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-// Reusable Sub-Components
 const DetailCard = ({ icon: Icon, title, value }) => (
-  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center">
-    <Icon className="w-6 h-6 text-amber-500 mr-4" />
+  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center">
+    <Icon className="w-5 h-5 text-blue-600 mr-3" />
     <div>
-      <p className="text-xs font-semibold uppercase text-gray-500">{title}</p>
-      <p className="font-bold text-gray-800 text-lg">{value}</p>
+      <p className="text-xs font-medium text-gray-500 uppercase">{title}</p>
+      <p className="font-semibold text-gray-900">{value}</p>
     </div>
   </div>
 );
 
 const UserCard = ({ role, user }) => (
-    <div className="bg-white p-5 rounded-xl border-2 border-dashed border-gray-200 hover:border-emerald-300 transition-colors">
-        <p className="text-sm font-semibold uppercase text-emerald-600 mb-2">{role}</p>
-        {user ? (
-            <>
-                <p className="text-xl font-bold text-gray-900">{user.name}</p>
-                <p className="text-sm text-gray-600">{user.email}</p>
-                <p className="text-sm text-gray-600 mt-1">Phone: {user.phone || 'N/A'}</p>
-            </>
-        ) : (
-            <p className="text-gray-500 italic">Not assigned</p>
-        )}
-    </div>
+  <div className="bg-white p-4 rounded-lg border border-gray-200">
+    <p className="text-sm font-medium text-blue-600 uppercase mb-2">{role}</p>
+    {user ? (
+      <>
+        <p className="font-semibold text-gray-900">{user.name}</p>
+        <p className="text-sm text-gray-600">{user.email}</p>
+        <p className="text-sm text-gray-600 mt-1">Phone: {user.phone || 'N/A'}</p>
+      </>
+    ) : (
+      <p className="text-gray-500 italic">Not assigned</p>
+    )}
+  </div>
 );

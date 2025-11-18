@@ -38,7 +38,7 @@ function LocationMarker({ position, setPosition }) {
   return (
     <Marker position={position}>
       <Popup>
-        <div className="text-center font-bold text-green-700">
+        <div className="text-center font-bold text-green-600">
           Your Farm<br /><small>Click to move</small>
         </div>
       </Popup>
@@ -227,7 +227,7 @@ export default function Products() {
     }
 
     return (
-      <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-600">
+      <div className="h-80 rounded-lg overflow-hidden border border-gray-300">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -249,66 +249,70 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border-2 border-gray-700">
-            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-              <div className="bg-green-900 p-2 rounded-lg border border-green-700">
-                <Leaf className="w-8 h-8 text-green-400" />
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-start mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-600 p-3 rounded-lg">
+                <Leaf className="w-6 h-6 text-white" />
               </div>
-              Fresh Marketplace
-            </h1>
-            <p className="text-gray-300 mt-2 text-lg">Discover fresh farm products</p>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Fresh Marketplace
+                </h1>
+                <p className="text-gray-600">Discover fresh farm products</p>
+              </div>
+            </div>
           </div>
           {isSeller && (
             <button
               onClick={() => setShowForm(!showForm)}
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 border border-green-500"
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              {showForm ? 'Cancel' : (
-                <>
-                  <PlusCircle className="w-5 h-5" />
-                  List Product
-                </>
-              )}
+              <PlusCircle className="w-4 h-4 mr-2" />
+              {showForm ? 'Cancel' : 'List Product'}
             </button>
           )}
         </div>
 
         <div className="relative max-w-xl mx-auto mb-8">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500"
           />
         </div>
 
         {isSeller && showForm && (
-          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 mb-10">
-            <h2 className="text-2xl font-bold text-white mb-5 flex items-center gap-3">
-              <Package className="w-6 h-6 text-green-400" />
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
+              <Package className="w-6 h-6 text-green-600" />
               List Your Produce
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
-                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400" placeholder="Fresh Sukuma Wiki" />
-                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                  <input 
+                    type="text" 
+                    value={form.name} 
+                    onChange={e => setForm({...form, name: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500" 
+                    placeholder="Fresh Sukuma Wiki" 
+                  />
+                  {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                   <select 
                     value={form.category} 
                     onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
                   >
                     <option value="" disabled>
                       {categoryLoading ? 'Loading...' : 'Select a category'}
@@ -319,105 +323,160 @@ export default function Products() {
                       </option>
                     ))}
                   </select>
-                  {errors.category && <p className="text-red-400 text-sm">{errors.category}</p>}
+                  {errors.category && <p className="text-red-600 text-sm mt-1">{errors.category}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})}
-                  rows="4" className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 resize-none"
-                  placeholder="Describe your produce..." />
-                {errors.description && <p className="text-red-400 text-sm">{errors.description}</p>}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea 
+                  value={form.description} 
+                  onChange={e => setForm({...form, description: e.target.value})}
+                  rows="4" 
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
+                  placeholder="Describe your produce..." 
+                />
+                {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Price (KSh)</label>
-                  <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="500" />
-                  {errors.price && <p className="text-red-400 text-sm">{errors.price}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price (KSh)</label>
+                  <input 
+                    type="number" 
+                    value={form.price} 
+                    onChange={e => setForm({...form, price: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                    placeholder="500" 
+                  />
+                  {errors.price && <p className="text-red-600 text-sm mt-1">{errors.price}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Unit</label>
-                  <select value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+                  <select 
+                    value={form.unit} 
+                    onChange={e => setForm({...form, unit: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  >
                     {units.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
                   </select>
-                  {errors.unit && <p className="text-red-400 text-sm">{errors.unit}</p>}
+                  {errors.unit && <p className="text-red-600 text-sm mt-1">{errors.unit}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Stock</label>
-                  <input type="number" value={form.quantityInStock} onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" placeholder="50" />
-                  {errors.quantityInStock && <p className="text-red-400 text-sm">{errors.quantityInStock}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Stock</label>
+                  <input 
+                    type="number" 
+                    value={form.quantityInStock} 
+                    onChange={e => setForm({...form, quantityInStock: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                    placeholder="50" 
+                  />
+                  {errors.quantityInStock && <p className="text-red-600 text-sm mt-1">{errors.quantityInStock}</p>}
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" checked={form.isNegotiable} onChange={e => setForm({...form, isNegotiable: e.target.checked})}
-                    className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-gray-300">Negotiable</span>
+                  <input 
+                    type="checkbox" 
+                    checked={form.isNegotiable} 
+                    onChange={e => setForm({...form, isNegotiable: e.target.checked})}
+                    className="w-5 h-5 text-green-600" 
+                  />
+                  <span className="text-sm font-medium text-gray-700">Negotiable</span>
                 </label>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Harvest Date</label>
-                  <input type="date" value={form.harvestDate} onChange={e => setForm({...form, harvestDate: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Harvest Date</label>
+                  <input 
+                    type="date" 
+                    value={form.harvestDate} 
+                    onChange={e => setForm({...form, harvestDate: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900" 
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-1">
-                  <MapPin className="w-5 h-5" />Farm Location
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+                  <MapPin className="w-5 h-5" />
+                  <span>Farm Location</span>
                 </label>
-                <input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white mb-4" placeholder="Kitengela" />
-                {errors.location && <p className="text-red-400 text-sm mb-3">{errors.location}</p>}
-                {errors.coordinates && <p className="text-red-400 text-sm mb-3">{errors.coordinates}</p>}
+                <input 
+                  type="text" 
+                  value={form.location} 
+                  onChange={e => setForm({...form, location: e.target.value})}
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 mb-4" 
+                  placeholder="Kitengela" 
+                />
+                {errors.location && <p className="text-red-600 text-sm mb-3">{errors.location}</p>}
+                {errors.coordinates && <p className="text-red-600 text-sm mb-3">{errors.coordinates}</p>}
 
                 {renderMap()}
 
-                <div className="mt-3 flex items-center gap-2 text-sm">
+                <div className="mt-3 flex items-center space-x-2 text-sm">
                   {form.coordinates ? (
-                    <><CheckCircle2 className="w-5 h-5 text-green-400" /> Location set</>
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-600" /> 
+                      <span className="text-gray-600">Location set</span>
+                    </>
                   ) : (
-                    <><AlertCircle className="w-5 h-5 text-yellow-400" /> Click map to pin</>
+                    <>
+                      <AlertCircle className="w-5 h-5 text-yellow-600" /> 
+                      <span className="text-gray-600">Click map to pin</span>
+                    </>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Photos</label>
-                <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center bg-gray-700">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Photos</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
                   <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="img" />
                   <label htmlFor="img" className="cursor-pointer">
                     <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="font-medium text-gray-300">Upload</p>
+                    <p className="font-medium text-gray-600">Upload</p>
                   </label>
-                  {uploading && <p className="text-green-400 font-medium">Uploading...</p>}
+                  {uploading && <p className="text-green-600 font-medium">Uploading...</p>}
                 </div>
                 <div className="grid grid-cols-4 gap-4 mt-6">
                   {form.images.map((img, i) => (
                     <div key={i} className="relative group">
-                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-xl border-2 border-gray-600" />
+                      <img src={img.url} alt="" className="w-full h-32 object-cover rounded-lg border border-gray-300" />
                       {img.isPrimary && <span className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Main</span>}
-                      <button type="button" onClick={() => removeImage(i)}
-                        className="absolute top-2 right-2 bg-red-600 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        type="button" 
+                        onClick={() => removeImage(i)}
+                        className="absolute top-2 right-2 bg-red-600 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
                 </div>
-                {errors.images && <p className="text-red-400 text-sm mt-2">{errors.images}</p>}
+                {errors.images && <p className="text-red-600 text-sm mt-2">{errors.images}</p>}
               </div>
 
-              <div className="flex justify-end gap-4">
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="px-6 py-3 bg-gray-700 border-2 border-gray-600 text-gray-200 rounded-xl font-medium hover:bg-gray-600 hover:border-gray-500 transition-all duration-300">Cancel</button>
-                <button type="submit" disabled={submitting}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-medium rounded-xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl border border-green-500 disabled:opacity-50 flex items-center gap-3">
-                  {submitting ? 'Submitting...' : <><CheckCircle2 className="w-5 h-5" /> Submit</>}
+              <div className="flex justify-end space-x-4">
+                <button 
+                  type="button" 
+                  onClick={() => setShowForm(false)}
+                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {submitting ? (
+                    <span>Submitting...</span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Submit</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -425,22 +484,22 @@ export default function Products() {
         )}
 
         {loading ? (
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700 p-12 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-xl font-bold text-white">Loading products...</p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600">Loading products...</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border-2 border-gray-700 text-center">
-            <div className="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-600">
-              <Package className="w-10 h-10 text-gray-400" />
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-gray-100 p-4 rounded-full mb-4">
+              <Package className="w-8 h-8 text-gray-600" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
-            <p className="text-gray-300">Try adjusting your search</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600">Try adjusting your search</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((p, i) => (
-              <div key={p._id} className="animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+              <div key={p._id}>
                 <ProductCard product={p} />
               </div>
             ))}
@@ -448,8 +507,10 @@ export default function Products() {
         )}
 
         {isSeller && !showForm && (
-          <button onClick={() => setShowForm(true)}
-            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:from-green-500 hover:to-blue-500 transition-all duration-300 lg:hidden border border-green-500">
+          <button 
+            onClick={() => setShowForm(true)}
+            className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors lg:hidden"
+          >
             <PlusCircle className="w-6 h-6" />
           </button>
         )}
