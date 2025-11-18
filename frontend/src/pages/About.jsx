@@ -42,10 +42,11 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="section-container py-8">
+        
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center mb-12">
+        <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">About Food-Net</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Leading the agricultural revolution through technology, connecting farmers directly with consumers, 
@@ -55,8 +56,10 @@ export default function About() {
 
         {/* Mission & Vision */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <Target className="w-12 h-12 text-green-600 mb-4" />
+          <div className="card p-6">
+            <div className="bg-gradient-to-r from-primary-100 to-primary-200 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <Target className="w-6 h-6 text-primary-600" />
+            </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-gray-600">
               To revolutionize Kenya's agricultural sector by providing farmers with direct market access, 
@@ -65,8 +68,10 @@ export default function About() {
             </p>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <Leaf className="w-12 h-12 text-green-600 mb-4" />
+          <div className="card p-6">
+            <div className="bg-gradient-to-r from-success-100 to-success-200 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <Leaf className="w-6 h-6 text-success-600" />
+            </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h2>
             <p className="text-gray-600">
               To be East Africa's leading agri-tech platform, ensuring food self-sufficiency while 
@@ -77,12 +82,12 @@ export default function About() {
         </div>
 
         {/* Stats Section */}
-        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 mb-12">
+        <div className="card p-8 mb-12">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Our Impact</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{stat.number}</div>
+                <div className="text-3xl font-bold text-gradient mb-2">{stat.number}</div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
@@ -94,8 +99,24 @@ export default function About() {
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">What We Do</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-                <feature.icon className="w-12 h-12 text-green-600 mb-4" />
+              <div key={index} className="card-hover p-6">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
+                  index % 6 === 0 ? 'bg-gradient-to-r from-primary-100 to-primary-200' :
+                  index % 6 === 1 ? 'bg-gradient-to-r from-success-100 to-success-200' :
+                  index % 6 === 2 ? 'bg-gradient-to-r from-accent-100 to-accent-200' :
+                  index % 6 === 3 ? 'bg-gradient-to-r from-purple-100 to-purple-200' :
+                  index % 6 === 4 ? 'bg-gradient-to-r from-blue-100 to-blue-200' :
+                  'bg-gradient-to-r from-pink-100 to-pink-200'
+                }`}>
+                  <feature.icon className={`w-6 h-6 ${
+                    index % 6 === 0 ? 'text-primary-600' :
+                    index % 6 === 1 ? 'text-success-600' :
+                    index % 6 === 2 ? 'text-accent-600' :
+                    index % 6 === 3 ? 'text-purple-600' :
+                    index % 6 === 4 ? 'text-blue-600' :
+                    'text-pink-600'
+                  }`} />
+                </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
               </div>
@@ -104,7 +125,7 @@ export default function About() {
         </div>
 
         {/* Story Section */}
-        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
+        <div className="card p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
           <div className="space-y-4 text-gray-600">
             <p>

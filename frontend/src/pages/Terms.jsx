@@ -2,33 +2,34 @@ import React from "react";
 import { Shield, Scale, FileText, Mail, MapPin } from "lucide-react";
 
 const APP_NAME = "Food-Net";
-const COMPANY_NAME = "[Food-Net]";
+const COMPANY_NAME = "Food-Net";
 
 export default function Terms() {
   return (
-    <div className="bg-gradient-to-b from-emerald-50 to-white dark:from-gray-900 dark:to-gray-950 min-h-screen py-16">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-emerald-100 dark:border-gray-700 p-8 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="section-container py-8">
+        <div className="card p-8 md:p-10">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-8">
-            <Shield className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          <div className="text-center mb-8">
+            <div className="bg-gradient-to-r from-primary-600 to-accent-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
               Terms & Conditions
             </h1>
+            <p className="text-gray-600 text-lg">
+              <strong>{APP_NAME}</strong> — Empowering Local Food Networks
+            </p>
+            <p className="text-gray-500 text-sm mt-2">
+              Last Updated: <span className="font-semibold">November 04, 2024</span>
+            </p>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-400 mb-2 text-sm">
-            <strong>{APP_NAME}</strong> — Empowering Local Food Networks
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mb-8">
-            Last Updated: <span className="font-semibold">November 04, 2025</span>
-          </p>
-
           {/* Introduction */}
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 dark:border-emerald-400 p-5 rounded-xl mb-8">
-            <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
-              These Terms of Use (“Terms”) form a legally binding agreement between{" "}
-              <strong>{COMPANY_NAME}</strong> (“we,” “our,” or “us”) and you. By
+          <div className="alert alert-info mb-8">
+            <p className="text-gray-700 leading-relaxed">
+              These Terms of Use ("Terms") form a legally binding agreement between{" "}
+              <strong>{COMPANY_NAME}</strong> ("we," "our," or "us") and you. By
               accessing or using <strong>{APP_NAME}</strong>, you acknowledge that you
               have read, understood, and agree to be bound by these Terms and our{" "}
               <strong>Privacy Policy</strong>. If you do not agree, discontinue use
@@ -37,22 +38,25 @@ export default function Terms() {
           </div>
 
           {/* Sections */}
-          <div className="space-y-10 text-gray-700 dark:text-gray-300 leading-relaxed">
+          <div className="space-y-8 text-gray-700 leading-relaxed">
             {/* 1 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4 flex items-center gap-3">
+                <Scale className="w-6 h-6" />
                 1. Acceptance and Agreement
               </h2>
-              <p>1.1. These Terms govern the relationship between you and the Company.</p>
-              <p>
-                1.2. They incorporate our Privacy Policy in compliance with the{" "}
-                <strong>Kenya Data Protection Act, 2019 (DPA)</strong>.
-              </p>
+              <div className="space-y-2">
+                <p>1.1. These Terms govern the relationship between you and the Company.</p>
+                <p>
+                  1.2. They incorporate our Privacy Policy in compliance with the{" "}
+                  <strong>Kenya Data Protection Act, 2019 (DPA)</strong>.
+                </p>
+              </div>
             </section>
 
             {/* 2 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 2. Eligibility and User Representation
               </h2>
               <ul className="list-disc pl-6 space-y-2">
@@ -63,8 +67,8 @@ export default function Terms() {
             </section>
 
             {/* 3 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 3. App Services & User Accounts
               </h2>
               <p>
@@ -75,24 +79,24 @@ export default function Terms() {
             </section>
 
             {/* 4 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 4. Prohibited Conduct
               </h2>
-              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 p-4 rounded-xl">
-                <p className="mb-2 font-semibold">You must not:</p>
+              <div className="alert alert-error">
+                <p className="font-semibold mb-3">You must not:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>Violate any Kenyan law or regulation.</li>
                   <li>Engage in fraud, cybercrime, or spam.</li>
-                  <li>Collect other users’ data without consent.</li>
+                  <li>Collect other users' data without consent.</li>
                   <li>Disrupt App performance or security.</li>
                 </ul>
               </div>
             </section>
 
             {/* 5 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 5. Intellectual Property
               </h2>
               <p>
@@ -102,8 +106,8 @@ export default function Terms() {
             </section>
 
             {/* 6 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 6. Data Protection & User Rights
               </h2>
               <p>
@@ -114,20 +118,20 @@ export default function Terms() {
             </section>
 
             {/* 7 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 7. Disclaimers & Limitation of Liability
               </h2>
               <p>
-                {APP_NAME} is provided “as is.” We do not guarantee uninterrupted
+                {APP_NAME} is provided "as is." We do not guarantee uninterrupted
                 availability. Our liability shall not exceed{" "}
                 <strong>KES 5,000</strong> or the amount you paid us in the last 12 months.
               </p>
             </section>
 
             {/* 8 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 8. Indemnification
               </h2>
               <p>
@@ -138,8 +142,8 @@ export default function Terms() {
             </section>
 
             {/* 9 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 9. Governing Law & Dispute Resolution
               </h2>
               <p>
@@ -149,30 +153,40 @@ export default function Terms() {
             </section>
 
             {/* 10 */}
-            <section>
-              <h2 className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-3">
+            <section className="card p-6">
+              <h2 className="text-2xl font-bold text-primary-600 mb-4">
                 10. Contact Information
               </h2>
-              <div className="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Mail className="w-5 h-5 text-emerald-600" />
-                  <a
-                    href="mailto:boscobrilli8@gmail.com"
-                    className="hover:text-emerald-600 font-medium"
-                  >
-                    boscobrilli8@gmail.com
-                  </a>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
-                  <span>Private Box, Nairobi — Kenya</span>
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <div className="bg-primary-100 p-2 rounded-lg">
+                      <Mail className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <a
+                        href="mailto:boscobrilli8@gmail.com"
+                        className="hover:text-primary-600 font-medium transition-colors"
+                      >
+                        boscobrilli8@gmail.com
+                      </a>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <div className="bg-primary-100 p-2 rounded-lg">
+                      <MapPin className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium">Private Box, Nairobi — Kenya</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
           </div>
 
           {/* Footer note */}
-          <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 text-sm text-center text-gray-500 dark:text-gray-500">
+          <div className="mt-12 border-t border-gray-200 pt-6 text-center text-gray-500">
             <p>
               &copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved. |
               Designed for transparency and user trust.

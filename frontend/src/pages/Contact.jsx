@@ -53,10 +53,11 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="section-container py-8">
+        
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center mb-12">
+        <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Get in touch with our team. We're here to help farmers, buyers, and logistics partners 
@@ -67,14 +68,14 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="card p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
               
               <div className="space-y-6">
                 {contactInfo.map((item, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="bg-green-100 p-3 rounded-xl">
-                      <item.icon className="w-6 h-6 text-green-600" />
+                    <div className="bg-gradient-to-r from-primary-100 to-primary-200 p-3 rounded-xl">
+                      <item.icon className="w-6 h-6 text-primary-600" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{item.title}</h3>
@@ -86,7 +87,7 @@ export default function Contact() {
               </div>
 
               {/* Contact Person */}
-              <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="mt-8 p-4 bg-primary-50 rounded-xl border border-primary-200">
                 <h3 className="font-semibold text-gray-900 mb-2">Primary Contact Person</h3>
                 <p className="text-gray-900 font-medium">Boscoh Otieno</p>
                 <p className="text-gray-600 text-sm">Head of Customer Relations</p>
@@ -94,7 +95,7 @@ export default function Contact() {
             </div>
 
             {/* Support Info */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="card p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">How Can We Help You?</h3>
               <div className="space-y-3 text-gray-600">
                 <p><strong>For Farmers:</strong> Get assistance with product listing, pricing, and market access</p>
@@ -106,58 +107,58 @@ export default function Contact() {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="card p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <div className="form-group">
+                  <label className="label">Full Name</label>
                   <input
                     type="text"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="input input-premium"
                     placeholder="Your full name"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <div className="form-group">
+                  <label className="label">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                    className="input input-premium"
                     placeholder="your@email.com"
                     required
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <div className="form-group">
+                <label className="label">Subject</label>
                 <input
                   type="text"
                   name="subject"
                   value={form.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900"
+                  className="input input-premium"
                   placeholder="What is this regarding?"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+              <div className="form-group">
+                <label className="label">Message</label>
                 <textarea
                   name="message"
                   value={form.message}
                   onChange={handleChange}
                   rows="6"
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 resize-none"
+                  className="input input-premium resize-none"
                   placeholder="Tell us how we can help you..."
                   required
                 />
@@ -166,14 +167,17 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="btn btn-primary w-full"
               >
                 {loading ? (
-                  <span>Sending...</span>
+                  <>
+                    <div className="loading-spinner w-4 h-4"></div>
+                    Sending...
+                  </>
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
-                    <span>Send Message</span>
+                    Send Message
                   </>
                 )}
               </button>
@@ -182,18 +186,27 @@ export default function Contact() {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-12 bg-white rounded-xl shadow-sm p-8 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Choose Food-Net?</h2>
-          <div className="grid md:grid-cols-3 gap-6 text-center">
+        <div className="mt-12 card p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Why Choose Food-Net?</h2>
+          <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
+              <div className="bg-gradient-to-r from-primary-100 to-primary-200 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-primary-600 font-bold">🌱</span>
+              </div>
               <h3 className="font-semibold text-gray-900 mb-2">Farmers First</h3>
               <p className="text-gray-600">Direct market access and fair pricing for your produce</p>
             </div>
             <div>
+              <div className="bg-gradient-to-r from-success-100 to-success-200 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-success-600 font-bold">⭐</span>
+              </div>
               <h3 className="font-semibold text-gray-900 mb-2">Quality Assured</h3>
               <p className="text-gray-600">Fresh, quality products with reliable delivery</p>
             </div>
             <div>
+              <div className="bg-gradient-to-r from-accent-100 to-accent-200 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-accent-600 font-bold">👥</span>
+              </div>
               <h3 className="font-semibold text-gray-900 mb-2">Community Driven</h3>
               <p className="text-gray-600">Building sustainable agricultural communities</p>
             </div>
