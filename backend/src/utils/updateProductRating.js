@@ -1,9 +1,8 @@
-// utils/updateProductRating.js
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 
 const ratingUpdateQueue = new Set();
-const DEBOUNCE_DELAY = 1200; // ms
+const DEBOUNCE_DELAY = 1200; 
 
 async function updateProductRating(productId) {
   if (!mongoose.Types.ObjectId.isValid(productId)) {

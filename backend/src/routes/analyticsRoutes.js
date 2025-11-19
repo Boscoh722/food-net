@@ -1,4 +1,3 @@
-// routes/analyticsRoutes.js
 import express from 'express';
 import { getAnalytics } from '../controllers/analyticsController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';

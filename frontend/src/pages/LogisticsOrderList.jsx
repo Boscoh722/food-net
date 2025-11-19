@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Truck, Package, ArrowLeft, Filter, Loader, AlertTriangle, Search } from 'lucide-react';
 import api from '../lib/api';
 
-// Reusable component logic for the list items (similar to DeliveryItem)
+
 const OrderListItem = ({ order, onClick }) => {
   const getStatusBadgeColor = (status) => {
     switch (status) {

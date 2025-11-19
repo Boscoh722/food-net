@@ -229,6 +229,9 @@ export const getSellerProducts = async (req, res) => {
   try {
     const sellerId = req.user.id || req.user._id;
     
+    console.log('Fetching products for seller:', sellerId); // Debug log
+
+    // Verify seller exists and is approved
     const seller = await User.findById(sellerId);
     if (!seller) {
       return res.status(404).json({
@@ -237,19 +240,42 @@ export const getSellerProducts = async (req, res) => {
       });
     }
 
+    // Check if seller is approved
+    if (!seller.approved && seller.role === 'seller') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your seller account is pending approval'
+      });
+    }
+
+    // Fetch products with proper error handling
     const products = await Product.find({ seller: sellerId })
-      .populate('seller', 'name location email');
-    
+      .populate('seller', 'name email phone location')
+      .sort({ createdAt: -1 });
+
+    console.log(`Found ${products.length} products for seller ${sellerId}`); // Debug log
+
     res.status(200).json({
       success: true,
-      data: products
+      data: products,
+      count: products.length
     });
+
   } catch (error) {
     console.error('Get seller products error:', error);
+    
+    // More specific error messages
+    let errorMessage = 'Error fetching seller products';
+    if (error.name === 'CastError') {
+      errorMessage = 'Invalid seller ID format';
+    } else if (error.name === 'ValidationError') {
+      errorMessage = 'Data validation error';
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Error fetching seller products',
-      error: error.message
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

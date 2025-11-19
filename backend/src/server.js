@@ -26,22 +26,12 @@ app.use(
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3000', 
-        'https://food-nett.vercel.app',
-        'https://food-net.onrender.com',
-      ];
-      
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://food-nett.vercel.app',
+      'https://food-net.onrender.com',
+    ],
     credentials: true,
   })
 );
@@ -90,13 +80,13 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.all(/.*/, (req, res) => {
+// Use router.use instead of app.all for catch-all
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
     method: req.method,
     timestamp: new Date().toISOString(),
-    tip: 'Check your URL or API version',
   });
 });
 
@@ -130,15 +120,12 @@ app.use((err, req, res, next) => {
 
 const connectDB = async () => {
   try {
-    const MONGO_URI =
-      process.env.NODE_ENV === "production"
-        ? process.env.MONGO_URI_PROD
-        : process.env.MONGO_URI_LOCAL;
+    const MONGO_URI = process.env.NODE_ENV === "production"
+      ? process.env.MONGO_URI_PROD
+      : process.env.MONGO_URI_LOCAL;
 
     if (!MONGO_URI) {
-      throw new Error(
-        "MongoDB URI is missing. Ensure MONGO_URI_LOCAL or MONGO_URI_PROD is set."
-      );
+      throw new Error("MongoDB URI is missing.");
     }
 
     await mongoose.connect(MONGO_URI);
@@ -154,8 +141,6 @@ connectDB();
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`API Base: http://localhost:${PORT}/api`);
 });
 
 const shutdown = (signal) => {
