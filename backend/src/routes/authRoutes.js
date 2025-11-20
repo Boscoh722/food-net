@@ -1,4 +1,3 @@
-// routes/authRoutes.js
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import {
@@ -40,7 +39,7 @@ router.patch('/reset-password/:token', authLimiter, resetPassword);
 // PROTECTED + CACHING
 router.use(protect);
 
-router.get('/me', cacheControl, getMe);  // Now 304 in 1.8ms
+router.get('/me', cacheControl, getMe); 
 router.post('/logout', logout);
 
 // 404

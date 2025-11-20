@@ -144,3 +144,30 @@ export const getLogisticsProviders = async (req, res) => {
     });
   }
 };
+export const getSellerOrders = async (req, res) => {
+  try {
+    const sellerId = req.user.id || req.user._id;
+    
+    // This assumes you have an Order model with product references
+    const orders = await Order.find({ 
+      'products.seller': sellerId 
+    })
+    .populate('user', 'name email phone')
+    .populate('products.product', 'name price images')
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: orders,
+      count: orders.length
+    });
+
+  } catch (error) {
+    console.error('Get seller orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching seller orders',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

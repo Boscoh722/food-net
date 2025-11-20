@@ -13,24 +13,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const categoryInfo = {
-  fruits: { icon: '🍎', title: 'Fresh Fruits', color: 'text-red-500', bgColor: 'from-red-500 to-pink-500' },
-  vegetables: { icon: '🥬', title: 'Fresh Vegetables', color: 'text-green-500', bgColor: 'from-green-500 to-emerald-500' },
-  grains: { icon: '🌾', title: 'Grains & Cereals', color: 'text-yellow-500', bgColor: 'from-yellow-500 to-orange-500' },
-  dairy: { icon: '🥛', title: 'Dairy Products', color: 'text-blue-500', bgColor: 'from-blue-400 to-blue-600' },
-  meats: { icon: '🥩', title: 'Meats', color: 'text-red-600', bgColor: 'from-red-600 to-red-800' },
-  fish: { icon: '🐟', title: 'Fish', color: 'text-primary-600', bgColor: 'from-cyan-400 to-blue-500' },
-  spices: { icon: '🌶️', title: 'Spices', color: 'text-orange-500', bgColor: 'from-orange-500 to-red-500' },
-  tubers: { icon: '🥔', title: 'Tubers', color: 'text-amber-500', bgColor: 'from-yellow-600 to-amber-700' },
-  herbs: { icon: '🌿', title: 'Herbs', color: 'text-green-400', bgColor: 'from-green-400 to-green-600' },
-  nuts: { icon: '🥜', title: 'Nuts', color: 'text-amber-600', bgColor: 'from-amber-500 to-yellow-600' },
-  other: { icon: '📦', title: 'Other Products', color: 'text-gray-500', bgColor: 'from-gray-400 to-gray-600' }
-};
-
 export default function CategoryProducts() {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState({});
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
@@ -38,22 +26,52 @@ export default function CategoryProducts() {
   const defaultCenter = [-1.2921, 36.8219];
 
   useEffect(() => {
-    const loadCategoryProducts = async () => {
-      setLoading(true);
-      setError(null);
+    const loadCategories = async () => {
       try {
-        const { data } = await api.get(`/products/category/${category}?search=${encodeURIComponent(searchQuery)}`);
-        setProducts(data.data || []);
+        const { data } = await api.get('/categories');
+        const categoriesMap = {};
+        data.data.forEach(cat => {
+          categoriesMap[cat.slug || cat.name.toLowerCase()] = {
+            icon: cat.icon || '📦',
+            title: cat.name,
+            color: cat.color || 'text-gray-500',
+            bgColor: cat.bgColor || 'from-gray-400 to-gray-600'
+          };
+        });
+        setCategories(categoriesMap);
       } catch (err) {
-        console.error('Failed to load category products:', err);
-        setError('Failed to load products');
+        console.error('Failed to load categories:', err);
       } finally {
-        setLoading(false);
+        setCategoriesLoading(false);
       }
     };
 
-    loadCategoryProducts();
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadCategoryProducts();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [category, searchQuery]);
+
+  const loadCategoryProducts = async () => {
+    if (categoriesLoading) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.get(`/products/category/${category}?search=${encodeURIComponent(searchQuery)}`);
+      setProducts(data.data || []);
+    } catch (err) {
+      console.error('Failed to load category products:', err);
+      setError('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const mapCenter = useMemo(() => {
     const productsWithCoords = products.filter(p => 
@@ -69,7 +87,14 @@ export default function CategoryProducts() {
     return [avgLat, avgLng];
   }, [products]);
 
-  if (!categoryInfo[category]) {
+  const currentCategory = categories[category] || {
+    icon: '📦',
+    title: category?.charAt(0).toUpperCase() + category?.slice(1) || 'Category',
+    color: 'text-gray-500',
+    bgColor: 'from-gray-400 to-gray-600'
+  };
+
+  if (!categoriesLoading && !categories[category]) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <div className="container mx-auto px-6 py-8">
@@ -84,7 +109,17 @@ export default function CategoryProducts() {
     );
   }
 
-  const currentCategory = categoryInfo[category];
+  if (categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">

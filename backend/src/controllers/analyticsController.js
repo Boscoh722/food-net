@@ -312,18 +312,3 @@ export const getAnalytics = async (req, res) => {
   }
 };
 
-// Helper function to generate mock chart data
-function generateMockChartData(startDate, endDate, min, max) {
-  const data = [];
-  const currentDate = new Date(startDate);
-  
-  while (currentDate <= endDate) {
-    data.push({
-      date: currentDate.toISOString().split('T')[0],
-      value: Math.floor(Math.random() * (max - min + 1)) + min
-    });
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  
-  return data;
-}

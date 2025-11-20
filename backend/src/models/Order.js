@@ -10,21 +10,25 @@ const OrderItemSchema = new mongoose.Schema({
   productImage: { type: String },
 }, { _id: false });
 
+function arrayMinLength(val) {
+  return val.length > 0;
+}
+
 const OrderSchema = new mongoose.Schema(
   {
     orderNumber: { type: String, unique: true },
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    items: { type: [OrderItemSchema], validate: [v => v.length > 0, 'Order must have items'] },
+    items: { 
+      type: [OrderItemSchema], 
+      validate: [arrayMinLength, 'Order must have at least one item'] 
+    },
     total: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'],
       default: 'pending',
     },
-    totalPrice: { type: Number, required: true, min: 0 },
-    quaantity: { type: Number, required: true, min: 1 },
-    price: { type: Number, required: true, min: 0 },
     shippingAddress: { type: String, required: true, trim: true },
     paymentMethod: { type: String, enum: ['mpesa', 'card', 'cash', 'wallet'], required: true },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
@@ -47,9 +51,6 @@ OrderSchema.index({ status: 1, createdAt: -1 });
 OrderSchema.index({ logistics: 1, status: 1 });
 OrderSchema.index({ trackingNumber: 1 });
 
-
-function arrayMinLength(val) { return val.length > 0; }
-
 OrderSchema.pre('save', async function (next) {
   if (this.isNew && !this.orderNumber) {
     const counter = await Counter.findOneAndUpdate(
@@ -60,7 +61,6 @@ OrderSchema.pre('save', async function (next) {
     this.orderNumber = `ORD-${String(counter.seq).padStart(6, '0')}`;
   }
 
-  // Validate subtotals
   this.items.forEach(item => {
     const expected = item.quantity * item.unitPrice;
     if (Math.abs(item.subtotal - expected) > 0.01) {

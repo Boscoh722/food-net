@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { type } from 'os';
 
 const UserSchema = new mongoose.Schema(
   {
@@ -9,7 +8,7 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: /^\S+@\S+\.\S+$/ },
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ['admin', 'seller', 'buyer', 'logistics'], required: true, default: 'buyer' },
-    idNumber: { type: String, required: function () { return ['seller', 'buyer'].includes(this.role); }, match: /^\d{8,12}$/, select: 'false' },
+    idNumber: { type: String, required: function () { return ['seller', 'buyer'].includes(this.role); }, match: /^\d{8,12}$/, select: false }, // Fixed: removed quotes around false
     phone: { type: String, required: function () { return this.role !== 'admin'; }, match: /^\+?\d{10,15}$/, unique: true, sparse: true },
     location: { type: String, required: function () { return this.role === 'logistics'; } },
     reach: { type: String, required: function () { return this.role === 'logistics'; } },
@@ -21,7 +20,7 @@ const UserSchema = new mongoose.Schema(
     passwordResetExpires: { type: Date, select: false },
     lastLogin: { type: Date },
     isActive: { type: Boolean, default: true },
-    lastActive:{type:Date, default:Date.now},
+    lastActive: { type: Date, default: Date.now },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -33,7 +32,6 @@ UserSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
-
 
 UserSchema.set('toJSON', {
   transform: (doc, ret) => {

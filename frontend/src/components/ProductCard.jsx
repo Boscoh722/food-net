@@ -44,12 +44,10 @@ export default function ProductCard({ product }) {
           </div>
         </div>
         
-        {/* Price Badge */}
         <div className="absolute top-4 right-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white px-4 py-2 rounded-2xl text-sm font-bold shadow-glow border border-primary-500/30">
           KSh {product.price?.toLocaleString() || '0'}
         </div>
         
-        {/* Unit Badge */}
         {product.unit && (
           <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-300/50 shadow-sm">
             / {product.unit}
