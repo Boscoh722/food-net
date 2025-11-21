@@ -75,7 +75,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Use router.use instead of app.all for catch-all
 app.use((req, res) => {
   res.status(404).json({
     success: false,
