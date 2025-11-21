@@ -10,7 +10,7 @@ const config = {
   }
 };
 
-const environment = import.meta.env.MODE || 'development';
+const environment = import.meta.env.MODE || 'production';
 const { baseURL } = config[environment];
 
 const api = axios.create({
