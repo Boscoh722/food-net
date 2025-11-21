@@ -30,7 +30,7 @@ app.use(
       'http://localhost:5173',
       'http://localhost:3000',
       'https://food-nett.vercel.app',
-      'https://food-net.onrender.com',
+      'https://food-net.onrender.com/api',
     ],
     credentials: true,
   })

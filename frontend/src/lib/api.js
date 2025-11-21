@@ -6,7 +6,7 @@ const config = {
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   },
   production: {
-    baseURL: import.meta.env.VITE_API_URL, // must use import.meta.env
+    baseURL: import.meta.env.VITE_API_URL, 
   },
 };
 
