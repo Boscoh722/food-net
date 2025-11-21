@@ -177,7 +177,6 @@ router.get(
     } catch (err) {
       console.error('Seller orders error:', err);
       
-      // If orders fail, return empty array instead of error
       res.json({
         success: true,
         orders: [],

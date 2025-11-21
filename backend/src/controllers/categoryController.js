@@ -21,7 +21,6 @@ export const createCategory = async (req, res) => {
   try {
     const { name, icon, description, parentCategory } = req.body;
 
-    // slug is generated automatically in pre-save middleware
     const category = new Category({
       name,
       icon: icon || '📦',

@@ -26,3 +26,5 @@ dist-ssr
 .env.test
 seedAdmin.js
 seeder.js
+seedCategories.js
+
