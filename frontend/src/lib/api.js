@@ -6,7 +6,7 @@ const config = {
     baseURL: 'http://localhost:5000/api',
   },
   production: {
-    baseURL: 'https://food-net.onrender.com',
+    baseURL: 'VITE_API_URL',
   }
 };
 
