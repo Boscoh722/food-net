@@ -3,16 +3,18 @@ import axios from 'axios';
 // Configuration for different environments
 const config = {
   development: {
-    baseURL: 'http://localhost:5000/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   },
   production: {
-    baseURL: 'VITE_API_URL',
-  }
+    baseURL: import.meta.env.VITE_API_URL, // must use import.meta.env
+  },
 };
 
+// Determine current environment
 const environment = import.meta.env.MODE || 'production';
 const { baseURL } = config[environment];
 
+// Create Axios instance
 const api = axios.create({
   baseURL,
   withCredentials: true,
@@ -22,12 +24,13 @@ const api = axios.create({
   },
 });
 
+// Optional: add token automatically from localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+}, (error) => Promise.reject(error));
 
 export default api;
