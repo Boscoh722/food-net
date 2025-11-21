@@ -62,7 +62,7 @@ const ProductSchema = new mongoose.Schema({
     required: [true, 'Product unit is required'],
     trim: true,
     enum: {
-      values: ['kg', 'g', 'lb', 'oz', 'piece', 'bunch', 'bag', 'box', 'crate', 'other'],
+      values: ['kg','g','ton','L','ml','piece','dozen','crate','sack','bag','bunch','basket','tray','head'],
       message: 'Invalid unit type'
     }
   },

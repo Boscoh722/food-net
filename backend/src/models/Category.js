@@ -34,24 +34,11 @@ const CategorySchema = new mongoose.Schema(
       default: '📦',
       validate: {
         validator: function(icon) {
-          return /^[\u{1F300}-\u{1F9FF}]|[\w-]+$/u.test(icon);
+          const emojiRegex = /^\p{Emoji_Presentation}+$/u; 
+          const stringRegex = /^[\w-]+$/; 
+          return emojiRegex.test(icon) || stringRegex.test(icon);
         },
         message: 'Invalid icon format'
-      }
-    },
-    parentCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      default: null,
-      validate: {
-        validator: async function(parentId) {
-          if (!parentId) return true; 
-          if (this._id && parentId.equals(this._id)) return false; 
-          
-          const parent = await mongoose.model('Category').findById(parentId);
-          return !!parent;
-        },
-        message: 'Invalid parent category or circular reference'
       }
     },
     isActive: {
@@ -99,21 +86,11 @@ const CategorySchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-CategorySchema.index({ slug: 1 });
 CategorySchema.index({ name: 'text', description: 'text' });
-CategorySchema.index({ parentCategory: 1 });
 CategorySchema.index({ isActive: 1, sortOrder: 1 });
 CategorySchema.index({ sortOrder: 1, name: 1 });
 
-// Virtual for child categories
-CategorySchema.virtual('childCategories', {
-  ref: 'Category',
-  localField: '_id',
-  foreignField: 'parentCategory',
-  options: { sort: { sortOrder: 1, name: 1 } }
-});
-
-// Virtual for product count
+// Virtuals - Removed child-related virtuals
 CategorySchema.virtual('productCount', {
   ref: 'Product',
   localField: '_id',
@@ -121,24 +98,17 @@ CategorySchema.virtual('productCount', {
   count: true
 });
 
-// Virtual for active products count
 CategorySchema.virtual('activeProductCount', {
   ref: 'Product',
   localField: '_id',
   foreignField: 'category',
   count: true,
-  match: { approved: true } // Only count approved products
+  match: { approved: true }
 });
 
-// Virtual to check if category has children
-CategorySchema.virtual('hasChildren').get(function() {
-  // This will be populated when using .populate('childCategories')
-  return this.childCategories && this.childCategories.length > 0;
-});
-
-// Pre-save middleware for slug generation
 CategorySchema.pre('save', async function (next) {
-  if (!this.isModified('name')) return next();
+
+  if (!this.isNew && !this.isModified('name')) return next();
 
   let baseSlug = slugify(this.name, { 
     lower: true, 
@@ -148,7 +118,7 @@ CategorySchema.pre('save', async function (next) {
   
   let candidateSlug = baseSlug;
   let count = 0;
-  const maxAttempts = 100; // Safety limit
+  const maxAttempts = 100;
 
   while (count < maxAttempts) {
     const existing = await this.constructor.findOne({
@@ -180,81 +150,15 @@ CategorySchema.pre('save', async function (next) {
   next();
 });
 
-// Pre-remove middleware to handle category deletion
-CategorySchema.pre('remove', async function (next) {
-  const Product = mongoose.model('Product');
-  const Category = mongoose.model('Category');
-  
-  // Check if category has products
-  const productCount = await Product.countDocuments({ category: this._id });
-  if (productCount > 0) {
-    return next(new Error(`Cannot delete category with ${productCount} associated products`));
-  }
-  
-  // Check if category has children
-  const childCount = await Category.countDocuments({ parentCategory: this._id });
-  if (childCount > 0) {
-    return next(new Error(`Cannot delete category with ${childCount} sub-categories`));
-  }
-  
-  next();
-});
-
-// Static method to get active categories with product counts
+// Statics and Query Helpers
 CategorySchema.statics.getActiveCategories = function() {
   return this.find({ isActive: true })
     .sort({ sortOrder: 1, name: 1 })
-    .populate('productCount')
-    .populate('childCategories');
+    .populate('productCount');
 };
 
-// Static method to get category tree
-CategorySchema.statics.getCategoryTree = function() {
-  return this.aggregate([
-    { $match: { isActive: true } },
-    {
-      $graphLookup: {
-        from: 'categories',
-        startWith: '$_id',
-        connectFromField: '_id',
-        connectToField: 'parentCategory',
-        as: 'descendants',
-        depthField: 'depth'
-      }
-    },
-    { $sort: { sortOrder: 1, name: 1 } }
-  ]);
-};
-
-// Instance method to get full category path
-CategorySchema.methods.getFullPath = async function() {
-  const path = [this];
-  let current = this;
-  
-  while (current.parentCategory) {
-    const parent = await mongoose.model('Category')
-      .findById(current.parentCategory)
-      .select('name slug parentCategory');
-    
-    if (parent) {
-      path.unshift(parent);
-      current = parent;
-    } else {
-      break;
-    }
-  }
-  
-  return path;
-};
-
-// Query helper for active categories
 CategorySchema.query.active = function() {
   return this.where({ isActive: true });
-};
-
-// Query helper for root categories (no parent)
-CategorySchema.query.root = function() {
-  return this.where({ parentCategory: null });
 };
 
 export default mongoose.model('Category', CategorySchema);

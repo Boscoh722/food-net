@@ -6,7 +6,7 @@ const config = {
     baseURL: 'http://localhost:5000/api',
   },
   production: {
-    baseURL: '/api',
+    baseURL: 'https://food-net.onrender.com',
   }
 };
 

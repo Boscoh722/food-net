@@ -3,83 +3,133 @@ import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 
+
 export const createProductValidations = [
   body('name').trim().notEmpty().withMessage('Product name is required'),
   body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
-  body('category').isIn([
-    'fruits', 'vegetables', 'grains', 'dairy', 'meats', 'fish', 
-    'spices', 'tubers', 'nuts', 'herbs', 'other'
-  ]).withMessage('Invalid category'),
+
+  body('category')
+    .notEmpty().withMessage('Category is required')
+    .isMongoId().withMessage('Invalid category ID format. Category must be a valid ObjectId.'),
+
   body('price').isNumeric().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('location').trim().notEmpty().withMessage('Location is required'),
   body('unit').trim().notEmpty().withMessage('Unit of measurement is required'),
   body('quantityInStock').isNumeric().isInt({ min: 1 }).withMessage('Quantity in stock must be a positive integer'),
   body('isNegotiable').isBoolean().withMessage('Is negotiable must be a boolean value'),
-  body('harvestDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid harvest date format')
+  body('harvestDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid harvest date format'),
+
+  // Images validation
+  body('images').isArray({ min: 1 }).withMessage('At least one image is required'),
+  body('images.*.url').isURL().withMessage('Image URL is invalid'),
+  body('images.*.publicId').notEmpty().withMessage('Image publicId is required'),
+  body('images.*.isPrimary').isBoolean().withMessage('isPrimary must be a boolean'),
+
+  // GeoJSON location - UPDATED to use coordinates instead of locationGeo
+  body('coordinates.type').equals('Point').withMessage('coordinates type must be "Point"'),
+  body('coordinates.coordinates')
+    .isArray({ min: 2, max: 2 }).withMessage('Coordinates must be an array of [longitude, latitude]')
+    .custom(value => {
+      const [lng, lat] = value;
+      if (typeof lng !== 'number' || typeof lat !== 'number' || isNaN(lng) || isNaN(lat)) {
+        throw new Error('Coordinates must be numbers');
+      }
+      if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+        throw new Error('Invalid coordinate range');
+      }
+      return true;
+    }),
+
+  body('minOrderQuantity')
+    .optional({ checkFalsy: true })
+    .isNumeric()
+    .isInt({ min: 1 })
+    .withMessage('Min order quantity must be a positive integer')
 ];
 
+// =========================== CREATE PRODUCT ===========================
 export const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: 'Product creation failed. Please check your input.',
+      message: 'Validation failed',
       errors: errors.array()
     });
   }
 
   try {
-    const seller = await User.findById(req.user.id || req.user._id); 
-    if (!seller) {
-      return res.status(404).json({
-        success: false,
-        message: 'Seller not found'
-      });
-    }
-    
-    if (!seller.approved) {
-      return res.status(403).json({
-        success: false,
-        message: 'Seller not approved. Please wait for admin approval.'
-      });
-    }
+    const {
+      name,
+      description,
+      category,           // ObjectId
+      price,
+      location,
+      unit,
+      quantityInStock,
+      isNegotiable,
+      harvestDate,
+      images,
+      coordinates,        // CHANGED: from locationGeo to coordinates
+      minOrderQuantity
+    } = req.body;
 
-    const product = new Product({ 
-      ...req.body, 
-      seller: req.user.id || req.user._id 
+    const sellerId = req.user._id;
+
+    const product = new Product({
+      seller: sellerId,
+      name,
+      description,
+      category,
+      price,
+      location,
+      unit,
+      quantityInStock,
+      isNegotiable,
+      harvestDate: harvestDate || undefined,
+      images,
+      coordinates,        // CHANGED: from locationGeo to coordinates
+      minOrderQuantity
     });
-    
-    await product.save();
-    await product.populate('seller', 'name location email');
-    
+
+    await product.save(); // pre-save hook will populate categoryName & categorySlug
+
     res.status(201).json({
       success: true,
-      message: 'Product submitted successfully! Awaiting admin approval.',
-      product
+      message: 'Product created successfully and awaiting approval',
+      data: product
     });
-  } catch (err) {
-    console.error('Create product error:', err);
-    let errorMsg = 'Product creation failed.';
-    if (err.name === 'ValidationError') {
-      errorMsg = Object.values(err.errors).map(e => e.message).join(' ');
-    } else if (err.message) {
-      errorMsg = err.message;
+  } catch (error) {
+    let errorMessage = 'Server error creating product';
+
+    if (error.name === 'CastError') {
+      errorMessage = 'Invalid ID format';
+    } else if (error.name === 'ValidationError') {
+      errorMessage = error.message;
     }
-    res.status(400).json({
+
+    res.status(500).json({
       success: false,
-      message: errorMsg
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
 
+// =========================== OTHER CONTROLLERS ===========================
+
 export const getProducts = async (req, res) => {
   try {
-    const { category, search, limit = 50, page = 1 } = req.query;
+    const { category, categorySlug, search, limit = 50, page = 1 } = req.query;
     
     let query = { approved: true };
     
     if (category) {
       query.category = category;
+    }
+    
+    if (categorySlug) {
+      query.categorySlug = categorySlug;
     }
     
     if (search) {
@@ -115,43 +165,84 @@ export const getProducts = async (req, res) => {
 };
 
 export const getProductsByCategory = async (req, res) => {
-  try {
-    const { categorySlug } = req.params;
-    const { search, limit = 50, page = 1 } = req.query;
-    
-    let query = { 
-      approved: true,
-      category: categorySlug 
-    };
-    
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } }
-      ];
-    }
+  req.query.categorySlug = req.params.category;
+  return getProducts(req, res);
+};
 
-    const products = await Product.find(query)
-      .populate('seller', 'name location email')
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .sort({ createdAt: -1 });
-    
-    const total = await Product.countDocuments(query);
-    
+export const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate('seller', 'name location email');
+
     res.json({
       success: true,
-      data: products,
-      total,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page)
+      data: products
     });
   } catch (err) {
-    console.error('Get category products error:', err);
-    res.status(500).json({ 
+    console.error('Get all products error:', err);
+    res.status(500).json({
       success: false,
-      message: 'Server error fetching category products' 
+      message: 'Server error fetching all products'
+    });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+  } catch (err) {
+    console.error('Delete product error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error deleting product'
+    });
+  }
+};
+
+export const getSellerProducts = async (req, res) => {
+  try {
+    const sellerId = req.user.id || req.user._id;
+
+    const seller = await User.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: 'Seller not found'
+      });
+    }
+
+    if (!seller.approved && seller.role === 'seller') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your seller account is pending approval'
+      });
+    }
+
+    const products = await Product.find({ seller: sellerId })
+      .populate('seller', 'name email phone location')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: products,
+      count: products.length
+    });
+  } catch (error) {
+    console.error('Get seller products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching seller products'
     });
   }
 };
@@ -159,17 +250,17 @@ export const getProductsByCategory = async (req, res) => {
 export const approveProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (!product) {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
-    
+
     product.approved = true;
     await product.save();
-    
+
     res.json({ 
       success: true,
       message: 'Product approved successfully' 
@@ -179,103 +270,6 @@ export const approveProduct = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: 'Server error approving product' 
-    });
-  }
-};
-
-export const getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.find()
-      .populate('seller', 'name location email');
-    
-    res.json({
-      success: true,
-      data: products
-    });
-  } catch (err) {
-    console.error('Get all products error:', err);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server error fetching all products' 
-    });
-  }
-};
-
-export const deleteProduct = async (req, res) => {
-  try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-    
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-    
-    res.json({ 
-      success: true,
-      message: 'Product deleted successfully' 
-    });
-  } catch (err) {
-    console.error('Delete product error:', err);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server error deleting product' 
-    });
-  }
-};
-
-export const getSellerProducts = async (req, res) => {
-  try {
-    const sellerId = req.user.id || req.user._id;
-    
-    console.log('Fetching products for seller:', sellerId); // Debug log
-
-    // Verify seller exists and is approved
-    const seller = await User.findById(sellerId);
-    if (!seller) {
-      return res.status(404).json({
-        success: false,
-        message: 'Seller not found'
-      });
-    }
-
-    // Check if seller is approved
-    if (!seller.approved && seller.role === 'seller') {
-      return res.status(403).json({
-        success: false,
-        message: 'Your seller account is pending approval'
-      });
-    }
-
-    // Fetch products with proper error handling
-    const products = await Product.find({ seller: sellerId })
-      .populate('seller', 'name email phone location')
-      .sort({ createdAt: -1 });
-
-    console.log(`Found ${products.length} products for seller ${sellerId}`); // Debug log
-
-    res.status(200).json({
-      success: true,
-      data: products,
-      count: products.length
-    });
-
-  } catch (error) {
-    console.error('Get seller products error:', error);
-    
-    // More specific error messages
-    let errorMessage = 'Error fetching seller products';
-    if (error.name === 'CastError') {
-      errorMessage = 'Invalid seller ID format';
-    } else if (error.name === 'ValidationError') {
-      errorMessage = 'Data validation error';
-    }
-
-    res.status(500).json({
-      success: false,
-      message: errorMessage,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -291,8 +285,7 @@ export const getProductDetails = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(id)
-      .populate('seller', 'name location email phone');
+    const product = await Product.findById(id).populate('seller', 'name location email phone');
 
     if (!product) {
       return res.status(404).json({
@@ -301,24 +294,25 @@ export const getProductDetails = async (req, res) => {
       });
     }
 
+    // Admins can see unapproved products, regular users cannot
     if (req.user && req.user.role === 'admin') {
-      res.status(200).json({
-        success: true,
-        data: product
-      });
-    } else {
-      if (!product.approved) {
-        return res.status(404).json({
-          success: false,
-          message: 'Product not found'
-        });
-      }
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         data: product
       });
     }
 
+    if (!product.approved) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product
+    });
   } catch (err) {
     console.error('Get product details error:', err);
     res.status(500).json({

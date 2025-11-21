@@ -19,15 +19,19 @@ export const getCategories = async (req, res) => {
 
 export const createCategory = async (req, res) => {
   try {
-    const { name, icon } = req.body;
-    
+    const { name, icon, description, parentCategory } = req.body;
+
+    // slug is generated automatically in pre-save middleware
     const category = new Category({
       name,
-      icon: icon || '📦'
+      icon: icon || '📦',
+      description: description || '',
+      parentCategory: parentCategory || null,
+      createdBy: req.user._id  // REQUIRED
     });
-    
+
     await category.save();
-    
+
     res.status(201).json({
       success: true,
       message: 'Category created successfully',
@@ -35,18 +39,14 @@ export const createCategory = async (req, res) => {
     });
   } catch (err) {
     console.error('Create category error:', err);
-    if (err.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category already exists'
-      });
-    }
-    res.status(500).json({ 
+
+    res.status(500).json({
       success: false,
-      message: 'Server error creating category' 
+      message: err.message || 'Server error creating category'
     });
   }
 };
+
 
 export const updateCategory = async (req, res) => {
   try {
