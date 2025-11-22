@@ -5,7 +5,7 @@ const CategorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Category name is required'],
+      required: [false, 'Category name is required'],
       trim: true,
       unique: true,
       minlength: [2, 'Category name must be at least 2 characters'],
@@ -19,7 +19,7 @@ const CategorySchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       lowercase: true,
       immutable: true, 
