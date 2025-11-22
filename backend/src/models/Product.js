@@ -256,7 +256,7 @@ ProductSchema.pre('save', async function(next) {
       const category = await mongoose.model('Category').findById(this.category);
       if (category) {
         this.categoryName = category.name;
-        this.categorySlug = category.slug;
+        this.categorySlug = category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
       } else {
         throw new Error('Referenced category not found');
       }
