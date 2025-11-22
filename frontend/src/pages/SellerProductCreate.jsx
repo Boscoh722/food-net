@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import axios from 'axios';
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -71,25 +70,25 @@ export default function SellerProductCreate() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get('/api/categories'); // your backend endpoint
-        if (data.success) {
-          const activeCategories = data.data.filter(cat => cat.isActive);
-          setCategories(activeCategories);
-        } else {
-          setCategories([]);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get('/categories'); 
+      if (data.success) {
+        setCategories(data.data);
+      } else {
         setCategories([]);
-      } finally {
-        setLoadingCategories(false);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      console.log('Full error details:', err.response?.data);
+      setCategories([]);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
-    fetchCategories();
-  }, []);
+  fetchCategories();
+}, []);
 
   const validate = () => {
     const err = {};
