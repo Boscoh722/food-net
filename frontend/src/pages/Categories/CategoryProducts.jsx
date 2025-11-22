@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Search, ArrowLeft, Grid, List } from 'lucide-react';
 import api from '../../lib/api';
@@ -25,6 +25,7 @@ export default function CategoryProducts() {
 
   const defaultCenter = [-1.2921, 36.8219];
 
+  // Load categories once on component mount
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -41,37 +42,41 @@ export default function CategoryProducts() {
         setCategories(categoriesMap);
       } catch (err) {
         console.error('Failed to load categories:', err);
+        setError('Failed to load categories');
       } finally {
         setCategoriesLoading(false);
       }
     };
 
     loadCategories();
-  }, []);
+  }, []); 
 
   useEffect(() => {
+   
+    if (categoriesLoading) return;
+
+    const loadCategoryProducts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await api.get(`/products/category/${category}?search=${encodeURIComponent(searchQuery)}`);
+        setProducts(data.data || []);
+      } catch (err) {
+        console.error('Failed to load category products:', err);
+        setError('Failed to load products');
+        setProducts([]); // Clear products on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Add debouncing for search
     const timeoutId = setTimeout(() => {
       loadCategoryProducts();
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [category, searchQuery]);
-
-  const loadCategoryProducts = async () => {
-    if (categoriesLoading) return;
-    
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await api.get(`/products/category/${category}?search=${encodeURIComponent(searchQuery)}`);
-      setProducts(data.data || []);
-    } catch (err) {
-      console.error('Failed to load category products:', err);
-      setError('Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [category, searchQuery, categoriesLoading]); 
 
   const mapCenter = useMemo(() => {
     const productsWithCoords = products.filter(p => 
@@ -94,6 +99,9 @@ export default function CategoryProducts() {
     bgColor: 'from-gray-400 to-gray-600'
   };
 
+  // Show loading only when categories are loading OR when products are loading and categories are done
+  const showLoading = categoriesLoading || (loading && !categoriesLoading);
+
   if (!categoriesLoading && !categories[category]) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -109,7 +117,7 @@ export default function CategoryProducts() {
     );
   }
 
-  if (categoriesLoading) {
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <div className="container mx-auto px-6 py-8">
@@ -134,7 +142,7 @@ export default function CategoryProducts() {
               <div>
                 <h1 className="text-4xl font-bold">{currentCategory.title}</h1>
                 <p className="text-white/80 mt-2">
-                  {products.length} {products.length === 1 ? 'product' : 'products'} available
+                  {loading ? 'Loading...' : `${products.length} ${products.length === 1 ? 'product' : 'products'} available`}
                 </p>
               </div>
             </div>
@@ -238,7 +246,6 @@ export default function CategoryProducts() {
     </div>
   );
 }
-
 const ProductGridCard = ({ product, category }) => (
   <Link
     to={`/product/${product._id}`}
