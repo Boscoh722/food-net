@@ -168,7 +168,7 @@ export default function SellerProductCreate() {
     try {
       const coordinatesData = form.coordinates && form.coordinates.length === 2 ? {
         type: 'Point',
-        coordinates: form.coordinates
+        coordinates: [form.coordinates[1], form.coordinates[0]]
       } : undefined;
 
       const payload = {
