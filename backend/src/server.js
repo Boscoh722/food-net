@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(
   helmet({
@@ -63,7 +64,7 @@ app.use('/api/seller', sellerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.status(200).json({
     success: true,
