@@ -38,12 +38,12 @@ const ProductSchema = new mongoose.Schema({
   },
   categoryName: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   categorySlug: {
     type: String,
-    required: true,
+    required: false,
     lowercase: true
   },
   price: {
