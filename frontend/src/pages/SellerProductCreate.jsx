@@ -178,9 +178,7 @@ export default function SellerProductCreate() {
     try {
       // Prepare Payload
       const selectedCategory = categories.find(c => c._id === form.category);
-      const categoryName = selectedCategory ? selectedCategory.name : '';
-      // Fallback for slug generation if missing
-      const categorySlug = selectedCategory?.slug || categoryName.toLowerCase().replace(/\s+/g, '-');
+
 
       const payload = {
         name: form.name.trim(),
@@ -196,7 +194,7 @@ export default function SellerProductCreate() {
         location: form.location.trim(),
         coordinates: {
           type: 'Point',
-          coordinates: [form.coordinates[1], form.coordinates[0]] // GeoJSON expects [lng, lat]
+          coordinates: [form.coordinates[1], form.coordinates[0]]
         },
         harvestDate: form.harvestDate || undefined,
         images: form.images

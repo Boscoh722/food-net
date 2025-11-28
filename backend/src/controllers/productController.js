@@ -25,7 +25,7 @@ export const createProductValidations = [
   body('images.*.publicId').notEmpty().withMessage('Image publicId is required'),
   body('images.*.isPrimary').isBoolean().withMessage('isPrimary must be a boolean'),
 
-  // GeoJSON location - UPDATED to use coordinates instead of locationGeo
+  // GeoJSON location
   body('coordinates.type').equals('Point').withMessage('coordinates type must be "Point"'),
   body('coordinates.coordinates')
     .isArray({ min: 2, max: 2 }).withMessage('Coordinates must be an array of [longitude, latitude]')
@@ -95,8 +95,6 @@ export const createProduct = async (req, res) => {
       name,
       description,
       category,
-      categoryName: finalCategoryName,
-      categorySlug: finalCategorySlug,
       price,
       location,
       unit,

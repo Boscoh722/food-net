@@ -25,11 +25,11 @@ const ProductSchema = new mongoose.Schema({
     ref: 'Category',
     required: [true, 'Product category is required'],
     validate: {
-      validator: async function(categoryId) {
+      validator: async function (categoryId) {
         if (!mongoose.Types.ObjectId.isValid(categoryId)) return false;
-        const category = await mongoose.model('Category').findOne({ 
-          _id: categoryId, 
-          isActive: true 
+        const category = await mongoose.model('Category').findOne({
+          _id: categoryId,
+          isActive: true
         });
         return !!category;
       },
@@ -38,12 +38,10 @@ const ProductSchema = new mongoose.Schema({
   },
   categoryName: {
     type: String,
-    required: false,
     trim: true
   },
   categorySlug: {
     type: String,
-    required: false,
     lowercase: true
   },
   price: {
@@ -51,8 +49,8 @@ const ProductSchema = new mongoose.Schema({
     required: [true, 'Product price is required'],
     min: [0, 'Price cannot be negative'],
     validate: {
-      validator: function(price) {
-        return price === 0 || price > 0; 
+      validator: function (price) {
+        return price === 0 || price > 0;
       },
       message: 'Price must be a positive number or zero'
     }
@@ -62,7 +60,7 @@ const ProductSchema = new mongoose.Schema({
     required: [true, 'Product unit is required'],
     trim: true,
     enum: {
-      values: ['kg','g','ton','L','ml','piece','dozen','crate','sack','bag','bunch','basket','tray','head'],
+      values: ['kg', 'g', 'ton', 'L', 'ml', 'piece', 'dozen', 'crate', 'sack', 'bag', 'bunch', 'basket', 'tray', 'head'],
       message: 'Invalid unit type'
     }
   },
@@ -87,7 +85,7 @@ const ProductSchema = new mongoose.Schema({
   maxOrderQuantity: {
     type: Number,
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         if (value === undefined || value === null) return true;
         return Number.isInteger(value) && value >= this.minOrderQuantity;
       },
@@ -105,8 +103,8 @@ const ProductSchema = new mongoose.Schema({
   harvestDate: {
     type: Date,
     validate: {
-      validator: function(date) {
-        if (!date) return true; 
+      validator: function (date) {
+        if (!date) return true;
         return date <= new Date();
       },
       message: 'Harvest date cannot be in the future'
@@ -115,14 +113,14 @@ const ProductSchema = new mongoose.Schema({
   expiryDate: {
     type: Date,
     validate: {
-      validator: function(date) {
-        if (!date) return true; 
+      validator: function (date) {
+        if (!date) return true;
         return date > new Date();
       },
       message: 'Expiry date must be in the future'
     }
   },
-  images: [{ 
+  images: [{
     url: {
       type: String,
       required: true
@@ -145,7 +143,7 @@ const ProductSchema = new mongoose.Schema({
       default: 0
     }
   }],
-  location: { 
+  location: {
     type: String,
     required: [true, 'Location is required'],
     trim: true,
@@ -161,12 +159,12 @@ const ProductSchema = new mongoose.Schema({
       type: [Number],
       required: true,
       validate: {
-        validator: function(arr) {
-          return Array.isArray(arr) && 
-                 arr.length === 2 && 
-                 arr.every(n => typeof n === 'number' && !isNaN(n)) &&
-                 arr[0] >= -180 && arr[0] <= 180 && // longitude
-                 arr[1] >= -90 && arr[1] <= 90;     // latitude
+        validator: function (arr) {
+          return Array.isArray(arr) &&
+            arr.length === 2 &&
+            arr.every(n => typeof n === 'number' && !isNaN(n)) &&
+            arr[0] >= -180 && arr[0] <= 180 && // longitude
+            arr[1] >= -90 && arr[1] <= 90;     // latitude
         },
         message: 'Coordinates must be valid [longitude, latitude] array'
       }
@@ -218,7 +216,7 @@ const ProductSchema = new mongoose.Schema({
     default: 0,
     min: 0
   }
-}, { 
+}, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
@@ -239,18 +237,18 @@ ProductSchema.index({ createdAt: -1 });
 ProductSchema.index({ name: 'text', description: 'text', tags: 'text' });
 
 // Virtual for low stock alert
-ProductSchema.virtual('isLowStock').get(function() {
+ProductSchema.virtual('isLowStock').get(function () {
   return this.quantityInStock < 10; // Adjust threshold as needed
 });
 
 // Virtual for available quantity (considering pending orders)
-ProductSchema.virtual('availableQuantity').get(function() {
+ProductSchema.virtual('availableQuantity').get(function () {
   // This would need to be calculated based on pending orders
   return this.quantityInStock;
 });
 
 // Pre-save middleware to sync category name and slug
-ProductSchema.pre('save', async function(next) {
+ProductSchema.pre('save', async function (next) {
   if (this.isModified('category') || !this.categoryName || !this.categorySlug) {
     try {
       const category = await mongoose.model('Category').findById(this.category);
@@ -268,11 +266,11 @@ ProductSchema.pre('save', async function(next) {
 });
 
 // Pre-validate middleware to ensure category exists
-ProductSchema.pre('validate', async function(next) {
+ProductSchema.pre('validate', async function (next) {
   if (this.isModified('category') && this.category) {
-    const category = await mongoose.model('Category').findOne({ 
-      _id: this.category, 
-      isActive: true 
+    const category = await mongoose.model('Category').findOne({
+      _id: this.category,
+      isActive: true
     });
     if (!category) {
       return next(new Error('Invalid or inactive category'));
@@ -282,14 +280,14 @@ ProductSchema.pre('validate', async function(next) {
 });
 
 // Static method to find products by category slug
-ProductSchema.statics.findByCategorySlug = function(categorySlug, options = {}) {
-  const query = { 
-    categorySlug, 
-    approved: true, 
+ProductSchema.statics.findByCategorySlug = function (categorySlug, options = {}) {
+  const query = {
+    categorySlug,
+    approved: true,
     isActive: true,
     quantityInStock: { $gt: 0 }
   };
-  
+
   return this.find(query)
     .populate('seller', 'name rating avatar')
     .populate('category', 'name slug icon')
@@ -299,7 +297,7 @@ ProductSchema.statics.findByCategorySlug = function(categorySlug, options = {}) 
 };
 
 // Static method to find nearby products
-ProductSchema.statics.findNearby = function(coordinates, maxDistance = 50000, options = {}) {
+ProductSchema.statics.findNearby = function (coordinates, maxDistance = 50000, options = {}) {
   return this.find({
     coordinates: {
       $near: {
@@ -307,7 +305,7 @@ ProductSchema.statics.findNearby = function(coordinates, maxDistance = 50000, op
           type: 'Point',
           coordinates: coordinates
         },
-        $maxDistance: maxDistance 
+        $maxDistance: maxDistance
       }
     },
     approved: true,
@@ -318,52 +316,52 @@ ProductSchema.statics.findNearby = function(coordinates, maxDistance = 50000, op
 };
 
 // Instance method to update stock
-ProductSchema.methods.updateStock = async function(quantityChange) {
+ProductSchema.methods.updateStock = async function (quantityChange) {
   const newQuantity = this.quantityInStock + quantityChange;
-  
+
   if (newQuantity < 0) {
     throw new Error('Insufficient stock');
   }
-  
+
   this.quantityInStock = newQuantity;
   return await this.save();
 };
 
 // Instance method to update rating
-ProductSchema.methods.updateRating = async function(newRating, oldRating = null) {
+ProductSchema.methods.updateRating = async function (newRating, oldRating = null) {
   const rating = this.rating;
-  
+
   if (oldRating) {
     // Update existing rating
     rating.distribution[oldRating]--;
     rating.count--;
     rating.average = ((rating.average * rating.count) - oldRating) / (rating.count || 1);
   }
-  
+
   // Add new rating
   rating.distribution[newRating]++;
   rating.count++;
   rating.average = ((rating.average * (rating.count - 1)) + newRating) / rating.count;
-  
+
   return await this.save();
 };
 
 // Query helper for active products
-ProductSchema.query.active = function() {
-  return this.where({ 
-    approved: true, 
+ProductSchema.query.active = function () {
+  return this.where({
+    approved: true,
     isActive: true,
     quantityInStock: { $gt: 0 }
   });
 };
 
 // Query helper for seller's products
-ProductSchema.query.bySeller = function(sellerId) {
+ProductSchema.query.bySeller = function (sellerId) {
   return this.where({ seller: sellerId });
 };
 
 // Query helper for category
-ProductSchema.query.byCategory = function(categoryId) {
+ProductSchema.query.byCategory = function (categoryId) {
   return this.where({ category: categoryId });
 };
 
