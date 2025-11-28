@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  ArrowLeft, MapPin, Package, Truck, DollarSign, 
-  CheckCircle, Clock, AlertTriangle, ShoppingCart,
-  User, Star, Shield, TruckIcon, Loader
+import {
+  ArrowLeft, MapPin, Package, Truck,
+  CheckCircle, AlertTriangle, ShoppingCart,
+  User, Shield, TruckIcon, Loader
 } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,7 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,7 +26,7 @@ export default function ProductDetails() {
 
   useEffect(() => {
     loadProductDetails();
-    
+
     if (location.state?.showOrderForm) {
       setShowOrderForm(true);
     }
@@ -55,7 +55,7 @@ export default function ProductDetails() {
       setLoadingLogistics(true);
       const { data } = await api.get('/users/logistics');
       setLogisticsProviders(data.data || []);
-      
+
       // Auto-select first provider if available
       if (data.data && data.data.length > 0) {
         setSelectedLogistics(data.data[0]._id);
@@ -81,9 +81,9 @@ export default function ProductDetails() {
 
     try {
       setPlacingOrder(true);
-      
+
       const selectedProvider = logisticsProviders.find(p => p._id === selectedLogistics);
-      
+
       const orderData = {
         items: [{
           product: product._id,
@@ -98,10 +98,10 @@ export default function ProductDetails() {
       };
 
       const { data } = await api.post('/orders', orderData);
-      
+
       alert('Order placed successfully!');
       navigate('/orders');
-      
+
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to place order');
     } finally {
@@ -190,11 +190,10 @@ export default function ProductDetails() {
                   <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
                   <p className="text-gray-600 capitalize mt-1">{product.category}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  product.approved 
-                    ? 'bg-green-100 text-green-800' 
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.approved
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
-                }`}>
+                  }`}>
                   {product.approved ? 'Verified' : 'Pending Approval'}
                 </span>
               </div>
@@ -210,11 +209,10 @@ export default function ProductDetails() {
                     <p className="text-sm text-blue-700 font-medium">Available Stock</p>
                     <p className="text-xl font-bold text-blue-800">{availableStock} {product.unit}</p>
                   </div>
-                  <div className={`rounded-xl p-4 border ${
-                    product.isNegotiable 
-                      ? 'bg-yellow-50 border-yellow-200' 
+                  <div className={`rounded-xl p-4 border ${product.isNegotiable
+                      ? 'bg-yellow-50 border-yellow-200'
                       : 'bg-gray-50 border-gray-200'
-                  }`}>
+                    }`}>
                     <p className="text-sm font-medium">Price Type</p>
                     <p className="text-xl font-bold">
                       {product.isNegotiable ? 'Negotiable' : 'Fixed Price'}
@@ -264,10 +262,9 @@ export default function ProductDetails() {
           {/* Order Section */}
           <div className="space-y-6">
             {showOrderForm ? (
-              /* Order Form */
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Place Your Order</h3>
-                
+
                 <div className="space-y-6">
                   {/* Quantity Selection */}
                   <div>
@@ -315,23 +312,23 @@ export default function ProductDetails() {
                         >
                           <option value="">Choose a logistics provider</option>
                           {logisticsProviders.map((provider) => (
-                            <option 
-                              key={provider._id} 
+                            <option
+                              key={provider._id}
                               value={provider._id}
                               disabled={!provider.isAvailable}
                             >
-                              {provider.name} - {provider.location} 
+                              {provider.name} - {provider.location}
                               {provider.vehicleType ? ` (${provider.vehicleType})` : ''}
                               {!provider.isAvailable ? ' - Currently Unavailable' : ''}
                             </option>
                           ))}
                         </select>
-                        
+
                         {/* Provider Details */}
                         {selectedLogistics && (
                           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                             <h4 className="font-semibold text-blue-900 mb-2">Selected Provider</h4>
-                            {logisticsProviders.map(provider => 
+                            {logisticsProviders.map(provider =>
                               provider._id === selectedLogistics && (
                                 <div key={provider._id} className="text-sm text-blue-800">
                                   <p><strong>Name:</strong> {provider.name}</p>
@@ -406,7 +403,6 @@ export default function ProductDetails() {
                 </div>
               </div>
             ) : (
-              /* Quick Order Card */
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Ready to Order?</h3>
                 <div className="space-y-4">
