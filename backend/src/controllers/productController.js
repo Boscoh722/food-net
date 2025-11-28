@@ -56,25 +56,80 @@ export const createProduct = async (req, res) => {
       message: 'Validation failed',
       errors: errors.array()
     });
-    success: true,
-      message: 'Product created successfully and awaiting approval',
-        data: product
-  });
-} catch (error) {
-  let errorMessage = 'Server error creating product';
-
-  if (error.name === 'CastError') {
-    errorMessage = 'Invalid ID format';
-  } else if (error.name === 'ValidationError') {
-    errorMessage = error.message;
   }
 
-  res.status(500).json({
-    success: false,
-    message: errorMessage,
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-  });
-}
+  try {
+    const {
+      name,
+      description,
+      category,           // ObjectId
+      categoryName,
+      categorySlug,
+      price,
+      location,
+      unit,
+      quantityInStock,
+      isNegotiable,
+      harvestDate,
+      images,
+      coordinates,        // CHANGED: from locationGeo to coordinates
+      minOrderQuantity
+    } = req.body;
+
+    const sellerId = req.user._id;
+
+    // FALLBACK: If categoryName or categorySlug are missing, fetch them
+    let finalCategoryName = categoryName;
+    let finalCategorySlug = categorySlug;
+
+    if (!finalCategoryName || !finalCategorySlug) {
+      const categoryDoc = await mongoose.model('Category').findById(category);
+      if (categoryDoc) {
+        finalCategoryName = categoryDoc.name;
+        finalCategorySlug = categoryDoc.slug;
+      }
+    }
+
+    const product = new Product({
+      seller: sellerId,
+      name,
+      description,
+      category,
+      categoryName: finalCategoryName,
+      categorySlug: finalCategorySlug,
+      price,
+      location,
+      unit,
+      quantityInStock,
+      isNegotiable,
+      harvestDate: harvestDate || undefined,
+      images,
+      coordinates,        // CHANGED: from locationGeo to coordinates
+      minOrderQuantity
+    });
+
+    await product.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully and awaiting approval',
+      data: product
+    });
+  } catch (error) {
+    let errorMessage = 'Server error creating product';
+
+    if (error.name === 'CastError') {
+      errorMessage = 'Invalid ID format';
+    } else if (error.name === 'ValidationError') {
+      errorMessage = error.message;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 };
 
 // =========================== OTHER CONTROLLERS ===========================
