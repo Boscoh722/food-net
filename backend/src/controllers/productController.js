@@ -104,7 +104,7 @@ export const createProduct = async (req, res) => {
       isNegotiable,
       harvestDate: harvestDate || undefined,
       images,
-      coordinates,        // CHANGED: from locationGeo to coordinates
+      coordinates,
       minOrderQuantity
     });
 
