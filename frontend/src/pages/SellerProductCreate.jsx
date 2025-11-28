@@ -184,8 +184,6 @@ export default function SellerProductCreate() {
         name: form.name.trim(),
         description: form.description.trim(),
         category: form.category,
-        categoryName,
-        categorySlug,
         price: Number(form.price),
         unit: form.unit,
         quantityInStock: Number(form.quantityInStock),
