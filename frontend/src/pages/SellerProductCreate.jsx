@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const KENYA_CENTER = [-1.2921, 36.8219];
-const units = ['kg', 'g', 'lb', 'oz', 'piece', 'bunch', 'bag', 'box', 'crate', 'other'];
+const units = ['kg', 'g', 'ton', 'L', 'ml', 'piece', 'dozen', 'crate', 'sack', 'bag', 'bunch', 'basket', 'tray', 'head'];
 
 function LocationMarker({ position, setPosition }) {
   const map = useMapEvents({
@@ -70,25 +70,25 @@ export default function SellerProductCreate() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const { data } = await api.get('/categories'); 
-      if (data.success) {
-        setCategories(data.data);
-      } else {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/categories');
+        if (data.success) {
+          setCategories(data.data);
+        } else {
+          setCategories([]);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        console.log('Full error details:', err.response?.data);
         setCategories([]);
+      } finally {
+        setLoadingCategories(false);
       }
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-      console.log('Full error details:', err.response?.data);
-      setCategories([]);
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
+    };
 
-  fetchCategories();
-}, []);
+    fetchCategories();
+  }, []);
 
   const validate = () => {
     const err = {};
@@ -99,12 +99,12 @@ export default function SellerProductCreate() {
     if (!form.location.trim()) err.location = 'Farm location is required';
     if (!form.category) err.category = 'Please select a category';
     if (form.images.length === 0) err.images = 'At least one product photo is required';
-    
-    const validCoords = Array.isArray(form.coordinates) && 
-                       form.coordinates.length === 2 && 
-                       form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
+
+    const validCoords = Array.isArray(form.coordinates) &&
+      form.coordinates.length === 2 &&
+      form.coordinates.every(c => typeof c === 'number' && !isNaN(c));
     if (!validCoords) err.coordinates = 'Please set your farm location on the map';
-    
+
     setErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -171,10 +171,16 @@ export default function SellerProductCreate() {
         coordinates: [form.coordinates[1], form.coordinates[0]]
       } : undefined;
 
+      const selectedCategory = categories.find(c => c._id === form.category);
+      const categoryName = selectedCategory ? selectedCategory.name : '';
+      const categorySlug = selectedCategory ? (selectedCategory.slug || selectedCategory.name.toLowerCase().replace(/\s+/g, '-')) : '';
+
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
         category: form.category,
+        categoryName,
+        categorySlug,
         price: Number(form.price),
         unit: form.unit,
         quantityInStock: Number(form.quantityInStock),
@@ -196,7 +202,7 @@ export default function SellerProductCreate() {
       console.log('Error response:', err.response?.data);
       const msg = err.response?.data?.message ||
         err.response?.data?.error ||
-        (err.response?.data?.errors && Array.isArray(err.response.data.errors) 
+        (err.response?.data?.errors && Array.isArray(err.response.data.errors)
           ? err.response.data.errors.map(x => x.msg || x.message).join(', ')
           : 'Failed to create product. Please check all fields and try again.');
       setError(msg);
@@ -218,11 +224,11 @@ export default function SellerProductCreate() {
 
         {success && (
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl flex items-center gap-3">
-            <CheckCircle2 className="w-6 h-6" /> 
+            <CheckCircle2 className="w-6 h-6" />
             {success}
           </div>
         )}
-        
+
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl">
             {error}
@@ -237,9 +243,9 @@ export default function SellerProductCreate() {
                   Product Name *
                 </label>
                 <input
-                  type="text" 
-                  value={form.name} 
-                  onChange={e => setForm({...form, name: e.target.value})}
+                  type="text"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
                   className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
                   placeholder="e.g., Fresh Sukuma Wiki"
                 />
@@ -275,7 +281,7 @@ export default function SellerProductCreate() {
                   <div className="text-xs text-gray-500 mt-1">
                     Selected: {categories.find(c => c._id === form.category)?.name}
                   </div>
-                 )}
+                )}
               </div>
             </div>
 
@@ -284,9 +290,9 @@ export default function SellerProductCreate() {
                 Description *
               </label>
               <textarea
-                value={form.description} 
-                onChange={e => setForm({...form, description: e.target.value})}
-                rows="4" 
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                rows="4"
                 className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
                 placeholder="Describe your product's quality, farming method, freshness, and any special features..."
               />
@@ -301,24 +307,24 @@ export default function SellerProductCreate() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Price (KSh) *
                 </label>
-                <input 
-                  type="number" 
-                  value={form.price} 
-                  onChange={e => setForm({...form, price: e.target.value})}
-                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors" 
-                  placeholder="500" 
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={e => setForm({ ...form, price: e.target.value })}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                  placeholder="500"
                   min="1"
                 />
                 {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Unit *
                 </label>
-                <select 
-                  value={form.unit} 
-                  onChange={e => setForm({...form, unit: e.target.value})}
+                <select
+                  value={form.unit}
+                  onChange={e => setForm({ ...form, unit: e.target.value })}
                   className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
                 >
                   {units.map(u => (
@@ -328,17 +334,17 @@ export default function SellerProductCreate() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Stock Quantity *
                 </label>
-                <input 
-                  type="number" 
-                  value={form.quantityInStock} 
-                  onChange={e => setForm({...form, quantityInStock: e.target.value})}
-                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors" 
-                  placeholder="50" 
+                <input
+                  type="number"
+                  value={form.quantityInStock}
+                  onChange={e => setForm({ ...form, quantityInStock: e.target.value })}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                  placeholder="50"
                   min="0"
                 />
                 {errors.quantityInStock && <p className="text-red-500 text-sm mt-1">{errors.quantityInStock}</p>}
@@ -348,12 +354,12 @@ export default function SellerProductCreate() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Min Order Qty *
                 </label>
-                <input 
-                  type="number" 
-                  value={form.minOrderQuantity} 
-                  onChange={e => setForm({...form, minOrderQuantity: e.target.value})}
-                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors" 
-                  placeholder="1" 
+                <input
+                  type="number"
+                  value={form.minOrderQuantity}
+                  onChange={e => setForm({ ...form, minOrderQuantity: e.target.value })}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                  placeholder="1"
                   min="1"
                 />
               </div>
@@ -361,24 +367,24 @@ export default function SellerProductCreate() {
 
             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={form.isNegotiable} 
-                  onChange={e => setForm({...form, isNegotiable: e.target.checked})}
-                  className="w-6 h-6 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-200" 
+                <input
+                  type="checkbox"
+                  checked={form.isNegotiable}
+                  onChange={e => setForm({ ...form, isNegotiable: e.target.checked })}
+                  className="w-6 h-6 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-200"
                 />
                 <span className="font-bold text-gray-700">Price is negotiable</span>
               </label>
-              
+
               <div className="flex-1">
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Harvest Date (optional)
                 </label>
-                <input 
-                  type="date" 
-                  value={form.harvestDate} 
-                  onChange={e => setForm({...form, harvestDate: e.target.value})}
-                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors" 
+                <input
+                  type="date"
+                  value={form.harvestDate}
+                  onChange={e => setForm({ ...form, harvestDate: e.target.value })}
+                  className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
                 />
               </div>
             </div>
@@ -388,40 +394,40 @@ export default function SellerProductCreate() {
                 <MapPin className="inline w-5 h-5 mr-2" />
                 Farm Location *
               </label>
-              <input 
-                type="text" 
-                value={form.location} 
-                onChange={e => setForm({...form, location: e.target.value})}
-                className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl mb-4 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors" 
-                placeholder="e.g., Kitengela, Kajiado County" 
+              <input
+                type="text"
+                value={form.location}
+                onChange={e => setForm({ ...form, location: e.target.value })}
+                className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl mb-4 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                placeholder="e.g., Kitengela, Kajiado County"
               />
               {errors.location && <p className="text-red-500 text-sm mb-3">{errors.location}</p>}
               {errors.coordinates && <p className="text-red-500 text-sm mb-3">{errors.coordinates}</p>}
 
               <div className="h-80 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-lg">
-                <MapContainer 
-                  center={form.coordinates} 
+                <MapContainer
+                  center={form.coordinates}
                   zoom={form.coordinates ? 14 : 6}
                   style={{ height: '100%', width: '100%' }}
                   key={form.coordinates.join(',')}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <LocationMarker 
-                    position={form.coordinates} 
-                    setPosition={(pos) => setForm(prev => ({ ...prev, coordinates: pos }))} 
+                  <LocationMarker
+                    position={form.coordinates}
+                    setPosition={(pos) => setForm(prev => ({ ...prev, coordinates: pos }))}
                   />
                 </MapContainer>
               </div>
-              
+
               <p className="mt-3 text-sm flex items-center gap-2">
                 {form.coordinates ? (
                   <>
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" /> 
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     Location pinned at: {form.coordinates[0].toFixed(4)}, {form.coordinates[1].toFixed(4)}
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="w-5 h-5 text-amber-600" /> 
+                    <AlertCircle className="w-5 h-5 text-amber-600" />
                     Click on the map to set your farm location
                   </>
                 )}
@@ -433,14 +439,14 @@ export default function SellerProductCreate() {
                 Product Photos * (max 5)
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-emerald-400 transition-colors">
-                <input 
-                  ref={fileInputRef} 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
-                  className="hidden" 
-                  id="img-upload" 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="img-upload"
                 />
                 <label htmlFor="img-upload" className="cursor-pointer">
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -460,9 +466,9 @@ export default function SellerProductCreate() {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     {form.images.map((img, i) => (
                       <div key={i} className="relative group">
-                        <img 
-                          src={img.url} 
-                          alt={`Product preview ${i + 1}`} 
+                        <img
+                          src={img.url}
+                          alt={`Product preview ${i + 1}`}
                           className="w-full h-32 object-cover rounded-xl shadow-md"
                         />
                         {img.isPrimary && (
@@ -470,8 +476,8 @@ export default function SellerProductCreate() {
                             Main
                           </span>
                         )}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeImage(i)}
                           className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -486,16 +492,16 @@ export default function SellerProductCreate() {
             </div>
 
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => navigate(-1)}
                 className="px-8 py-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-2xl shadow-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-200 transform hover:-translate-y-0.5"
               >
                 Cancel
               </button>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 disabled={loading || uploading}
                 className="px-10 py-4 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-bold rounded-2xl shadow-xl hover:from-emerald-700 hover:to-green-800 disabled:opacity-70 flex items-center gap-3 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-2xl"
               >
