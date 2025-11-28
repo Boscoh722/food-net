@@ -56,64 +56,25 @@ export const createProduct = async (req, res) => {
       message: 'Validation failed',
       errors: errors.array()
     });
-  }
-
-  try {
-    const {
-      name,
-      description,
-      category,           // ObjectId
-      price,
-      location,
-      unit,
-      quantityInStock,
-      isNegotiable,
-      harvestDate,
-      images,
-      coordinates,        // CHANGED: from locationGeo to coordinates
-      minOrderQuantity
-    } = req.body;
-
-    const sellerId = req.user._id;
-
-    const product = new Product({
-      seller: sellerId,
-      name,
-      description,
-      category,
-      price,
-      location,
-      unit,
-      quantityInStock,
-      isNegotiable,
-      harvestDate: harvestDate || undefined,
-      images,
-      coordinates,        // CHANGED: from locationGeo to coordinates
-      minOrderQuantity
-    });
-
-    await product.save(); // pre-save hook will populate categoryName & categorySlug
-
-    res.status(201).json({
-      success: true,
+    success: true,
       message: 'Product created successfully and awaiting approval',
-      data: product
-    });
-  } catch (error) {
-    let errorMessage = 'Server error creating product';
+        data: product
+  });
+} catch (error) {
+  let errorMessage = 'Server error creating product';
 
-    if (error.name === 'CastError') {
-      errorMessage = 'Invalid ID format';
-    } else if (error.name === 'ValidationError') {
-      errorMessage = error.message;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: errorMessage,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+  if (error.name === 'CastError') {
+    errorMessage = 'Invalid ID format';
+  } else if (error.name === 'ValidationError') {
+    errorMessage = error.message;
   }
+
+  res.status(500).json({
+    success: false,
+    message: errorMessage,
+    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+  });
+}
 };
 
 // =========================== OTHER CONTROLLERS ===========================
@@ -121,17 +82,17 @@ export const createProduct = async (req, res) => {
 export const getProducts = async (req, res) => {
   try {
     const { category, categorySlug, search, limit = 50, page = 1 } = req.query;
-    
+
     let query = { approved: true };
-    
+
     if (category) {
       query.category = category;
     }
-    
+
     if (categorySlug) {
       query.categorySlug = categorySlug;
     }
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -145,9 +106,9 @@ export const getProducts = async (req, res) => {
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
       .sort({ createdAt: -1 });
-    
+
     const total = await Product.countDocuments(query);
-    
+
     res.json({
       success: true,
       data: products,
@@ -157,9 +118,9 @@ export const getProducts = async (req, res) => {
     });
   } catch (err) {
     console.error('Get products error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error fetching products' 
+      message: 'Server error fetching products'
     });
   }
 };
@@ -261,15 +222,15 @@ export const approveProduct = async (req, res) => {
     product.approved = true;
     await product.save();
 
-    res.json({ 
+    res.json({
       success: true,
-      message: 'Product approved successfully' 
+      message: 'Product approved successfully'
     });
   } catch (err) {
     console.error('Approve product error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Server error approving product' 
+      message: 'Server error approving product'
     });
   }
 };
